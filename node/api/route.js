@@ -1,0 +1,16 @@
+const routes = require('express').Router();
+
+/**
+ * @openapi
+ * /:
+ *   get:
+ *     description: Welcome to swagger-jsdoc!
+ *     responses:
+ *       200:
+ *         description: Returns a mysterious string.
+ */
+routes.get('/', (req, res) => {
+    res.send('Hello World!');
+});
+
+module.export = routes;
