@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+const path = require('path');
+
 const swaggerUi = require('swagger-ui-express');
 // const swaggerDocument = require('./swagger.json');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -21,6 +23,13 @@ const swaggerSpec = swaggerJsdoc(options);
 
 const cors = require('cors');
 app.use(cors());
+
+// UI
+app.use(express.static('signin'));
+app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
+app.use('/public', express.static(path.join(__dirname, '/ui/public')));
+// 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
