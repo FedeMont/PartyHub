@@ -56,14 +56,15 @@
                     <div class="row">
                         <p>
                             <label>
-                                <input type="checkbox" class="filled-in" checked="checked" />
+                                <input type="checkbox" class="filled-in" id="terms_cond" required="true" />
                                 <span class="grey-text">Accetto i termini e le condizioni</span>
                             </label>
                         </p>
                     </div>
 
                     <div class="row">
-                        <button class="btn-large waves-effect waves-light" type="submit" id="next_button">Avanti</button>
+                        <button class="btn-large waves-effect waves-light" type="submit"
+                            id="next_button">Avanti</button>
                     </div>
                 </form>
 
@@ -84,14 +85,12 @@
                         <div class="col s7">
                             <div class="row">
                                 <div class="input-field ">
-                                    <input id="name" type="text" class="validate">
+                                    <input id="name" type="text" required="true">
                                     <label for="name">Nome</label>
-                                    <span class="helper-text" data-error="wrong" data-success="right"></span>
                                 </div>
                                 <div class="input-field">
-                                    <input id="surname" type="text" class="validate">
+                                    <input id="surname" type="text" required="true">
                                     <label for="surname">Cognome</label>
-                                    <span class="helper-text" data-error="wrong" data-success="right"></span>
                                 </div>
                             </div>
                         </div>
@@ -100,18 +99,17 @@
 
                     <div class="row">
                         <div class="input-field">
-                            <input id="birthday" type="date" class="grey-text validate">
+                            <input id="birthday" type="date" class="grey-text" required="true">
                             <label for="birthday">Data di nascita</label>
-                            <span class="helper-text" data-error="wrong" data-success="right"></span>
                         </div>
                         <div class="input-field">
-                            <input id="description" type="text" class="validate">
+                            <input id="description" type="text">
                             <label for="description">Descrizione</label>
-                            <span class="helper-text" data-error="wrong" data-success="right"></span>
                         </div>
                     </div>
                     <div class="row">
-                        <button class="btn-large waves-effect waves-light" type="submit" id="signup_button">Sign up</button>
+                        <button class="btn-large waves-effect waves-light" type="submit" id="signup_button">Sign
+                            up</button>
                     </div>
                 </form>
 
@@ -125,27 +123,88 @@
 
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
 
     <script>
 
         // Initial state: signin-form2 not displayed
-        $('#signin-form2').hide()
+        $('#signin-form2').hide();
 
         $(document).ready(function () {
             M.updateTextFields();
         });
 
         $('#form-data1').submit((e) => {
-            console.log(e)
-            e.preventDefault();
-            // TODO: Add check of value
-            // alert('ciao');
-            let username = $("#username").val()
-            let email = $("#email").val()
-            let password = $("#password").val()
 
-            $('#signin-form1').hide()
-            $('#signin-form2').show()
+            e.preventDefault();
+            let username = $("#username").val();
+            let email = $("#email").val();
+            let password = $("#password").val();
+            if ($("#terms_cond").prop('checked')) {
+
+                $.ajax({
+                    url: "/api/auth/check_availability",
+                    type: "POST",
+                    data: {
+                        username: username,
+                        email: email,
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        $('#signin-form1').hide();
+                        $('#signin-form2').show();
+
+                        $('#form-data2').submit((e) => {
+                            e.preventDefault();
+                            let name = $("#name").val();
+                            let surname = $("#surname").val();
+                            //  TODO: Add file picker
+                            // let foto = $("#").val();
+                            let birthday = $("#birthday").val();
+                            let description = $("#description").val();
+
+                            $.ajax({
+                                url: "/api/auth/signin",
+                                type: "POST",
+                                data: {
+                                    username: username,
+                                    email: email,
+                                    password: password,
+                                    name: name,
+                                    surname: surname,
+                                    // profile_picture: foto,
+                                    birthday: birthday,
+                                    description: description
+
+                                },
+                                success: (data) => {
+                                    console.log(data);
+                                    $('#signin-form1').hide();
+                                    $('#signin-form2').show();
+
+
+
+
+                                },
+                                error: (data) => {
+                                    console.log(data);
+                                    M.toast({ html: data.responseJSON.message });
+                                }
+                            });
+
+                        });
+
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            } else {
+                M.toast({ html: "Accetta i termini e le condizioni prima di proseguire." });
+
+            }
+
         })
 
     </script>
