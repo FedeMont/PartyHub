@@ -28,7 +28,7 @@ const cors = require('cors');
 app.use(cors());
 
 // routes
-const auth = require("./api/auth/signin");
+const auth = require("./api/auth/auth");
 
 app.use("/api/auth", auth);
 // end routes
