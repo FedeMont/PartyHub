@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="../public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <div class="row"></div>
+    <div class="valign-wrapper" style="height: 100%;">
+        <div class="container center-align">
+            <div class="row">
+                <div class="col s4"></div>
+                <div class="col s4">
+                    <img class="responsive-img" src="/public/images/Party_hub_logo.png">
+                </div>
+                <div class="col s4"></div>
+            </div>
+
+            <div class="row">
+                <h3>Crea account</h3>
+            </div>
+
+            <div class="row">
+                <h6 class="grey-text">Inserisci i tuoi dati</h6>
+            </div>
+
+            <div id="signin-form1">
+                <form id="form-data1">
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input id="username" type="text" required="true">
+                            <label for="username">Username</label>
+                        </div>
+
+                        <div class="input-field col s12">
+                            <input id="email" type="email" required="true">
+                            <label for="email">Email</label>
+                        </div>
+
+                        <div class="input-field col s12">
+                            <input id="password" type="password" required="true">
+                            <label for="password">Password</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <p>
+                            <label>
+                                <input type="checkbox" class="filled-in" id="terms_cond" required="true" />
+                                <span class="grey-text">Accetto i termini e le condizioni</span>
+                            </label>
+                        </p>
+                    </div>
+
+                    <div class="row">
+                        <button class="btn-large waves-effect waves-light" type="submit"
+                            id="next_button">Avanti</button>
+                    </div>
+                </form>
+
+                <div class="row">
+                    <h6 class="grey-text">Hai già un account? <a href="login" type="submit">Accedi</a></h6>
+                </div>
+            </div>
+
+            <div id="signin-form2">
+                <form id="form-data2">
+                    <div class="row valign-wrapper">
+                        <div class="col s5">
+                            <div class="input-field">
+                                <i class="medium material-icons">add_a_photo</i>
+                            </div>
+                        </div>
+
+                        <div class="col s7">
+                            <div class="row">
+                                <div class="input-field ">
+                                    <input id="name" type="text" required="true">
+                                    <label for="name">Nome</label>
+                                </div>
+                                <div class="input-field">
+                                    <input id="surname" type="text" required="true">
+                                    <label for="surname">Cognome</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="input-field">
+                            <input id="birthday" type="date" class="grey-text" required="true">
+                            <label for="birthday">Data di nascita</label>
+                        </div>
+                        <div class="input-field">
+                            <input id="description" type="text">
+                            <label for="description">Descrizione</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <button class="btn-large waves-effect waves-light" type="submit" id="signup_button">Sign
+                            up</button>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+
+        // Initial state: signin-form2 not displayed
+        $('#signin-form2').hide();
+
+        $(document).ready(function () {
+            M.updateTextFields();
+        });
+
+        $('#form-data1').submit((e) => {
+
+            e.preventDefault();
+            let username = $("#username").val();
+            let email = $("#email").val();
+            let password = $("#password").val();
+            if ($("#terms_cond").prop('checked')) {
+
+                $.ajax({
+                    url: "/api/auth/check_availability",
+                    type: "POST",
+                    data: {
+                        username: username,
+                        email: email,
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        $('#signin-form1').hide();
+                        $('#signin-form2').show();
+
+                        $('#form-data2').submit((e) => {
+                            e.preventDefault();
+                            let name = $("#name").val();
+                            let surname = $("#surname").val();
+                            //  TODO: Add file picker
+                            // let foto = $("#").val();
+                            let birthday = $("#birthday").val();
+                            let description = $("#description").val();
+
+                            $.ajax({
+                                url: "/api/auth/signin",
+                                type: "POST",
+                                data: {
+                                    username: username,
+                                    email: email,
+                                    password: password,
+                                    name: name,
+                                    surname: surname,
+                                    // profile_picture: foto,
+                                    birthday: birthday,
+                                    description: description
+
+                                },
+                                success: (data) => {
+                                    console.log(data);
+                                    $('#signin-form1').hide();
+                                    $('#signin-form2').show();
+
+
+
+
+                                },
+                                error: (data) => {
+                                    console.log(data);
+                                    M.toast({ html: data.responseJSON.message });
+                                }
+                            });
+
+                        });
+
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            } else {
+                M.toast({ html: "Accetta i termini e le condizioni prima di proseguire." });
+
+            }
+
+        })
+
+    </script>
+</body>
+
+</html>
