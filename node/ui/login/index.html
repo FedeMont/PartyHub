@@ -90,6 +90,7 @@
                 },
                 success: (data) => {
                     console.log(data);
+                    createCookie("token", data.permissions, 1);
                     // TODO: redirect 
                 },
                 error: (data) => {
