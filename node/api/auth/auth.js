@@ -17,7 +17,6 @@ const User = mongoose.model("User", documents.userSchema);
  *       500:
  *          description: Errore nella ricerca di username
  */
-
 routes.post("/check_availability", (req, res) => {
     User.findOne({username: req.body.username}, "", (err, result) => {
         if (err) {
