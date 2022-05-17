@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+const path = require('path');
+
 require("dotenv").config();
 
 app.use(express.json());
@@ -26,6 +28,12 @@ const swaggerSpec = swaggerJsdoc(options);
 
 const cors = require('cors');
 app.use(cors());
+
+// UI
+app.use('/public', express.static(path.join(__dirname, '/ui/public')));
+app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
+app.use('/login', express.static(path.join(__dirname, '/ui/login')));
+// 
 
 // routes
 const auth = require("./api/auth/auth");
