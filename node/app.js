@@ -29,8 +29,10 @@ app.use(cors());
 
 // routes
 const auth = require("./api/auth/auth");
+const event = require("./api/event/event");
 
 app.use("/api/auth", auth);
+app.use("/api/event", event);
 // end routes
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
