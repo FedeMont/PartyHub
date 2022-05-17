@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="../public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <div class="row"></div>
+    <div class="valign-wrapper" style="height: 100%;">
+        <div class="container center-align">
+            <div class="row">
+                <div class="col s4"></div>
+                <div class="col s4">
+                    <img class="responsive-img" src="/public/images/Party_hub_logo.png">
+                </div>
+                <div class="col s4"></div>
+            </div>
+
+            <div class="row">
+                <h3>Login</h3>
+            </div>
+
+            <div class="row">
+                <h6 class="grey-text">Bentornato, <br> effettua il login per continuare</h6>
+            </div>
+
+            <div id="login-form">
+                <form id="form-data">
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input id="username_email" type="text" required="true">
+                            <label for="username_email">Username o email</label>
+                        </div>
+
+                        <div class="input-field col s12">
+                            <input id="password" type="password" required="true">
+                            <label for="password">Password</label>
+                            <a href="/recupera_password" type="submit" class="right">Password dimenticata?</a>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <button class="btn-large waves-effect waves-light" type="submit" id="next_button">Log
+                            in</button>
+                    </div>
+                </form>
+
+                <div class="row">
+                    <h6 class="grey-text">Non hai un account? <a href="/signin" type="submit">Crea account</a></h6>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+            M.updateTextFields();
+        });
+
+        $('#form-data').submit((e) => {
+            e.preventDefault();
+            let username_email = $("#username_email").val();
+            let password = $("#password").val();
+
+            $.ajax({
+                url: "/api/auth/login",
+                type: "POST",
+                data: {
+                    username_email: username_email,
+                    password: password
+                },
+                success: (data) => {
+                    console.log(data);
+                    // TODO: redirect 
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+
+        });
+
+    </script>
+</body>
+
+</html>

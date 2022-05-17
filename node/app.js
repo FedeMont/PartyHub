@@ -25,9 +25,9 @@ const cors = require('cors');
 app.use(cors());
 
 // UI
-app.use(express.static('signin'));
-app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
 app.use('/public', express.static(path.join(__dirname, '/ui/public')));
+app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
+app.use('/login', express.static(path.join(__dirname, '/ui/login')));
 // 
 
 app.use(express.json());
