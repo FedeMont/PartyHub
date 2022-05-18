@@ -28,6 +28,7 @@ app.use(cors());
 app.use('/public', express.static(path.join(__dirname, '/ui/public')));
 app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
 app.use('/login', express.static(path.join(__dirname, '/ui/login')));
+app.use('/lista_nuovi_eventi', express.static(path.join(__dirname, '/ui/utente_partecipante/lista_nuovi_eventi')));
 app.use('/crea_evento', express.static(path.join(__dirname, '/ui/organizzatore/events/crea_evento')));
 // 
 
