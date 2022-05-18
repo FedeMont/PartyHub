@@ -16,9 +16,9 @@ const Event = mongoose.model("Event", documents.eventSchema);
  *       200:
  *         description: Evento creato correttamente
  *       409:
- *          description: Errore nella creazione dell'evento o Errore nell'aggiornamento dell'utente
+ *          description: Errore nella creazione dell'evento o Errore nell'aggiornamento dell'utente o Errore nella richiesta a positionstack APIs
  *       500:
- *          description: Errore nella ricerca di utente o La data di fine evento deve venire dopo della data di inizio evento.
+ *          description: Errore nella ricerca di utente o La data di fine evento deve venire dopo della data di inizio evento .
  */
 routes.post('/crea', authenticateToken, (req, res) => {
     User.find({email: req.user.mail}, "", (err, user) => {
@@ -43,7 +43,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
         }
 
         axios.get('http://api.positionstack.com/v1/forward', {params})
-        .then(response => {
+        .then((response) => {
             console.log(response.data.data);
 
             const geopositionData = new GeopositionData(response.data.data[0]);
@@ -81,14 +81,122 @@ routes.post('/crea', authenticateToken, (req, res) => {
                     return standardRes(res, 200, "Evento creato correttamente.");
                 });
             });
-
-        }).catch(error => {
+        })
+        .catch((error) => {
             console.log(error);
-            return standardRes(res, 500, "Errore nella richiesta a positionstack APIs.");
+            return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
         });
     });
-
-
 });
+
+/**
+ * @openapi
+ * /get_events:
+ *   post:
+ *     description: restituisce gli eventi vicini all'utente
+ *     responses:
+ *       200:
+ *         description: eventi trovati
+ *       409:
+ *          description: Errore nella creazione dell'evento o Errore nell'aggiornamento dell'utente o Errore nella richiesta a positionstack APIs
+ *       500:
+ *          description: Errore nella ricerca degli eventi.
+ */
+routes.get('/get_events', authenticateToken, (req, res) => {
+    if (req.user.role !== "up") {
+        return standardRes(res, 401, "Tipo utente non consetito");
+    }
+
+    if (req.query.ext_api !== "false") {
+
+        console.log(req.query);
+
+        const params = {
+            access_key: process.env.positionstack_api_key,
+            query: req.query.latitude + "," + req.query.longitude,
+            output: "json"
+        }
+
+        axios.get('http://api.positionstack.com/v1/reverse', {params})
+            .then((response) => {
+                console.log(response.data.data[0]);
+                let data = response.data.data[0];
+
+                Event.find({ "address.locality": data.locality },
+                    "",
+                    (err, events) => {
+                    if (err) {
+                        console.log(err);
+                        return standardRes(res, 500, "Errore nella ricerca degli eventi.");
+                    }
+
+                    console.log(events);
+                    return standardRes(res, 200, events);
+                });
+            })
+            .catch((error) => {
+                console.log(error);
+                return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
+            });
+    }
+    else
+    {
+        Event.find({}, "", (err, events) => {
+            return standardRes(res, 200, events);
+        });
+    }
+});
+
+/**
+ * @openapi
+ * /get_events_by_address:
+ *   post:
+ *     description: restituisce gli eventi vicini all'utente
+ *     responses:
+ *       200:
+ *         description: Evento creato correttamente
+ *       409:
+ *          description: Errore nella creazione dell'evento o Errore nell'aggiornamento dell'utente o Errore nella richiesta a positionstack APIs
+ *       500:
+ *          description: Errore nella ricerca degli eventi.
+ */
+routes.get('/get_events_by_address', authenticateToken, (req, res) => {
+    if (req.user.role !== "up") {
+        return standardRes(res, 401, "Tipo utente non consetito");
+    }
+
+    console.log(req.query);
+
+    const params = {
+        access_key: process.env.positionstack_api_key,
+        query: req.query.address,
+        output: "json"
+    }
+
+    axios.get('http://api.positionstack.com/v1/forward', {params})
+        .then((response) => {
+            console.log(response.data.data[0]);
+            let data = response.data.data[0];
+
+            Event.find(
+                { "address.locality": data.locality },
+                // { $or: [{ "address.locality": data.locality }, { "address.reqion": data.region }] },
+                "",
+                (err, events) => {
+                if (err) {
+                    console.log(err);
+                    return standardRes(res, 500, "Errore nella ricerca degli eventi.");
+                }
+
+                console.log(events);
+                return standardRes(res, 200, events);
+            });
+        })
+        .catch((error) => {
+            console.log(error);
+            return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
+        });
+});
+
 
 module.exports = routes;
