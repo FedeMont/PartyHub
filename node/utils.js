@@ -8,6 +8,27 @@ mongoose.connect("mongodb://federicomontagna.ddns.net:27017", {
     "pass": "password",
 });
 
+const geopositionSchema = new mongoose.Schema({
+    latitude: { type: Number, required: true },
+    longitude: { type: Number, required: true },
+    type: { type: String, required: true },
+    name: { type: String, required: true },
+    number: { type: String, required: true },
+    postal_code: { type: String, required: true },
+    street: { type: String, required: true },
+    confidence: { type: Number, required: true },
+    region: { type: String, required: true },
+    region_code: { type: String, required: true },
+    county: { type: String },
+    locality: { type: String, required: true },
+    administrative_area: { type: String, required: true },
+    neighbourhood: { type: String },
+    country: { type: String, required: true },
+    country_code: { type: String, required: true },
+    continent: { type: String, required: true },
+    label: { type: String, required: true }
+});
+
 let documents = {
     userSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
@@ -57,11 +78,15 @@ let documents = {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true }
     }),
+    geopositionSchema: geopositionSchema,
     eventSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
         // code: { type: String, required: true },
         name: { type: String, required: true },
-        address: { type: String, required: true },
+        address: {
+            type: geopositionSchema,
+            required: true
+        },
         start_datetime: { type: Date, required: true },
         end_datetime: { type: Date, required: true,  },
         // poster: Image(),
