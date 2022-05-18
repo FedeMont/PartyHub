@@ -25,7 +25,7 @@
             <p><a href="#">This is a link</a></p>
         </div>
         <div class="card-reveal">
-            <div class="valign-wrapper" style="height: 100%;">
+            <div class="valign-wrapper">
                 <div class="container center-align">
                     <span class="card-title grey-text text-darken-4">Informazioni evento<i
                             class="material-icons right">close</i></span>
@@ -52,7 +52,7 @@
                                     <input id="name" type="text" required="true">
                                     <label for="name">Nome evento</label>
                                 </div>
-                                
+
                                 <div class="input-field col s12">
                                     <span class="grey-text" style="float: left;">Data inizio evento</span>
                                     <input id="start_datetime" type="datetime-local" required="true">
@@ -63,9 +63,28 @@
                                     <input id="end_datetime" type="datetime-local" required="true">
                                 </div>
 
-                                <div class="input-field col s12">
-                                    <input id="address" type="text" required="true">
-                                    <label for="address">Luogo evento</label>
+                                <div class="row">
+                                    <div class="input-field col s9">
+                                        <input id="via" type="text" required="true">
+                                        <label for="via">Indirizzo</label>
+                                    </div>
+
+                                    <div class="input-field col s3">
+                                        <input id="n_civico" type="text" required="true">
+                                        <label for="n_civico">Numero</label>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="input-field col s6">
+                                        <input id="comune" type="text" required="true">
+                                        <label for="comune">Comune</label>
+                                    </div>
+
+                                    <div class="input-field col s6">
+                                        <input id="provincia" type="text" required="true">
+                                        <label for="provincia">Provincia</label>
+                                    </div>
                                 </div>
 
                                 <div class="input-field col s12">
@@ -117,10 +136,12 @@
             let name = $("#name").val();
             let start_datetime = $("#start_datetime").val();
             let end_datetime = $("#end_datetime").val();
-            let address = $("#address").val();
+            let address = $("#via").val()+" "+$("#n_civico").val()+", "+$("#comune").val()+", "+$("#provincia").val();
             let age_range = $("#age_range").val();
             let maximum_partecipants = $("#maximum_partecipants").val();
             let description = $("#description").val();
+
+            console.log(address);
 
             $.ajax({
                 url: "/api/event/crea",
