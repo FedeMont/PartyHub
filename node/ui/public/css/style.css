@@ -101,12 +101,17 @@ nav {
 }
 
 nav .input-field label i {
-    color: rgb(44 44 44 / 70%)
+    color: rgb(44 44 44 / 70%);
 }
 
 nav i.material-icons {
     line-height: 38px;
     height: 38px;
+}
+
+nav .input-field input[type=search]:focus:not(.browser-default) {
+    background-color: #a8a8a8;
+    border-radius: 10px;
 }
 
 

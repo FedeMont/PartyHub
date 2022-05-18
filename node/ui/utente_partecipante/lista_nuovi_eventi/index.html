@@ -28,7 +28,7 @@
                 </div>
                 <div class="col s2 valign-wrapper">
                     <!-- TODO: ADD IMAGE DYNAMICALLY -->
-                    <img src="https://i1.sndcdn.com/avatars-000589085979-2y82p5-t500x500.jpg" 
+                    <img src="https://i1.sndcdn.com/avatars-000589085979-2y82p5-t500x500.jpg"
                         class="circle responsive-img" style="max-width: 40px;" id="profile_picture">
                 </div>
             </div>
@@ -42,7 +42,7 @@
             <div class="section"></div>
             <nav class="grey lighten-2">
                 <div class="nav-wrapper">
-                    <form>
+                    <form id="party_search">
                         <div class="input-field">
                             <input id="search" type="search">
                             <label class="label-icon" for="search"><i class="material-icons">search</i></label>
@@ -58,62 +58,9 @@
     <main>
         <div class="container">
             <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
-            <!-- CONTEXT OF PAGE -->
-
-            <!-- TODO: LOAD CONTEX DYNAMICALLY -->
-
-
-            <!-- Template evento -->
-            <div class="row">
-                <div class="col s12 ">
-                    <div class="card event_post grey lighten-5">
-                        <div class="card-content black-text" style="padding: 10px;">
-                            <div class="row valign-wrapper">
-                                <div class="col s2 left-align">
-                                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4MGr6udTT7bxrsABWU60TXK4calrrWvpmw&usqp=CAU"
-                                        alt="" class="circle responsive-img" style="max-width: 40px;">
-                                </div>
-                                <div class="col s6">
-                                    <div class="row">
-                                        <b class="truncate">Artistico -12/06/2022</b>
-                                    </div>
-                                    <div class="row grey-text">
-                                        <span>2 ore fa</span>
-                                    </div>
-                                </div>
-                                <div class="col s4">
-                                    <a class="waves-effect waves-light btn-small blue">Iscriviti</a>
-                                </div>
-                            </div>
-                            <div class="row valign-wrapper">
-                                <div class="col s4 offset-s8 grey-text">
-                                    <p class="right-align">2 km</p>
-                                </div>
-                            </div>
-                            <div class="row valign-wrapper" style="padding-bottom: 10px ;">
-                                <div class="col s12">
-                                    <p>Questa sera vi aspettiamo numerosi! Back to school party, spettacolo di luci e
-                                        canzoni di ogni genere</p>
-                                </div>
-                            </div>
-                            <div class="row valign-wrapper">
-                                <div class="col s12">
-                                    <img style="border-radius: 10px;" class="responsive-img"
-                                        src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
-                                </div>
-                            </div>
-                            <div class="row valign-wrapper">
-                                <div class="col s12">
-                                    <span class="grey-text">Partecipanti: 750</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="events_list">
+                <!-- CONTEXT OF PAGE -->
             </div>
-            <!-- Fine template -->
-
-
             <div class="section" style="height: 70px;"></div>
             <div class="section"></div>
         </div>
@@ -159,13 +106,124 @@
     <script src="/public/script/utils.js"></script>
 
     <script>
+
+
         $(document).ready(function () {
             $('.tabs').tabs({ "duration": 0 });
         });
 
-        $("#home_tab_button").click(() => { window.location.replace("../../login"); })
+        let generate_event_post = ((obj) => {
+            return `
+            <div class="row">
+                <div class="col s12 ">
+                    <div class="card event_post grey lighten-5">
+                        <div class="card-content black-text" style="padding: 10px;">
+                            <div class="row valign-wrapper">
+                                <div class="col s2 left-align">
+                                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4MGr6udTT7bxrsABWU60TXK4calrrWvpmw&usqp=CAU"
+                                        alt="" class="circle responsive-img" style="max-width: 40px;">
+                                </div>
+                                <div class="col s6">
+                                    <div class="row">
+                                        <b class="truncate">${obj.name}</b>
+                                    </div>
+                                    <div class="row grey-text">
+                                        <span>${new Date(obj.start_datetime).toLocaleString()}</span>
+                                    </div>
+                                </div>
+                                <div class="col s4 right-align">
+                                    <!-- TODO: ADD redirect to pagina iscrizione -->
+                                    <a class="waves-effect waves-light btn-small blue right-align">Iscriviti</a>
+                                </div>
+                            </div>
+                            <div class="row valign-wrapper">
+                                <div class="col s12 grey-text right-align">
+                                    <p class="right-align">${obj.address.label}</p>
+                                </div>
+                            </div>
+                            <div class="row valign-wrapper" style="padding-bottom: 10px ;">
+                                <div class="col s12">
+                                    <p>${obj.description}</p>
+                                </div>
+                            </div>
+                            <div class="row valign-wrapper">
+                                <div class="col s12">
+                                    <img style="border-radius: 10px;" class="responsive-img"
+                                        src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
+                                </div>
+                            </div>
+                            <div class="row valign-wrapper">
+                                <div class="col s12">
+                                    <span class="grey-text">Partecipanti: ${obj.number_partecipants}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        })
+
+        let events = [];
+
+        // Get geolocation
+        if (navigator.geolocation)
+            navigator.geolocation.getCurrentPosition((location) => {
+                $.ajax({
+                    url: "/api/event/get_events",
+                    type: "GET",
+                    data: {
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude,
+                        // ENABLE TO TEST API WITHOUT USING GEOLOC API
+                        // ext_api: false
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+                        events = data.message;
+                        data.message.forEach((event) => {
+                            $("#events_list").append(generate_event_post(event));
+                        })
+
+                    },
+                    error: (data) => {
+                        console.log(data);
+                    }
+                })
+            });
 
 
+        $("#party_search").submit((e) => {
+            e.preventDefault();
+            let address = $("#search").val();
+            if (address != "") {
+                $.ajax({
+                    url: "/api/event/get_events_by_address",
+                    type: "GET",
+                    data: {
+                        address: address
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+                        $("#events_list").html("")
+                        data.message.forEach((event) => {
+                            $("#events_list").append(generate_event_post(event));
+                        })
+                        $("#search").change(() => {
+                            if ($("#search").val() == "") {
+                                $("#events_list").html("")
+                                events.forEach((event) => {
+                                    $("#events_list").append(generate_event_post(event));
+                                })
+                            }
+                        })
+                    },
+                    error: (data) => {
+                        console.log(data);
+                    }
+                })
+            }
+        });
 
     </script>
 </body>
