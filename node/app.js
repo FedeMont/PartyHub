@@ -29,6 +29,7 @@ app.use('/public', express.static(path.join(__dirname, '/ui/public')));
 app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
 app.use('/login', express.static(path.join(__dirname, '/ui/login')));
 app.use('/crea_evento', express.static(path.join(__dirname, '/ui/organizzatore/events/crea_evento')));
+app.use('/iscrizione_evento', express.static(path.join(__dirname, '/ui/utente_partecipante/iscrizione_evento')));
 // 
 
 app.use(express.json());
