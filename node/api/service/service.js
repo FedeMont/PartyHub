@@ -77,4 +77,45 @@ routes.post('/crea', authenticateToken, (req, res) => {
     });
 });
 
+
+/**
+ * @openapi
+ * paths:
+ *   /servizio/get_servizi:
+ *     get:
+ *       description: Dati i dati di un servizio il sistema aggiunge un nuovo servizio
+ *       responses:
+ *         '200':
+ *            description: Servizi inviati correttamente
+ *         '409':
+ *            description: Errore nell caricamento dei servizi
+ */
+routes.get('/get_servizi', authenticateToken, (req, res) => {
+    User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, user) => {
+        if (err) {
+            console.log(err);
+            return standardRes(res, 500, "Errore nella ricerca di utente.");
+        }
+
+        if (user.length === 0) {
+            return standardRes(res, 401, "Non ti è possibile creare servizi");
+        }
+
+        user = user[0];
+        console.log(user);
+
+        let service_ids = user.services_list;
+        Service.find({ _id: service_ids }, "name", (err, services) => {
+            if (err) {
+                console.log(err);
+                return standardRes(res, 500, "Errore nella ricerca dei servizi.");
+            }
+            return standardRes(res, 200, services);
+        })
+
+
+    });
+});
+
+
 module.exports = routes;

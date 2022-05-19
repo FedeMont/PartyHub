@@ -199,4 +199,46 @@ routes.get('/get_events_by_address', authenticateToken, (req, res) => {
 });
 
 
+/**
+ * @openapi
+ * paths:
+ *   /event/get_events_by_user:
+ *     get:
+ *       description: Dato il token di un utente, restituisce la lista di tutti gli eventi associati
+ *       responses:
+ *         '200':
+ *            description: Eventi inviati correttamente
+ *         '409':
+ *            description: Errore nell caricamento degli eventi
+ */
+ routes.get('/get_events_by_user', authenticateToken, (req, res) => {
+    User.find({ email: req.user.mail}, "", (err, user) => {
+        if (err) {
+            console.log(err);
+            return standardRes(res, 500, "Errore nella ricerca di utente.");
+        }
+        if (user.length === 0) {
+            return standardRes(res, 404, "Non è stato trovato nessun utente");
+        }
+
+
+        user = user[0];
+        console.log(user);
+
+        let event_ids = user.events_list;
+        console.log(event_ids);
+
+        Event.find({ _id: event_ids }, "name start_datetime", (err, events) => {
+            if (err) {
+                console.log(err);
+                return standardRes(res, 500, "Errore nella ricerca degli eventi.");
+            }
+            return standardRes(res, 200, events);
+        })
+
+
+    });
+});
+
+
 module.exports = routes;

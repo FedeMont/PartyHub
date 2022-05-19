@@ -31,10 +31,12 @@ app.use(cors());
 const auth = require("./api/auth/auth");
 const event = require("./api/event/event");
 const service = require("./api/service/service");
+const dipendente = require("./api/dipendente/dipendente");
 
 app.use("/api/auth", auth);
 app.use("/api/event", event);
 app.use("/api/service", service);
+app.use("/api/dipendente", dipendente);
 // end routes
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
