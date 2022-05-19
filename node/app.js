@@ -31,6 +31,7 @@ app.use('/login', express.static(path.join(__dirname, '/ui/login')));
 app.use('/lista_nuovi_eventi', express.static(path.join(__dirname, '/ui/utente_partecipante/lista_nuovi_eventi')));
 app.use('/crea_evento', express.static(path.join(__dirname, '/ui/organizzatore/events/crea_evento')));
 app.use('/crea_servizio', express.static(path.join(__dirname, '/ui/organizzatore/services/crea_service')));
+app.use('/crea_dipendente', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/crea_dipendente')));
 //
 
 app.use(express.json());
