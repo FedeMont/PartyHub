@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="../../public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <div class="col s12 grey lighten-4 top_tab">
+        <div class="container">
+            <div class="row valign-wrapper">
+                <div class="col s8">
+                    <h4><b>Home</b></h4>
+                </div>
+                <div class="col s2 valign-wrapper">
+                    <i class="small material-icons blue-text" id="settings_button">settings</i>
+                </div>
+                <div class="col s2 valign-wrapper">
+                    <!-- TODO: ADD IMAGE DYNAMICALLY -->
+                    <img src="https://i1.sndcdn.com/avatars-000589085979-2y82p5-t500x500.jpg"
+                        class="circle responsive-img" style="max-width: 40px;" id="profile_picture">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col s12 grey lighten-4">
+        <div class="container">
+            <div class="section"></div>
+            <div class="section"></div>
+            <div class="section"></div>
+            <nav class="grey lighten-2">
+                <div class="nav-wrapper">
+                    <form id="party_search">
+                        <div class="input-field">
+                            <input id="search" type="search">
+                            <label class="label-icon" for="search"><i class="material-icons">search</i></label>
+                        </div>
+                    </form>
+                </div>
+            </nav>
+            <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <main>
+        <div class="container">
+            <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
+            <div id="events_list">
+                <!-- CONTEXT OF PAGE -->
+            </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+
+    <div class="col s12 navigation_tabs">
+        <ul class="tabs tabs-fixed-width tabs-icon">
+            <li class="tab col s3">
+                <a target="_self" href="." class="active">
+                    <i class="material-icons">home</i>
+                    Home
+                </a>
+            </li>
+            <li class="tab col s3">
+                <a target="_self" href="../../TODO">
+                    <i class="material-icons">confirmation_number</i>
+                    Biglietti
+                </a>
+            </li>
+            <li class="tab col s3">
+                <a target="_self" href="../../TODO">
+                    <i class="material-icons">group</i>
+                    Friends
+                </a>
+            </li>
+            <li class="tab col s3">
+                <a target="_self" href="../../TODO">
+                    <i class="material-icons">bookmark</i>
+                    Eventi
+                </a>
+            </li>
+        </ul>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+
+
+        $(document).ready(function () {
+            $('.tabs').tabs({ "duration": 0 });
+        });
+
+        let generate_event_post = ((obj) => {
+            return `
+            <div class="row">
+                <div class="col s12 ">
+                    <div class="card event_post grey lighten-5">
+                        <div class="card-content black-text" style="padding: 10px;">
+                            <div class="row valign-wrapper">
+                                <div class="col s2 left-align">
+                                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4MGr6udTT7bxrsABWU60TXK4calrrWvpmw&usqp=CAU"
+                                        alt="" class="circle responsive-img" style="max-width: 40px;">
+                                </div>
+                                <div class="col s6">
+                                    <div class="row">
+                                        <b class="truncate">${obj.name}</b>
+                                    </div>
+                                    <div class="row grey-text">
+                                        <span>${new Date(obj.start_datetime).toLocaleString()}</span>
+                                    </div>
+                                </div>
+                                <div class="col s4 right-align">
+                                    <!-- TODO: ADD redirect to pagina iscrizione -->
+                                    <a class="waves-effect waves-light btn-small blue right-align">Iscriviti</a>
+                                </div>
+                            </div>
+                            <div class="row valign-wrapper">
+                                <div class="col s12 grey-text right-align">
+                                    <p class="right-align">${obj.address.label}</p>
+                                </div>
+                            </div>
+                            <div class="row valign-wrapper" style="padding-bottom: 10px ;">
+                                <div class="col s12">
+                                    <p>${obj.description}</p>
+                                </div>
+                            </div>
+                            <div class="row valign-wrapper">
+                                <div class="col s12">
+                                    <img style="border-radius: 10px;" class="responsive-img"
+                                        src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
+                                </div>
+                            </div>
+                            <div class="row valign-wrapper">
+                                <div class="col s12">
+                                    <span class="grey-text">Partecipanti: ${obj.number_partecipants}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        })
+
+        let events = [];
+
+        // Get geolocation
+        if (navigator.geolocation)
+            navigator.geolocation.getCurrentPosition((location) => {
+                $.ajax({
+                    url: "/api/event/get_events",
+                    type: "GET",
+                    data: {
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude,
+                        // ENABLE TO TEST API WITHOUT USING GEOLOC API
+                        // ext_api: false
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+                        events = data.message;
+                        data.message.forEach((event) => {
+                            $("#events_list").append(generate_event_post(event));
+                        })
+
+                    },
+                    error: (data) => {
+                        console.log(data);
+                    }
+                })
+            });
+
+
+        $("#party_search").submit((e) => {
+            e.preventDefault();
+            let address = $("#search").val();
+            if (address != "") {
+                $.ajax({
+                    url: "/api/event/get_events_by_address",
+                    type: "GET",
+                    data: {
+                        address: address
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+                        $("#events_list").html("")
+                        data.message.forEach((event) => {
+                            $("#events_list").append(generate_event_post(event));
+                        })
+                        $("#search").change(() => {
+                            if ($("#search").val() == "") {
+                                $("#events_list").html("")
+                                events.forEach((event) => {
+                                    $("#events_list").append(generate_event_post(event));
+                                })
+                            }
+                        })
+                    },
+                    error: (data) => {
+                        console.log(data);
+                    }
+                })
+            }
+        });
+
+    </script>
+</body>
+
+</html>
