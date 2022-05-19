@@ -115,4 +115,28 @@ routes.post('/login', (req, res) => {
     });
 });
 
+/**
+ * @openapi
+ * /get_user_info:
+ *   get:
+ *     description: Dati i dati di un utente il sistema aggiunge un iscrizione
+ *     responses:
+ *       200:
+ *         description: Evento creato correttamente
+ *       409:
+ *          description: Errore nella creazione dell'evento o Errore nell'aggiornamento dell'utente
+ *       500:
+ *          description: Errore nella ricerca di utente o La data di fine evento deve venire dopo della data di inizio evento.
+ */
+ routes.get('/get_user_info', authenticateToken, (req, res) => {
+    User.findOne({ email: req.user.mail }, "name surname birthday", (err, user) => {
+        if (err) {
+            console.log(err);
+            return standardRes(res, 500, "Errore nella ricerca degli utenti.");
+        }
+
+        console.log(user);
+        return standardRes(res, 200, user);
+    });
+});
 module.exports = routes;
