@@ -99,6 +99,10 @@ let documents = {
         age_range_min: { type: Number, required: true },
         age_range_max: { type: Number, required: true },
         number_partecipants: { type: Number, default: 0 },
+        partecipants_list: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }],
         maximum_partecipants: { type: Number, required: true },
         description: { type: String },
         number_of_photos: { type: Number, default: 0 },
@@ -117,6 +121,17 @@ let documents = {
         products_list: [{
             type: productSchema,
             required: true
+        }]
+    }),
+    bigliettoSchema: new mongoose.Schema({
+        _id: mongoose.Schema.Types.ObjectId,
+        event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
+        entrance_daytime: {type: Date},
+        exit_daytime: {type: Date},
+        number_of_products: { type: Number, default: 0 },
+        total_price: { type: Number, default: 0 },
+        products_list: [{
+            type: productSchema
         }]
     })
 };
