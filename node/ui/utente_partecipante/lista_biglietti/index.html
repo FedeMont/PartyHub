@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="../public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <div id="container_biglietti" class="container" style="width:100%">
+        <div class="row">
+            <h6>Prossimi biglietti</h6>
+            <div class="row">
+                <ul id="biglietti_futuri_list" class="collection with-header">
+                   
+                </ul>
+            </div>
+            <div class="row">
+                <h6>Biglietti scaduti</h6>
+                <ul id="biglietti_scaduti_list" class="collection">
+                    <!-- BIGLIETTI SCADUTI -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+        let biglietti_item = (obj) => {
+            console.log(obj);
+            return `
+            <li id="${obj.biglietto_id}" class="collection-item">
+                <div class="col s10"><p><h6>${obj.event_name}</h6></p></div>
+                <div class="col s1 pr-0">
+                    <p class="secondary-content grey-text">${new Date(obj.event_start_datetime).toLocaleDateString().slice(0,10).replace(/-/g, "/")}</p>
+                </div>
+                <div class="col s1 pl-0">
+                    <p class="secondary-content grey-text">></p>
+                </div>
+            </li>
+            `;
+        };
+
+        $.ajax({
+            url: "/api/biglietto/get_biglietti_futuri_by_user",
+            type: "GET",
+            data: {
+            },
+            success: (data) => {
+                console.log(data.message);
+                biglietti = data.message;
+                biglietti.forEach((biglietto) => {
+                    $("#biglietti_futuri_list").append(biglietti_item(biglietto));
+                })
+
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+        $.ajax({
+            url: "/api/biglietto/get_biglietti_scaduti_by_user",
+            type: "GET",
+            data: {
+            },
+            success: (data) => {
+                console.log(data.message);
+                biglietti = data.message;
+                biglietti.forEach((biglietto) => {
+                    $("#biglietti_scaduti_list").append(biglietti_item(biglietto));
+                })
+
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+    </script>
+</body>
+
+</html>
