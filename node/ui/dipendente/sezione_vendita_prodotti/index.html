@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="../public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- PAGE WITHOUT CHECK BOXES -->
+    <div id="container_without_checkboxes" class="container" style="width:100%">
+        <form id="products_form">
+            <div class="row">
+                <a id="seleziona" class="waves-effect waves-light btn-small">Seleziona</a>
+            </div>
+            <div class="row valign-wrapper">
+                <div class="col s7">
+                    <h5>Nome evento</h5>
+                    <div class="row">
+                        <h6 class="grey-text">Data evento</h6>
+                    </div>
+                </div>
+                <div class="col s5">
+                    <select id="services_list">
+                        <!-- <option value="" disabled>Scegli i servizi</option> -->
+                    </select>
+                    <label for="services_list">Lista Servizi</label>
+                    <!-- <h6 class="secondary-content black-text">Nome lista</h6> -->
+                </div>
+            </div>
+            <div class="row">
+                <ul id="products_list" class="collection">
+                    <!-- PRODUCT -->
+                </ul>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+            M.updateTextFields();
+            $('select').formSelect();
+        });
+
+        let annulla_click = () => {
+            console.log('Hai cliccato annulla');
+
+            $("li").click(li_click);
+
+            $(".product_checkbox").css("display", "none");
+            $("input[type='checkbox']").prop("checked", false);
+            $(".freccia").css("display", "inline-block");
+            $('#seleziona').text("Seleziona");
+            $('#seleziona').off("click");
+            $('#seleziona').click(seleziona_click);
+            $('#scannerizza_button').remove();
+        };
+
+        let seleziona_click = () => {
+            console.log('Hai cliccato seleziona');
+
+            $("li").off("click");
+
+            $(".product_checkbox").css("display", "inline-block");
+            $(".freccia").css("display", "none");
+            $('#seleziona').text("Annulla");
+            $('#seleziona').off("click");
+            $('#seleziona').click(annulla_click);
+            $("#products_form").append(confirm_button());
+        };
+
+        let li_click = (e) => {
+            e.preventDefault();
+            console.log($(e.currentTarget).find("input").prop("id"));
+
+            $.ajax({
+                url: "/api/service/sell_products",
+                type: "POST",
+                data: {
+                    biglietto_id: "62864b0bb7560cee6f4dc9e1",
+                    products_list: [$(e.currentTarget).find("input").prop("id")]
+                },
+                success: (data) => {
+                    console.log(data.message);
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        };
+
+        $('#seleziona').click(seleziona_click);
+
+        let confirm_button = () => {
+            return `
+            <div id="scannerizza_button" class="row">
+                <button id="scannerizza" class="waves-effect waves-light btn-large" type="submit">Scannerizza</button>
+            </div>
+            `;
+        };
+
+        let generate_list_item = (obj) => {
+            console.log(obj);
+            return `
+            <li class="collection-item avatar valign-wrapper" style="min-height: 0;">
+                <i class="material-icons circle">local_drink</i>
+                <h6>${obj.name}</h6>
+                <!-- <a href="#!" class="secondary-content grey-text">${obj.price} € ></a> -->
+                <p class="secondary-content grey-text valign-wrapper">
+                    <label>
+                        <span>${obj.price} €</span>
+                        <input id="${obj._id}" type="checkbox" />
+                        <span class="product_checkbox" style="display: none;"></span>
+                        <span class="freccia">></span>
+                    </label>
+                </p>
+            </li>
+            `;
+        };
+
+        $.ajax({
+            url: "/api/service/get_user_services",
+            type: "GET",
+            data: {
+            },
+            success: (data) => {
+                console.log(data.message);
+                serivizi = data.message;
+
+                let services_json = {};
+                serivizi.forEach((servizio) => {
+                    $("#services_list").append($('<option>').val(servizio._id).text(servizio.name));
+                    services_json[servizio._id] = servizio;
+                });
+
+                $("#services_list").change(function(e) {
+                    $("#products_list").empty();
+                    $("li").off("click");
+
+                    console.log($(this).val(), e);
+
+                    services_json[$(this).val()].products_list.forEach((product) => {
+                        $("#products_list").append(generate_list_item(product));
+                    });
+
+                    annulla_click();
+                });
+
+                $("#services_list").change();
+
+                $(".product_checkbox").css("display", "none");
+                $('select').formSelect();
+            },
+            error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+        $("#products_form").submit((e) => {
+            e.preventDefault();
+            let products_ids = [];
+
+            $("input:checked").each(function() {
+                products_ids.push($(this).prop("id"));
+                console.log($(this).prop("id"));
+            });
+
+            $.ajax({
+                url: "/api/service/sell_products",
+                type: "POST",
+                data: {
+                    biglietto_id: "62864b0bb7560cee6f4dc9e1",
+                    products_list: products_ids
+                },
+                success: (data) => {
+                    console.log(data.message);
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
