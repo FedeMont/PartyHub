@@ -98,7 +98,7 @@ let documents = {
         // poster: Image(),
         age_range_min: { type: Number, required: true },
         age_range_max: { type: Number, required: true },
-        number_partecipants: { type: Number, default: 0 },
+        number_of_partecipants: { type: Number, default: 0 },
         partecipants_list: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
@@ -132,7 +132,8 @@ let documents = {
         total_price: { type: Number, default: 0 },
         products_list: [{
             type: productSchema
-        }]
+        }],
+        // owner: ??
     })
 };
 
