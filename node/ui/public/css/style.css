@@ -44,6 +44,10 @@ main {
     padding-right: 0 !important;
 }
 
+.xl {
+    font-size: 15rem !important;
+}
+
 /* IOS-STYLE TAB BAR*/
 
 .navigation_tabs {
