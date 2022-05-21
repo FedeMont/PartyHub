@@ -36,6 +36,7 @@ app.use('/attivazione_biglietto', express.static(path.join(__dirname, '/ui/utent
 app.use('/crea_servizio', express.static(path.join(__dirname, '/ui/organizzatore/services/crea_service')));
 app.use('/crea_dipendente', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/crea_dipendente')));
 app.use('/lista_vendita_prodotti', express.static(path.join(__dirname, '/ui/dipendente/sezione_vendita_prodotti')));
+app.use('/attivazione_turno', express.static(path.join(__dirname, '/ui/dipendente/attivazione_turno')));
 //
 
 app.use(express.json());
