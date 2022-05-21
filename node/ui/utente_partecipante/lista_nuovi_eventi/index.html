@@ -107,7 +107,6 @@
 
     <script>
 
-
         $(document).ready(function () {
             $('.tabs').tabs({ "duration": 0 });
         });
@@ -128,17 +127,17 @@
                                         <b class="truncate">${obj.name}</b>
                                     </div>
                                     <div class="row grey-text">
-                                        <span>${new Date(obj.start_datetime).toLocaleString()}</span>
+                                        <span>${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}</span>
                                     </div>
                                 </div>
                                 <div class="col s4 right-align">
                                     <!-- TODO: ADD redirect to pagina iscrizione -->
-                                    <a class="waves-effect waves-light btn-small blue right-align">Iscriviti</a>
+                                    <a id="${obj._id}" class="iscriviti_button waves-effect waves-light btn-small white blue-text right-align blue-border">Iscriviti</a>
                                 </div>
                             </div>
                             <div class="row valign-wrapper">
                                 <div class="col s12 grey-text right-align">
-                                    <p class="right-align">${obj.address.label}</p>
+                                    <p class="right-align">${obj.address.name}, ${obj.address.region_code}</p>
                                 </div>
                             </div>
                             <div class="row valign-wrapper" style="padding-bottom: 10px ;">
@@ -154,7 +153,7 @@
                             </div>
                             <div class="row valign-wrapper">
                                 <div class="col s12">
-                                    <span class="grey-text">Partecipanti: ${obj.number_partecipants}</span>
+                                    <span class="grey-text">Partecipanti: ${obj.number_of_partecipants}</span>
                                 </div>
                             </div>
                         </div>
@@ -162,7 +161,49 @@
                 </div>
             </div>
             `
-        })
+        });
+
+        let iscriviti_click = ($obj, should_api_request=true) => {
+            console.log('Hai cliccato iscriviti', $obj);
+            $obj.text("Iscritto");
+            $obj.removeClass("white");
+            $obj.removeClass("blue-text");
+            $obj.addClass("blue");
+            $obj.off("click");
+            $obj.click(function () { disiscriviti_click($(this)); });
+        };
+
+        let disiscriviti_click = ($obj, should_api_request=true) => {
+            if (should_api_request){
+                console.log('Hai cliccato disiscriviti', $obj.prop("id"));
+                let text = "Vuoi disiscriverti da questo evento?\n";
+                if (confirm(text) == true) {
+                    text = "You pressed OK!";
+                    $.ajax({
+                        url: "/api/event/disiscrizione",
+                        type: "POST",
+                        data: {
+                            event_id : $obj.prop("id")
+                        },
+                        success: (data) => {
+                            console.log(data.message);
+                            events = data.message;
+                            
+                        },
+                        error: (data) => {
+                            console.log(data);
+                        }
+                    });
+                }                
+            }
+            $obj.text("Iscriviti");
+            $obj.addClass("white");
+            $obj.addClass("blue-text");
+            $obj.removeClass("blue");
+            $obj.off("click");
+            
+            $obj.click(function () { iscriviti_click($(this)); });
+        };
 
         let events = [];
 
@@ -176,15 +217,21 @@
                         latitude: location.coords.latitude,
                         longitude: location.coords.longitude,
                         // ENABLE TO TEST API WITHOUT USING GEOLOC API
-                        // ext_api: false
+                        ext_api: false
                     },
                     success: (data) => {
                         console.log(data.message);
                         events = data.message;
                         data.message.forEach((event) => {
                             $("#events_list").append(generate_event_post(event));
-                        })
-
+                            if (event.is_user_iscritto){
+                                // $('.iscriviti_button#'+event._id).click(function () { disiscriviti_click($(this)); });
+                                iscriviti_click($('.iscriviti_button#'+event._id), false);
+                            }else{
+                                // $('.iscriviti_button#'+event._id).click(function () { iscriviti_click($(this)); });
+                                disiscriviti_click($('.iscriviti_button#'+event._id), false);
+                            }
+                        });
                     },
                     error: (data) => {
                         console.log(data);
