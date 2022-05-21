@@ -1,10 +1,9 @@
 const routes = require('express').Router();
 const { mongoose, documents, standardRes, bcrypt, saltRounds } = require("../../utils");
 const { authenticateToken, generateAccessToken } = require("../../token");
-const axios = require('axios');
-const { use } = require('bcrypt/promises');
 
 const User = mongoose.model("User", documents.userSchema);
+const Event = mongoose.model("Event", documents.eventSchema);
 
 /**
  * @openapi
@@ -94,6 +93,96 @@ routes.post('/crea', authenticateToken, (req, res) => {
                 return standardRes(res, 200, "Registrazione avvenuta con successo.");
             });
         });
+    });
+});
+
+/**
+ * @openapi
+ * paths:
+ *   /dipendente/activate_turno:
+ *     post:
+ *       description: Dati i dati di un servizio inseriti dall'utente, il sistema inserisce il nuovo utente e manda una mail
+ *       security:
+ *         -BearerAuth:
+ *            -type: http
+ *            -scheme: bearer
+ *       responses:
+ *         '200':
+ *            description: Dipendente inserito correttamente
+ *         '409':
+ *            description: Dipendente non inserito correttamente
+ *         '401':
+ *            description: Permessi non sufficenti
+ *         '500':
+ *            description: Errore nella ricerca dell'utente richiedente
+ *       parameters:
+ *               - in: path
+ *                 name: name
+ *                 type: String
+ *                 required: true
+ *                 description: Nome del dipendente
+ *               - in: path
+ *                 name: surname
+ *                 type: String
+ *                 required: true
+ *                 description: Cognome del dipendente
+ *               - in: path
+ *                 name: email
+ *                 type: String
+ *                 required: true
+ *                 description: Email del dipendente
+ *               - in: path
+ *                 name: events_list
+ *                 type: Array
+ *                 required: true
+ *                 description: Array contenente la lista di eventi da associare
+ *               - in: path
+ *                 name: services_list
+ *                 type: Array
+ *                 required: true
+ *                 description: Array contenente la lista di servizi da associare
+ */
+// TODO: Implementare invio della mail
+routes.post('/activate_turno', authenticateToken, (req, res) => {
+    User.find({ $and: [{ email: req.user.mail }, { account_type: "d" }] }, "", (err, user) => {
+        if (err) {
+            console.log(err);
+            return standardRes(res, 500, "Errore nella ricerca di utente.");
+        }
+        if (user.length === 0) {
+            return standardRes(res, 401, "Non ti è possibile creare dipendenti");
+        }
+
+        user = user[0];
+        console.log(user);
+
+        Event.find({ _id: req.body.event_id }, "", (err, event) => {
+            if (err) {
+                console.log(err);
+                return standardRes(res, 500, "Errore nella ricerca di eventi.");
+            }
+            if (event.length === 0) {
+                return standardRes(res, 409, "Non è stato trovato alcun evento.");
+            }
+
+            event = event[0];
+            console.log(event);
+
+            if (!user.events_list.includes(event._id.toString())) {
+                return standardRes(res, 409, "Non ti è possibile attivare il turno per questo evento.");
+            }
+
+            user.active_event = event._id;
+            user.save((err) => {
+                if (err) {
+                    console.log(err);
+                    return standardRes(res, 500, "Errore nell'attivazione del turno.");
+                }
+
+                return standardRes(res, 200, "Turno attivato.");
+            });
+        });
+
     });
 });
 module.exports = routes;
