@@ -341,7 +341,6 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
             return standardRes(res, 404, "Non è stato trovato nessun utente");
         }
 
-
         user = user[0];
         console.log(user);
 
@@ -354,10 +353,69 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
                 return standardRes(res, 500, "Errore nella ricerca degli eventi.");
             }
             return standardRes(res, 200, events);
-        })
-
-
+        });
     });
+});
+
+/**
+ * @openapi
+ * /get_event_by_biglietto_id:
+ *   post:
+ *     description: Dati i dati di un utente il sistema aggiunge un iscrizione
+ *     responses:
+ *       200:
+ *         description: Evento creato correttamente
+ *       409:
+ *          description: Errore nella creazione dell'evento o Errore nell'aggiornamento dell'utente
+ *       500:
+ *          description: Errore nella ricerca di utente o La data di fine evento deve venire dopo della data di inizio evento.
+ */
+routes.get('/get_event_by_biglietto_id', authenticateToken, (req, res) => {
+    if (req.user.role !== "up") {
+        return standardRes(res, 401, "Tipo utente non consetito");
+    }
+
+    console.log(req.query);
+
+    Biglietto.find({ _id: req.query.biglietto_id } , "", (err, biglietto) => {
+        if (err) {
+            console.log(err);
+            return standardRes(res, 500, "Errore nella ricerca dei biglietti.");
+        }
+
+        if (biglietto.length === 0) {
+            return standardRes(res, 409, "Nessun biglietto trovato");
+        }
+
+        biglietto = biglietto[0];
+        console.log("Biglietti: ", biglietto);
+
+        Event.find({ _id: biglietto.event }, "name start_datetime", (err, event) => {
+            if (err) {
+                console.log(err);
+                return standardRes(res, 500, "Errore nella ricerca degli eventi.");
+            }
+
+            if (event.length === 0) {
+                return standardRes(res, 409, "Nessun evento trovato");
+            }
+
+            event = event[0];
+
+            let to_return = {}
+            if (biglietto.entrance_datetime !== null) {
+                to_return["biglietto_active"] = true;
+                to_return["name"] = event.name;
+                to_return["start_datetime"] = event.start_datetime;
+                to_return["_id"] = event._id;
+            }
+
+            console.log(event);
+            return standardRes(res, 200, to_return);
+        });
+    });
+
+
 });
 
 
