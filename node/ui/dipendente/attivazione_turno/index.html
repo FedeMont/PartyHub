@@ -15,20 +15,22 @@
 </head>
 
 <body>
-    <div class="container">
-        <div id="event_info" class="col s12" style="width:100%">
-            <!-- EVENT INFO -->
-            <div class="row center-align">
-                <div class="col s12 center-align">
-                    <div class="row">
-                        <i class="xl material-icons grey-text ">confirmation_number</i>
-                    </div>
-                    <div class="row">
-                        <a id="entra_button">Entra e inizia a lavorare</a>
-                    </div>
+    <div class="card m-0 center-align" style="height: 100%;">
+        <div class="card-image waves-effect waves-block waves-light">
+            <i class="xl material-icons grey-text">confirmation_number</i>
+        </div>
+        <div class="card-content">
+            <span id="entra_button" class="activator blue-text">Entra e inizia a lavorare</span>
+        </div>
+        <div class="card-reveal">
+            <div class="valign-wrapper">
+                <div class="container center-align">
+                    <span class="card-title blue-text" style="font-size: 14px;">
+                        <div class="valign-wapper" id="reader"></div>
+                        <i id="exit_button" class="blue-text">Esci</i>
+                    </span>
                 </div>
             </div>
-            <div class="row"></div>
         </div>
     </div>
 
@@ -39,26 +41,53 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="/public/script/utils.js"></script>
 
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
     <script>
 
+        let html5QrCode;
+        let toggleQRcodeSuccess;
+
+        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+            if (toggleQRcodeSuccess) {
+                toggleQRcodeSuccess = false;
+                $.ajax({
+                    url: "/api/dipendente/activate_turno",
+                    type: "POST",
+                    data: {
+                        event_id: decodedText
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+
+                        html5QrCode.stop().then((ignore) => {
+                            // QR Code scanning is stopped.
+                            console.log("QR Code scanning stopped.");
+                            window.location.replace("/sezione_vendita_prodotti");
+                        }).catch((err) => {
+                            // Stop failed, handle it.
+                            console.log(err);
+                        });
+
+                    }, error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
+        };
+
         $("#entra_button").click(() => {
-            $.ajax({
-                url: "/api/dipendente/activate_turno",
-                type: "POST",
-                data: {
-                    event_id: "628646db6078cfdd0b910a02"
-                },
-                success: (data) => {
-                    console.log(data.message);
+            toggleQRcodeSuccess = true;
 
-                }, error: (data) => {
-                    console.log(data);
-                    M.toast({ html: data.responseJSON.message });
-                }
-            });
+            html5QrCode = new Html5Qrcode(
+                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+            // If you want to prefer front camera
+            html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
         });
-
-
 
     </script>
 </body>

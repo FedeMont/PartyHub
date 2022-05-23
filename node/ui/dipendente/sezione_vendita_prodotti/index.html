@@ -15,33 +15,52 @@
 </head>
 
 <body>
-    <!-- PAGE WITHOUT CHECK BOXES -->
-    <div id="container_without_checkboxes" class="container" style="width:100%">
-        <form id="products_form">
-            <div class="row">
-                <a id="seleziona" class="waves-effect waves-light btn-small">Seleziona</a>
-            </div>
-            <div class="row valign-wrapper">
-                <div class="col s7">
-                    <h5>Nome evento</h5>
+    <div class="card m-0" style="height: 100%;">
+        <div class="card-content">
+            <div id="container_without_checkboxes" class="container" style="width:100%">
+                <div class="row">
+                    <ul class="collection" style="width:100%">
+                        <!-- PRODUCT -->
+                    </ul>
+                </div>
+
+                <form id="products_form">
                     <div class="row">
-                        <h6 class="grey-text">Data evento</h6>
+                        <a id="seleziona" class="waves-effect waves-light btn-small">Seleziona</a>
                     </div>
-                </div>
-                <div class="col s5">
-                    <select id="services_list">
-                        <!-- <option value="" disabled>Scegli i servizi</option> -->
-                    </select>
-                    <label for="services_list">Lista Servizi</label>
-                    <!-- <h6 class="secondary-content black-text">Nome lista</h6> -->
+                    <div class="row valign-wrapper">
+                        <div class="col s7">
+                            <h5>Nome evento</h5>
+                            <div class="row">
+                                <h6 class="grey-text">Data evento</h6>
+                            </div>
+                        </div>
+                        <div class="col s5">
+                            <select id="services_list">
+                                <!-- <option value="" disabled>Scegli i servizi</option> -->
+                            </select>
+                            <label for="services_list">Lista Servizi</label>
+                            <!-- <h6 class="secondary-content black-text">Nome lista</h6> -->
+                        </div>
+                    </div>
+                    <div class="row">
+                        <ul id="products_list" class="collection">
+                            <!-- PRODUCT -->
+                        </ul>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card-reveal">
+            <div class="valign-wrapper">
+                <div class="container center-align">
+                    <span class="card-title blue-text" style="font-size: 14px;">
+                        <div class="valign-wapper" id="reader"></div>
+                        <i id="exit_button" class="blue-text">Esci</i>
+                    </span>
                 </div>
             </div>
-            <div class="row">
-                <ul id="products_list" class="collection">
-                    <!-- PRODUCT -->
-                </ul>
-            </div>
-        </form>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -50,6 +69,8 @@
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="/public/script/utils.js"></script>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script>
 
@@ -85,25 +106,56 @@
             $("#products_form").append(confirm_button());
         };
 
+        let html5QrCode;
+        let toggleQRcodeSuccess;
+
+        let products_ids;
+
+        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+            if (toggleQRcodeSuccess) {
+                toggleQRcodeSuccess = false;
+                $.ajax({
+                    url: "/api/service/sell_products",
+                    type: "POST",
+                    data: {
+                        biglietto_id: decodedText,
+                        products_list: products_ids
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+
+                        html5QrCode.stop().then((ignore) => {
+                            // QR Code scanning is stopped.
+                            console.log("QR Code scanning stopped.");
+                            
+                        }).catch((err) => {
+                            // Stop failed, handle it.
+                            console.log(err);
+                        });
+
+                    }, error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
+        };
+
         let li_click = (e) => {
             e.preventDefault();
-            console.log($(e.currentTarget).find("input").prop("id"));
 
-            $.ajax({
-                url: "/api/service/sell_products",
-                type: "POST",
-                data: {
-                    biglietto_id: "62864b0bb7560cee6f4dc9e1",
-                    products_list: [$(e.currentTarget).find("input").prop("id")]
-                },
-                success: (data) => {
-                    console.log(data.message);
-                },
-                error: (data) => {
-                    console.log(data);
-                    M.toast({ html: data.responseJSON.message });
-                }
-            });
+            products_ids = [];
+            products_ids.push($(e.currentTarget).find("input").prop("id"));
+
+            toggleQRcodeSuccess = true;
+
+            html5QrCode = new Html5Qrcode(
+                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+            // If you want to prefer front camera
+            html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
         };
 
         $('#seleziona').click(seleziona_click);
@@ -111,7 +163,7 @@
         let confirm_button = () => {
             return `
             <div id="scannerizza_button" class="row">
-                <button id="scannerizza" class="waves-effect waves-light btn-large" type="submit">Scannerizza</button>
+                <button id="scannerizza" class="waves-effect waves-light btn-large activator" type="submit">Scannerizza</button>
             </div>
             `;
         };
@@ -119,12 +171,11 @@
         let generate_list_item = (obj) => {
             console.log(obj);
             return `
-            <li class="collection-item avatar valign-wrapper" style="min-height: 0;">
+            <li class="collection-item avatar valign-wrapper activator" style="min-height: 0;">
                 <i class="material-icons circle">local_drink</i>
                 <h6>${obj.name}</h6>
-                <!-- <a href="#!" class="secondary-content grey-text">${obj.price} € ></a> -->
-                <p class="secondary-content grey-text valign-wrapper">
-                    <label>
+                <p class="secondary-content grey-text valign-wrapper activator">
+                    <label class="activator">
                         <span>${obj.price} €</span>
                         <input id="${obj._id}" type="checkbox" />
                         <span class="product_checkbox" style="display: none;"></span>
@@ -136,7 +187,7 @@
         };
 
         $.ajax({
-            url: "/api/service/get_user_services",
+            url: "/api/service/get_servizi",
             type: "GET",
             data: {
             },
@@ -150,7 +201,7 @@
                     services_json[servizio._id] = servizio;
                 });
 
-                $("#services_list").change(function(e) {
+                $("#services_list").change(function (e) {
                     $("#products_list").empty();
                     $("li").off("click");
 
@@ -176,29 +227,24 @@
 
         $("#products_form").submit((e) => {
             e.preventDefault();
-            let products_ids = [];
+            products_ids = [];
 
-            $("input:checked").each(function() {
+            $("input:checked").each(function () {
                 products_ids.push($(this).prop("id"));
                 console.log($(this).prop("id"));
             });
 
-            $.ajax({
-                url: "/api/service/sell_products",
-                type: "POST",
-                data: {
-                    biglietto_id: "62864b0bb7560cee6f4dc9e1",
-                    products_list: products_ids
-                },
-                success: (data) => {
-                    console.log(data.message);
-                },
-                error: (data) => {
-                    console.log(data);
-                    M.toast({ html: data.responseJSON.message });
-                }
-            });
+            toggleQRcodeSuccess = true;
+
+            html5QrCode = new Html5Qrcode(
+                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+            // If you want to prefer front camera
+            html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
         });
     </script>
 </body>
+
 </html>

@@ -15,12 +15,31 @@
 </head>
 
 <body>
-    <div class="container">
-        <div id="event_info" class="col s12" style="width:100%">
-            <!-- EVENT INFO -->
-            <div class="row"></div>
+    <div class="card m-0" style="height: 100%; width: 100%;">
+        <div class="card-content">
+            <div id="container_without_checkboxes" class="container" style="width:100%">
+                <div class="row">
+                    <div class="container">
+                        <div id="event_info" class="col s12" style="width:100%">
+                            <!-- EVENT INFO -->
+                            <div class="row"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="scan" class="card-reveal">
+            <div class="valign-wrapper">
+                <div class="container center-align">
+                    <span class="card-title blue-text" style="font-size: 14px;">
+                        <div class="valign-wapper" id="reader"></div>
+                        <i id="exit_button" class="blue-text">Esci</i>
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
+
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -29,10 +48,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="/public/script/utils.js"></script>
 
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
     <script>
 
-        let event_item = (obj) => {
-            let to_return = `
+        let event_info = (obj) => {
+            return `
             <div class="row valign-wrapper">
                 <div class="col s7 left-align">
                     <h5>${obj.name}</h5>
@@ -41,12 +62,10 @@
                 <div id="total_price" class="col s5 right-align">
                 </div>
             </div>`;
+        }
 
-            if (obj.biglietto_active) {
-                return to_return;
-            }
-
-            return to_return + `
+        let event_disable_item = (obj) => {
+            return event_info(obj) + `
             <div class="row center-align">
                 <div class="col s12 center-align">
                     <div class="row">
@@ -54,22 +73,28 @@
                     </div>
 
                     <div class="row">
-                        <i class="xl material-icons grey-text ">confirmation_number</i>
+                        <i class="xl material-icons grey-text">confirmation_number</i>
                     </div>
                     <div class="row">
-                        <a id="entra_button">Entra e genera QR code</a>
+                        <a class="activator" id="entra_button">Entra e genera QR code</a>
                     </div>
                 </div>
             </div>
             `;
         };
 
-        let event_active_item = (biglietto) => {
-            return `<div class="row center-align">
+        let event_active_item = (event, biglietto, src) => {
+            return event_info(event) +
+                `<div class="row center-align">
                 <div class="col s12 center-align">
                     <div class="row">
-                        <i class="xl material-icons blue-text ">confirmation_number</i>
+                        <div id="biglietto" style="position: relative;">
+                            <i class="xl material-icons blue-text" style="position: relative;">confirmation_number</i>
+                            <img src=${src} style="top: 0; left: 0; position: absolute;">
+                        </div>
+
                         <h6 class="grey-text" style="margin-top: -1rem;">Entrata: ${new Date(biglietto.entrance_datetime).toTimeString().slice(0, 5)}</h6> 
+
                     </div>
                 </div>
             </div>
@@ -92,54 +117,96 @@
             `;
         };
 
+        let html5QrCode;
+        let toggleQRcodeSuccess;
+
+        let currentEvent;
+        let src;
+
+        let get_products = () => {
+            $.ajax({
+                url: "/api/biglietto/get_products",
+                type: "GET",
+                data: {
+                    biglietto_id: "628a68a78c1795dc680f8d37",
+                },
+                success: (data) => {
+                    console.log(data.message);
+                    $("#event_info").replaceWith(event_active_item(currentEvent, data.message, src));
+                    const h = document.querySelector('#biglietto').offsetHeight / 2 - 50;
+                    const w = document.querySelector('#biglietto').offsetWidth / 2 - 50;
+                    $("#biglietto > img").css({"padding": h +"px " + w + "px"});
+                    $("#total_price").append("<p class='secondary-content black-text'>Totale: " + parseFloat(data.message.total_price).toFixed(2) + "€</p>");
+                    data.message.products_list.forEach((product) => {
+                        $("#products_list").append(generate_products_list_item(product));
+                    });
+
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        };
+
+        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+            if (toggleQRcodeSuccess) {
+                toggleQRcodeSuccess = false;
+                $.ajax({
+                    url: "/api/biglietto/activate",
+                    type: "POST",
+                    data: {
+                        biglietto_id: "628a68a78c1795dc680f8d37",
+                        event_id: decodedText
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+
+                        src = "https://api.qrserver.com/v1/create-qr-code/?data="+ data.message._id +"&amp;size=100x100 alt='' title='' ";
+
+                        html5QrCode.stop().then((ignore) => {
+                            // QR Code scanning is stopped.
+                            $("#scan").hide();
+                            console.log("QR Code scanning stopped.");
+
+                            get_products();
+
+                        }).catch((err) => {
+                            // Stop failed, handle it.
+                            console.log(err);
+                        });
+
+                    }, error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
+        };
+
         $.ajax({
             url: "/api/event/get_event_by_biglietto_id",
             type: "GET",
             data: {
-                biglietto_id: "62864afbb7560cee6f4dc9da"
+                biglietto_id: "628a68a78c1795dc680f8d37"
             },
             success: (data) => {
                 console.log(data.message);
-                event = data.message;
-                $("#event_info").append(event_item(event));
+                currentEvent = data.message;
+                $("#event_info").append(event_disable_item(currentEvent));
 
-                if (event.biglietto_active === true) {
-                    $.ajax({
-                        url: "/api/biglietto/get_products",
-                        type: "GET",
-                        data: {
-                            biglietto_id: "62864afbb7560cee6f4dc9da",
-                        },
-                        success: (data) => {
-                            console.log(data.message);
-                            $("#event_info").append(event_active_item(data.message));
-                            $("#total_price").append("<p class='secondary-content black-text'>Totale: " + parseFloat(data.message.total_price).toFixed(2) + "€</p>");
-                            data.message.products_list.forEach((product) => {
-                                $("#products_list").append(generate_products_list_item(product));
-                            });
-
-                        }, error: (data) => {
-                            console.log(data);
-                            M.toast({ html: data.responseJSON.message });
-                        }
-                    });
+                if (currentEvent.biglietto_active) {
+                    get_products();
                 } else {
                     $("#entra_button").click(() => {
-                        $.ajax({
-                            url: "/api/biglietto/activate",
-                            type: "POST",
-                            data: {
-                                biglietto_id: "62864afbb7560cee6f4dc9da",
-                                event_id: "6284e081784e45559fed7f99"
-                            },
-                            success: (data) => {
-                                console.log(data.message);
+                        toggleQRcodeSuccess = true;
 
-                            }, error: (data) => {
-                                console.log(data);
-                                M.toast({ html: data.responseJSON.message });
-                            }
-                        });
+                        html5QrCode = new Html5Qrcode(
+                            "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+                        const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+                        // If you want to prefer front camera
+                        html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
                     });
                 }
 
