@@ -35,7 +35,7 @@ app.use('/lista_biglietti', express.static(path.join(__dirname, '/ui/utente_part
 app.use('/attivazione_biglietto', express.static(path.join(__dirname, '/ui/utente_partecipante/attivazione_biglietto')));
 app.use('/crea_servizio', express.static(path.join(__dirname, '/ui/organizzatore/services/crea_service')));
 app.use('/crea_dipendente', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/crea_dipendente')));
-app.use('/lista_vendita_prodotti', express.static(path.join(__dirname, '/ui/dipendente/sezione_vendita_prodotti')));
+app.use('/sezione_vendita_prodotti', express.static(path.join(__dirname, '/ui/dipendente/sezione_vendita_prodotti')));
 app.use('/attivazione_turno', express.static(path.join(__dirname, '/ui/dipendente/attivazione_turno')));
 //
 
