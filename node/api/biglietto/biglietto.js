@@ -478,6 +478,7 @@ routes.post('/activate', authenticateToken, (req, res) => {
  *                                      description: http status.
  *                                      example: 200
  *                                  message:
+ *                                      $ref: "#/components/schemas/Biglietto"
  *                                      type: object
  *                                      properties:
  *                                          _id:

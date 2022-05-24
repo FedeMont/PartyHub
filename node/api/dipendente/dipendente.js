@@ -31,7 +31,7 @@ const Service = mongoose.model("Service", documents.serviceSchema);
  *                                  description: Cognome del dipendente
  *                              email:
  *                                  type: string
- *                                  fromat: email
+ *                                  format: email
  *                                  description: E-mail del dipendente
  *                              events_list:
  *                                  type: array
@@ -60,20 +60,7 @@ const Service = mongoose.model("Service", documents.serviceSchema);
  *                                      description: messaggio.
  *                                      example: Registrazione avvenuta con successo.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
  *              409:
  *                  description: Errore nella registrazione del dipendente.
  *                  content:

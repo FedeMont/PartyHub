@@ -29,13 +29,13 @@ const geopositionSchema = new mongoose.Schema({
     country_code: { type: String, required: true },
     continent: { type: String, required: true },
     label: { type: String, required: true }
-});
+}, { _id: false });
 
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
     // icon: Image()
-});
+}, { _id: false });
 
 let documents = {
     userSchema: new mongoose.Schema({

@@ -7,7 +7,7 @@ const { standardRes } = require('./utils');
  */
 let requiredParametersErrHandler = (res, params_values) => {
     console.log(params_values.filter(param => !param).length);
-    if (params_values.filter(param => !param).length) return standardRes(res, 422, "Paramteri mancanti.");
+    if (params_values.filter(param => !param).length) return standardRes(res, 422, "Parameteri mancanti.");
     return true;
 };
 

@@ -28,62 +28,23 @@ const User = mongoose.model("User", documents.userSchema);
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 200
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Username e email disponibili.
+ *                              $ref: "#/components/schemas/Code200"
+ *              401:
+ *                  $ref: "#/components/responses/NoToken"
  *              409:
  *                  description: Username o email già presenti nel database.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Username o email già presenti nel database.
+ *                              $ref: "#/components/schemas/Code409"
  *              422:
- *                  description: Parametri mancanti.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 422
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Parametri mancanti.
- *
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
- *                  description: Errore nella ricerca di username e email.
+ *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di username e email.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get("/check_availability", (req, res) => {
     if (
@@ -130,7 +91,7 @@ routes.get("/check_availability", (req, res) => {
  *                                  description: Nome utente dell'utente
  *                              email:
  *                                  type: string
- *                                  fromat: email
+ *                                  format: email
  *                                  description: E-mail dell'utente
  *                              birthday:
  *                                  type: string
@@ -152,62 +113,21 @@ routes.get("/check_availability", (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 200
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Registrazione avvenuta con successo.
+ *                              $ref: "#/components/schemas/Code200"
  *              409:
  *                  description: Errore nella registrazione.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella registrazione.
+ *                              $ref: "#/components/schemas/Code409"
  *              422:
- *                  description: Parametri mancanti.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 422
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Parametri mancanti.
- *
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella generazione dell'hash della password.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella generazione dell'hash della password.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post("/signin", (req, res) => {
     if (
@@ -247,6 +167,8 @@ routes.post("/signin", (req, res) => {
  *  /api/auth/login:
  *      post:
  *          summary: Login
+ *          produces:
+ *              - application/json
  *          description: Dati username e password il sistema verifica la corrispondenza della password salvata sul database e genera il token in caso di match
  *          requestBody:
  *              required: true
@@ -260,7 +182,7 @@ routes.post("/signin", (req, res) => {
  *                                  description: Username o email dell'utente
  *                              password:
  *                                  type: string
- *                                  fromat: password
+ *                                  format: password
  *                                  description: Password dell'utente
  *          responses:
  *              200:
@@ -278,7 +200,7 @@ routes.post("/signin", (req, res) => {
  *                                      type: string
  *                                      description: messaggio.
  *                                      example: Login avvenuto con successo.
- *                                  permissions:
+ *                                  token:
  *                                      type: string
  *                                      description: token
  *                                      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -287,47 +209,15 @@ routes.post("/signin", (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Username o password errate.
+ *                              $ref: "#/components/schemas/Code401"
  *              422:
- *                  description: Parametri mancanti.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 422
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Parametri mancanti.
- *
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
- *                  description: Errore nella ricerca di username e email.
+ *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di username e email.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/login', (req, res) => {
     if (
@@ -348,6 +238,10 @@ routes.post('/login', (req, res) => {
 
                 bcrypt.compare(req.body.password, user.password, function (err, result) {
                     if (errHandler(res, err, "Username o password errate.", false, 401)) {
+
+                        console.log(result);
+                        if (!result) return standardRes(res, 401, "Username o password errate.");
+
                         let token = generateAccessToken(user.email, user.account_type, user.name + " " + user.surname);
                         return standardRes(res, 200, "Login avvenuto con successo.", token);
                     }
@@ -399,39 +293,17 @@ routes.post('/login', (req, res) => {
  *                                              description: Data di nascita dell'utente
  *                                              example: 2000-05-21T00:00:00.000Z
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
  *              500:
  *                  description: Errore nella ricerca dell'utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca dell'utente.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/get_user_info', authenticateToken, (req, res) => {
     User.find({ email: req.user.mail }, "name surname birthday", (err, users) => {
-        if (errHandler(res, err, "dell'utente")) {
+        if (errHandler(res, err, "utente")) {
 
             if (users.length === 0) return standardRes(res, 401, "Token email errata.");
 
@@ -440,6 +312,38 @@ routes.get('/get_user_info', authenticateToken, (req, res) => {
             return standardRes(res, 200, user);
         }
     });
+});
+
+/**
+ * @openapi
+ * paths:
+ *  /api/auth/validate_token:
+ *      get:
+ *          summary: Validate token
+ *          description: Ritorna le informazioni dell'utente loggato
+ *          security:
+ *              - bearerAuth: []
+ *          responses:
+ *              200:
+ *                  description: Token valido.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: Tipo account
+ *                                      example: "up"
+ *              401:
+ *                  $ref: "#/components/responses/NoToken"
+ */
+routes.get("/validate_token", authenticateToken, (req, res) => {
+    return standardRes(res, 200, req.user.role);
 });
 
 module.exports = routes;

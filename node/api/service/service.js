@@ -195,10 +195,6 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                                                  items:
  *                                                      type: object
  *                                                      properties:
- *                                                          _id:
- *                                                              type: string
- *                                                              description: Id del prodotto.
- *                                                              example: 6288ec25fe5bb453c76a62fa
  *                                                          name:
  *                                                              type: string
  *                                                              description: Nome del prodotto
@@ -410,6 +406,5 @@ routes.post('/sell_products', authenticateToken, (req, res) => {
         });
     }
 });
-
 
 module.exports = routes;
