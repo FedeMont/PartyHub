@@ -8,6 +8,8 @@ mongoose.connect("mongodb://federicomontagna.ddns.net:27017", {
     "pass": "password",
 });
 
+mongoose.set("debug", true);
+
 const geopositionSchema = new mongoose.Schema({
     latitude: { type: Number, required: true },
     longitude: { type: Number, required: true },
@@ -27,13 +29,13 @@ const geopositionSchema = new mongoose.Schema({
     country_code: { type: String, required: true },
     continent: { type: String, required: true },
     label: { type: String, required: true }
-});
+}, { _id: false });
 
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
     // icon: Image()
-});
+}, { _id: false });
 
 let documents = {
     userSchema: new mongoose.Schema({
@@ -126,8 +128,8 @@ let documents = {
     bigliettoSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
         event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
-        entrance_daytime: {type: Date},
-        exit_daytime: {type: Date},
+        entrance_datetime: {type: Date},
+        exit_datetime: {type: Date},
         number_of_products: { type: Number, default: 0 },
         total_price: { type: Number, default: 0 },
         products_list: [{
@@ -137,18 +139,17 @@ let documents = {
     })
 };
 
-const standardRes = (res, status, message, third = undefined) => {
-    if (status === 200)
+const standardRes = (res, status, message, token = undefined) => {
+    if (token) {
         res.status(status).send({
             status: status,
             message: message,
-            permissions: third
+            token: token
         });
-    else {
+    } else {
         res.status(status).send({
             status: status,
-            message: message,
-            text: third
+            message: message
         });
     }
 };
