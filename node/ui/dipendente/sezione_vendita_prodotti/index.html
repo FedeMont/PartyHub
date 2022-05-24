@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- TOP BAR -->
+    <div id="top_bar"></div>
+
+    <!-- Main content -->
+    <main>
+        <div class="card m-0" style="height: 100%;">
+            <div class="card-content">
+                <div id="container_without_checkboxes" class="container" style="width:100%">
+                    <form id="products_form">
+                        <div class="row valign-wrapper">
+                            <div id="event_info" class="col s7">
+                                <!-- EVENT INFO -->
+                            </div>
+                            <div class="col s5">
+                                <select id="services_list">
+                                    <!-- <option value="" disabled>Scegli i servizi</option> -->
+                                </select>
+                                <!-- TODO sistemare -->
+                                <label for="services_list">Lista Servizi</label>
+                                <!-- <h6 class="secondary-content black-text">Nome lista</h6> -->
+                            </div>
+                        </div>
+                        <div class="row">
+                            <ul id="products_list" class="collection">
+                                <!-- PRODUCT -->
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card-reveal">
+                <div class="valign-wrapper">
+                    <div class="container center-align">
+                        <span class="card-title blue-text" style="font-size: 14px;">
+                            <div class="valign-wapper" id="reader"></div>
+                            <i id="exit_button" class="blue-text">Esci</i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <script>
+        let event_id = (new URLSearchParams(window.location.search)).get("id");
+        console.log(event_id);
+
+        let event_info_item = (event) => {
+            return `
+                <h5>${event.name}</h5>
+                <div class="row">
+                    <h6 class="grey-text"> ${new Date(event.entrance_datetime).toTimeString().slice(0, 5)}</h6>
+                </div>
+            `;
+        };
+
+        $(document).ready(function () {
+            M.updateTextFields();
+            $('select').formSelect();
+
+            addTopBar("Prodotti", `
+                <div class="row">
+                    <span id="seleziona" class="blue-text">Seleziona</span>
+                </div>`);
+            addBottomBar("d", 1);
+
+            $.ajax({
+                url: "/api/event/get/by_id",
+                type: "GET",
+                data: {
+                    event_id: event_id
+                },
+                success: (data) => {
+                    console.log(data.message);
+                    $("#event_info").append(event_info_item(data.message));
+
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        });
+
+        let annulla_click = () => {
+            console.log('Hai cliccato annulla');
+
+            $("li").click(li_click);
+
+            $(".product_checkbox").css("display", "none");
+            $("input[type='checkbox']").prop("checked", false);
+            $(".freccia").css("display", "inline-block");
+            $('#seleziona').text("Seleziona");
+            $('#seleziona').off("click");
+            $('#seleziona').click(seleziona_click);
+            $('#scannerizza_button').remove();
+        };
+
+        let seleziona_click = () => {
+            console.log('Hai cliccato seleziona');
+
+            $("li").off("click");
+
+            $(".product_checkbox").css("display", "inline-block");
+            $(".freccia").css("display", "none");
+            $('#seleziona').text("Annulla");
+            $('#seleziona').off("click");
+            $('#seleziona').click(annulla_click);
+            $("#products_form").append(confirm_button());
+        };
+
+        let html5QrCode;
+        let toggleQRcodeSuccess;
+
+        let products_ids;
+
+        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+            if (toggleQRcodeSuccess) {
+                toggleQRcodeSuccess = false;
+                $.ajax({
+                    url: "/api/service/sell_products",
+                    type: "POST",
+                    data: {
+                        biglietto_id: decodedText,
+                        products_list: products_ids
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+
+                        html5QrCode.stop().then((ignore) => {
+                            // QR Code scanning is stopped.
+                            console.log("QR Code scanning stopped.");
+
+                        }).catch((err) => {
+                            // Stop failed, handle it.
+                            console.log(err);
+                        });
+
+                    }, error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
+        };
+
+        let li_click = (e) => {
+            e.preventDefault();
+
+            products_ids = [];
+            products_ids.push($(e.currentTarget).find("input").prop("id"));
+
+            toggleQRcodeSuccess = true;
+
+            html5QrCode = new Html5Qrcode(
+                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+            // If you want to prefer front camera
+            html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
+        };
+
+        $('#seleziona').click(seleziona_click);
+
+        let confirm_button = () => {
+            return `
+            <div id="scannerizza_button" class="row">
+                <button id="scannerizza" class="waves-effect waves-light btn-large activator" type="submit">Scannerizza</button>
+            </div>
+            `;
+        };
+
+        let generate_list_item = (obj) => {
+            console.log(obj);
+            return `
+            <li class="collection-item avatar valign-wrapper activator" style="min-height: 0;">
+                <i class="material-icons circle">local_drink</i>
+                <h6>${obj.name}</h6>
+                <p class="secondary-content grey-text valign-wrapper activator">
+                    <label class="activator">
+                        <span>${obj.price} €</span>
+                        <input id="${obj._id}" type="checkbox" />
+                        <span class="product_checkbox" style="display: none;"></span>
+                        <span class="freccia">></span>
+                    </label>
+                </p>
+            </li>
+            `;
+        };
+
+        $.ajax({
+            url: "/api/service/get_servizi",
+            type: "GET",
+            data: {
+            },
+            success: (data) => {
+                console.log(data.message);
+                serivizi = data.message;
+
+                let services_json = {};
+                serivizi.forEach((servizio) => {
+                    $("#services_list").append($('<option>').val(servizio._id).text(servizio.name));
+                    services_json[servizio._id] = servizio;
+                });
+
+                $("#services_list").change(function (e) {
+                    $("#products_list").empty();
+                    $("li").off("click");
+
+                    console.log($(this).val(), e);
+
+                    services_json[$(this).val()].products_list.forEach((product) => {
+                        $("#products_list").append(generate_list_item(product));
+                    });
+
+                    annulla_click();
+                });
+
+                $("#services_list").change();
+
+                $(".product_checkbox").css("display", "none");
+                $('select').formSelect();
+            },
+            error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+        $("#products_form").submit((e) => {
+            e.preventDefault();
+            products_ids = [];
+
+            $("input:checked").each(function () {
+                products_ids.push($(this).prop("id"));
+                console.log($(this).prop("id"));
+            });
+
+            toggleQRcodeSuccess = true;
+
+            html5QrCode = new Html5Qrcode(
+                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+            // If you want to prefer front camera
+            html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
+        });
+    </script>
+</body>
+
+</html>

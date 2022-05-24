@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- TOP BAR -->
+    <div id="top_bar"></div>
+
+    <!-- Main content -->
+    <main>
+        <div class="card m-0" style="height: 100%; width: 100%;">
+            <div class="card-content">
+                <div id="container_without_checkboxes" class="container" style="width:100%">
+                    <div class="row">
+                        <div class="container">
+                            <div id="event_info" class="col s12" style="width:100%">
+                                <!-- EVENT INFO -->
+                                <div class="row"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="scan" class="card-reveal">
+                <div class="valign-wrapper">
+                    <div class="container center-align">
+                        <span class="card-title blue-text" style="font-size: 14px;">
+                            <div class="valign-wapper" id="reader"></div>
+                            <i id="exit_button" class="blue-text">Esci</i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <script>
+        $(document).ready(()=> {
+            addTopBar("Biglietto", ``);
+            addBottomBar("up", 1);
+        });
+
+        let biglietto_id = (new URLSearchParams(window.location.search)).get("id");
+        console.log(biglietto_id);
+
+        let event_info = (obj) => {
+            return `
+            <div class="row valign-wrapper">
+                <div class="col s7 left-align">
+                    <h5>${obj.name}</h5>
+                    <h6 class="grey-text">${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}</h6>
+                </div>
+                <div id="total_price" class="col s5 right-align"></div>
+            </div>`;
+        }
+
+        let event_disable_item = (obj) => {
+            return event_info(obj) + `
+            <div class="row center-align">
+                <div class="col s12 center-align">
+                    <div class="row">
+                        <h6 class="grey-text">${obj.name}</h6>
+                    </div>
+
+                    <div class="row">
+                        <i class="xl material-icons grey-text">confirmation_number</i>
+                    </div>
+                    <div class="row">
+                        <a class="activator" id="entra_button">Entra e genera QR code</a>
+                    </div>
+                </div>
+            </div>
+            `;
+        };
+
+        let event_active_item = (event, biglietto, src) => {
+            return event_info(event) +
+                `<div class="row center-align">
+                    <div class="col s12 center-align">
+                        <div class="row">
+                            <div id="biglietto" style="position: relative;">
+                                <i class="xl material-icons blue-text" style="position: relative;">confirmation_number</i>
+                                <img src=${src} style="top: 0; left: 0; position: absolute;">
+                            </div>
+                            <h6 class="grey-text" style="margin-top: -1rem;">Entrata: ${new Date(biglietto.entrance_datetime).toTimeString().slice(0, 5)}</h6> 
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <ul id="products_list" class="collection">
+                        <!-- PRODUCT -->
+                    </ul>
+                </div>
+            `;
+        };
+
+        let generate_products_list_item = (obj) => {
+            console.log(obj);
+            return `
+                <li class="collection-item avatar valign-wrapper" style="min-height: 0;">
+                    <i class="material-icons circle">local_drink</i>
+                    <h6>${obj.name}</h6>
+                    <p class="secondary-content grey-text valign-wrapper">${parseFloat(obj.price).toFixed(2)} €</p>
+                </li>
+            `;
+        };
+
+        let getQRCodeImageSrc = (text) => {
+            return "https://api.qrserver.com/v1/create-qr-code/?data=" + text + "&amp;size=100x100 alt='' title='' ";
+        }
+
+        let html5QrCode;
+        let toggleQRcodeSuccess;
+
+        let currentEvent;
+
+        let get_products = (src) => {
+            $.ajax({
+                url: "/api/biglietto/get_products",
+                type: "GET",
+                data: {
+                    biglietto_id: biglietto_id,
+                },
+                success: (data) => {
+                    console.log(data.message);
+
+                    $("#event_info").replaceWith(event_active_item(currentEvent, data.message, src));
+                    const h = document.querySelector('#biglietto').offsetHeight / 2 - 50;
+                    const w = document.querySelector('#biglietto').offsetWidth / 2 - 50;
+                    $("#biglietto > img").css({ "padding": h + "px " + w + "px" });
+                    $("#total_price").append("<p class='secondary-content black-text'>Totale: " + parseFloat(data.message.total_price).toFixed(2) + "€</p>");
+                    data.message.products_list.forEach((product) => {
+                        $("#products_list").append(generate_products_list_item(product));
+                    });
+
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        };
+
+        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+            if (toggleQRcodeSuccess) {
+                toggleQRcodeSuccess = false;
+                $.ajax({
+                    url: "/api/biglietto/activate",
+                    type: "POST",
+                    data: {
+                        biglietto_id: biglietto_id,
+                        event_id: decodedText
+                    },
+                    success: (data) => {
+                        console.log(data.message);
+
+                        html5QrCode.stop().then((ignore) => {
+                            // QR Code scanning is stopped.
+                            $("#scan").hide();
+                            console.log("QR Code scanning stopped.");
+
+                            get_products(getQRCodeImageSrc(data.message._id));
+
+                        }).catch((err) => {
+                            // Stop failed, handle it.
+                            console.log(err);
+                        });
+
+                    }, error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
+        };
+
+        $.ajax({
+            url: "/api/event/get/by_biglietto_id",
+            type: "GET",
+            data: {
+                biglietto_id: biglietto_id
+            },
+            success: (data) => {
+                console.log(data.message);
+                currentEvent = data.message;
+                $("#event_info").append(event_disable_item(currentEvent));
+
+                if (currentEvent.biglietto_active) {
+                    get_products(getQRCodeImageSrc(biglietto_id));
+                } else {
+                    $("#entra_button").click(() => {
+                        toggleQRcodeSuccess = true;
+
+                        html5QrCode = new Html5Qrcode(
+                            "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+                        const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+                        // If you want to prefer front camera
+                        html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
+                    });
+                }
+
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+    </script>
+</body>
+
+</html>

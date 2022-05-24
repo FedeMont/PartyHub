@@ -485,10 +485,34 @@ const cors = require('cors');
 app.use(cors());
 
 // UI
+
 app.use('/public', express.static(path.join(__dirname, '/ui/public')));
-app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
+
+// auth
 app.use('/login', express.static(path.join(__dirname, '/ui/login')));
-// 
+app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
+// end - auth
+
+// utente partecipante
+app.use('/utente/', express.static(path.join(__dirname, '/ui/utente_partecipante/lista_nuovi_eventi')));
+app.use('/utente/iscrizione_evento', express.static(path.join(__dirname, '/ui/utente_partecipante/iscrizione_evento')));
+app.use('/utente/lista_biglietti', express.static(path.join(__dirname, '/ui/utente_partecipante/lista_biglietti')));
+app.use('/utente/biglietto', express.static(path.join(__dirname, '/ui/utente_partecipante/biglietto')));
+// end - utente partecipante
+
+// dipendente
+app.use('/dipendente/', express.static(path.join(__dirname, '/ui/dipendente/attivazione_turno')));
+app.use('/dipendente/sezione_vendita_prodotti', express.static(path.join(__dirname, '/ui/dipendente/sezione_vendita_prodotti')));
+// end - dipendente
+
+// organizzatore
+app.use('/organizzatore/', express.static(path.join(__dirname, '/ui/organizzatore/services/crea_service')));
+app.use('/organizzatore/crea_evento', express.static(path.join(__dirname, '/ui/organizzatore/events/crea_evento')));
+// app.use('/organizzatore/crea_servizio', express.static(path.join(__dirname, '/ui/organizzatore/services/crea_service')));
+app.use('/organizzatore/crea_dipendente', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/crea_dipendente')));
+// end - organizzatore
+
+//
 
 // routes
 const auth = require("./api/auth/auth");
