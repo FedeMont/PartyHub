@@ -7,7 +7,7 @@
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
-    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="/public/css/style.css">
 
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -50,8 +50,7 @@
                     </div>
 
                     <div class="row">
-                        <button class="btn-large waves-effect waves-light" type="submit" id="next_button">Log
-                            in</button>
+                        <button class="btn-large waves-effect waves-light" type="submit" id="next_button">Log in</button>
                     </div>
                 </form>
 
@@ -72,6 +71,35 @@
 
     <script>
 
+        let validate_token = () => {
+            $.ajax({
+                url: "/api/auth/validate_token",
+                type: "GET",
+                data: {},
+                success: (data) => {    
+                    console.log(data);
+                    switch (data.message) {
+                        case "up":
+                            window.location.replace("/utente/");
+                            break;
+                        case "d":
+                            window.location.replace("/dipendente/");
+                            break;
+                        case "o":
+                            window.location.replace("/organizzatore/");
+                            break;
+                    }
+                },
+                error: (data) => {
+                    console.log(data);
+                }
+            });
+        };
+
+        $(window).on("load", () => {
+            validate_token();
+        });
+
         $(document).ready(function () {
             M.updateTextFields();
         });
@@ -90,17 +118,15 @@
                 },
                 success: (data) => {
                     console.log(data);
-                    createCookie("token", data.permissions, 1);
-                    // TODO: redirect 
+                    createCookie("token", data.token, 1);
+                    validate_token();          
                 },
                 error: (data) => {
                     console.log(data);
                     M.toast({ html: data.responseJSON.message });
                 }
             });
-
         });
-
     </script>
 </body>
 

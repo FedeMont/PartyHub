@@ -7,7 +7,7 @@
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
-    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="/public/css/style.css">
 
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,65 +15,70 @@
 </head>
 
 <body>
-    <div class="card m-0" style="height: 100%;">
-        <div class="card-image waves-effect waves-block waves-light">
-
-        </div>
-        <div class="card-content">
-            <span class="card-title activator grey-text text-darken-4">Card Title<i
+    <main>
+        <div class="card m-0" style="height: 100%;">
+            <!-- <div class="card-image waves-effect waves-block waves-light"></div> -->
+            <div class="card-content">
+                <!-- <span class="card-title activator grey-text text-darken-4">Card Title<i
                     class="material-icons right">more_vert</i></span>
-            <p><a href="#">This is a link</a></p>
-        </div>
-        <div class="card-reveal">
-            <div class="valign-wrapper">
-                <div class="container center-align">
-                    <span class="card-title black-text text-darken-4">
-                        <i class="material-icons right">close</i></textarea>
-                        <input disabled id="event_name" type="text">
-                    </span>
+            <p><a href="#">This is a link</a></p> -->
+            </div>
+            <div class="card-reveal">
+                <div class="valign-wrapper">
+                    <div class="container center-align">
+                        <span class="card-title black-text text-darken-4">
+                            <i class="material-icons right" id="close">close</i></textarea>
+                            <input disabled id="event_name" type="text">
+                        </span>
 
-                    <div id="iscrizione-evento-form">
-                        <form id="form-data">
-                            <div class="row">
-                                <div class="input-field col s12">
-                                    <h6 class="grey-text" style="float:left;">Inserisci le tue informazioni</h6>
+                        <div id="iscrizione-evento-form">
+                            <form id="form-data">
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <h6 class="grey-text" style="float:left;">Inserisci le tue informazioni</h6>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input disabled id="name" type="text">
+                                        <label for="name">Nome</label>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input disabled id="surname" type="text">
+                                        <label for="surname">Cognome</label>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input disabled id="age" type="text">
+                                        <label for="age">Età</label>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <select id="tipo_ingresso">
+                                            <option value="" disabled selected>Scegli un opzione</option>
+                                        </select>
+                                        <label>Tipo di ingresso</label>
+                                    </div>
+
                                 </div>
 
-                                <div class="input-field col s12">
-                                    <input disabled id="name" type="text">
-                                    <label for="name">Nome</label>
+                                <div class="row">
+                                    <button class="btn-large waves-effect waves-light" type="submit"
+                                        id="iscrizione_button">Iscriviti</button>
                                 </div>
+                            </form>
 
-                                <div class="input-field col s12">
-                                    <input disabled id="surname" type="text">
-                                    <label for="surname">Cognome</label>
-                                </div>
-
-                                <div class="input-field col s12">
-                                    <input disabled id="age" type="text">
-                                    <label for="age">Età</label>
-                                </div>
-
-                                <div class="input-field col s12">
-                                    <select id="tipo_ingresso">
-                                        <option value="" disabled selected>Scegli un opzione</option>
-                                    </select>
-                                    <label>Tipo di ingresso</label>
-                                </div>
-
-                            </div>
-
-                            <div class="row">
-                                <button class="btn-large waves-effect waves-light" type="submit"
-                                    id="iscrizione_button">Iscriviti</button>
-                            </div>
-                        </form>
-
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
         </div>
-    </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -87,14 +92,24 @@
         $(document).ready(function () {
             M.updateTextFields();
             $('select').formSelect();
+            
+            $(".card-reveal").css({ "display": "block", "transform": "translateY(-100%)" });
+            addBottomBar("up", 0);
         });
 
+        $("#close").click(() => {
+            console.log("Close");
+            window.location.replace("/utente/");
+        });
+
+        let event_id = (new URLSearchParams(window.location.search)).get("id");
+        console.log(event_id);
+
         $.ajax({
-            url: "/api/event/get_event_by_id",
+            url: "/api/event/get/by_id",
             type: "GET",
             data: {
-                // event_id: event_id
-                event_id : ""
+                event_id: event_id
             },
             success: (data) => {
                 console.log(data);
@@ -148,10 +163,11 @@
                 url: "/api/event/iscrizione",
                 type: "POST",
                 data: {
-                    event_name: event_name
+                    event_id: event_id
                 },
                 success: (data) => {
                     console.log(data);
+                    window.location.replace("/utente/");
                 },
                 error: (data) => {
                     console.log(data);

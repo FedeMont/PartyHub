@@ -7,7 +7,7 @@
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
-    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="/public/css/style.css">
 
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,106 +15,111 @@
 </head>
 
 <body>
-    <div class="card m-0" style="height: 100%;">
-        <div class="card-image waves-effect waves-block waves-light">
-            <img class="activator" src="images/office.jpg">
-        </div>
-        <div class="card-content">
-            <span class="card-title activator grey-text text-darken-4">Card Title<i
-                    class="material-icons right">more_vert</i></span>
-            <p><a href="#">This is a link</a></p>
-        </div>
-        <div class="card-reveal">
-            <div class="container center-align">
-                <span class="card-title grey-text text-darken-4">Informazioni evento<i
-                        class="material-icons right">close</i></span>
-                <div class="valign-wrapper">
-                    <div id="crea-evento-form">
-                        <form id="form-data">
-                            <div class="row valign-wrapper">
-                                <div class="col s7">
-                                    <div class="row">
+    <!-- Main content -->
+    <main>
+        <div class="card m-0" style="height: 100%;">
+            <div class="card-content">
+                <span class="card-title activator grey-text text-darken-4"><i
+                        class="material-icons right">more_vert</i></span>
+            </div>
+            <div class="card-reveal">
+                <div class="container center-align">
+                    <span class="card-title grey-text text-darken-4">Informazioni evento<i
+                            class="material-icons right">close</i></span>
+                    <div class="valign-wrapper">
+                        <div id="crea-evento-form">
+                            <form id="form-data">
+                                <div class="row valign-wrapper">
+                                    <div class="col s7">
+                                        <div class="row">
+                                            <div class="input-field">
+                                                <input disabled value="Locandina" type="text">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col s5 center-align">
                                         <div class="input-field">
-                                            <input disabled value="Locandina" type="text">
+                                            <i class="medium material-icons">add_a_photo</i>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="col s5 center-align">
-                                    <div class="input-field">
-                                        <i class="medium material-icons">add_a_photo</i>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <input id="name" type="text" required="true">
+                                        <label for="name">Nome evento</label>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="input-field col s12">
-                                    <input id="name" type="text" required="true">
-                                    <label for="name">Nome evento</label>
-                                </div>
+                                    <div class="input-field col s12">
+                                        <span class="grey-text" style="float: left;">Data inizio evento</span>
+                                        <input id="start_datetime" type="datetime-local" required="true">
+                                    </div>
 
-                                <div class="input-field col s12">
-                                    <span class="grey-text" style="float: left;">Data inizio evento</span>
-                                    <input id="start_datetime" type="datetime-local" required="true">
-                                </div>
+                                    <div class="input-field col s12">
+                                        <span class="grey-text" style="float: left;">Data fine evento</span>
+                                        <input id="end_datetime" type="datetime-local" required="true">
+                                    </div>
 
-                                <div class="input-field col s12">
-                                    <span class="grey-text" style="float: left;">Data fine evento</span>
-                                    <input id="end_datetime" type="datetime-local" required="true">
+                                    <div class="row">
+                                        <div class="input-field col s9">
+                                            <input id="via" type="text" required="true">
+                                            <label for="via">Indirizzo</label>
+                                        </div>
+
+                                        <div class="input-field col s3">
+                                            <input id="n_civico" type="text" required="true">
+                                            <label for="n_civico">Numero</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="input-field col s6">
+                                            <input id="comune" type="text" required="true">
+                                            <label for="comune">Comune</label>
+                                        </div>
+
+                                        <div class="input-field col s6">
+                                            <input id="provincia" type="text" required="true">
+                                            <label for="provincia">Provincia</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input id="age_range" type="text">
+                                        <label for="age_range">Range di età (età-età)</label>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input id="maximum_partecipants" type="number" required="true">
+                                        <label for="maximum_partecipants">Numero massimo di partecipanti</label>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input id="description" type="text" required="true">
+                                        <label for="description">Descrizione</label>
+                                    </div>
+
                                 </div>
 
                                 <div class="row">
-                                    <div class="input-field col s9">
-                                        <input id="via" type="text" required="true">
-                                        <label for="via">Indirizzo</label>
-                                    </div>
-
-                                    <div class="input-field col s3">
-                                        <input id="n_civico" type="text" required="true">
-                                        <label for="n_civico">Numero</label>
-                                    </div>
+                                    <button class="btn-large waves-effect waves-light" type="submit"
+                                        id="create_button">Crea</button>
                                 </div>
+                            </form>
 
-                                <div class="row">
-                                    <div class="input-field col s6">
-                                        <input id="comune" type="text" required="true">
-                                        <label for="comune">Comune</label>
-                                    </div>
-
-                                    <div class="input-field col s6">
-                                        <input id="provincia" type="text" required="true">
-                                        <label for="provincia">Provincia</label>
-                                    </div>
-                                </div>
-
-                                <div class="input-field col s12">
-                                    <input id="age_range" type="text">
-                                    <label for="age_range">Range di età (età-età)</label>
-                                </div>
-
-                                <div class="input-field col s12">
-                                    <input id="maximum_partecipants" type="number" required="true">
-                                    <label for="maximum_partecipants">Numero massimo di partecipanti</label>
-                                </div>
-
-                                <div class="input-field col s12">
-                                    <input id="description" type="text" required="true">
-                                    <label for="description">Descrizione</label>
-                                </div>
-
-                            </div>
-
-                            <div class="row">
-                                <button class="btn-large waves-effect waves-light" type="submit"
-                                    id="create_button">Crea</button>
-                            </div>
-                        </form>
-
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+        <div class="section" style="height: 70px;"></div>
+        <div class="section"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -127,6 +132,9 @@
 
         $(document).ready(function () {
             M.updateTextFields();
+            addBottomBar("o", 3);
+
+            $(".card-reveal").css({ "display": "block", "transform": "translateY(-100%)" });
         });
 
         $('#form-data').submit((e) => {
