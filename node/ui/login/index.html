@@ -76,6 +76,9 @@
                 url: "/api/auth/validate_token",
                 type: "GET",
                 data: {},
+                headers: {
+                    "Authorization": "Bearer " + readCookie("token")
+                },
                 success: (data) => {    
                     console.log(data);
                     switch (data.message) {
