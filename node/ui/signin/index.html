@@ -127,11 +127,39 @@
 
     <script>
 
-        // Initial state: signin-form2 not displayed
-        $('#signin-form2').hide();
+        let validate_token = () => {
+            $.ajax({
+                url: "/api/auth/validate_token",
+                type: "GET",
+                data: {},
+                success: (data) => {
+                    console.log(data);
+                    switch (data.message) {
+                        case "up":
+                            window.location.replace("/utente/");
+                            break;
+                        case "d":
+                            window.location.replace("/dipendente/");
+                            break;
+                        case "o":
+                            window.location.replace("/organizzatore/");
+                            break;
+                    }
+                },
+                error: (data) => {
+                    console.log(data);
+                }
+            });
+        };
+
+        $(window).on("load", () => {
+            validate_token();
+        });
 
         $(document).ready(function () {
             M.updateTextFields();
+            // Initial state: signin-form2 not displayed
+            $('#signin-form2').hide();
         });
 
         $('#form-data1').submit((e) => {

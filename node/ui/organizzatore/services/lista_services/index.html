@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- TOP BAR -->
+    <div id="top_bar"></div>
+
+    <!-- Main content -->
+    <main>
+        <div id="container_biglietti" class="container">
+            <div class="row">
+                <div class="row">
+                    <ul id="servizi_list" class="collection">
+                        <!-- LISTA SERVIZI -->
+                    </ul>
+                </div>
+                <div class="section" style="height: 70px;"></div>
+                <div class="section"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+
+        let servizio_item = (obj) => {
+            console.log(obj);
+            return `
+            <li id="${obj._id}" class="collection-item">
+                <div class="row valign-wrapper">
+                    <div class="col s8"><p><h6>${obj.name}</h6></p></div>
+                    <div class="col s4 right-align">
+                        <a id="button_${obj._id}" class="modifica_button waves-effect waves-light btn-small white blue-text right-align blue-border">Modifica</a>
+                    </div>
+                </div>
+            </li>
+            `;
+        };
+
+        $(document).ready(() => {
+            addTopBar("Servizi", `<a class="btn-floating btn-medium waves-effect waves-light blue"><i id="add_service_btn" class="material-icons">add</i></a>`);
+            $("#add_service_btn").click(() => {
+                window.location.replace("/organizzatore/crea_servizio");
+            });
+            addBottomBar("o", 1);
+
+            $.ajax({
+                url: "/api/service/get_servizi",
+                type: "GET",
+                data: {
+                },
+                success: (data) => {
+                    console.log(data.message);
+                    services = data.message;
+                    services.forEach((service) => {
+                        $("#servizi_list").append(servizio_item(service));
+                        $("#button_" + service._id).click(() => {
+                            window.location.replace("/organizzatore/crea_servizio?id=" + service._id);
+                        });
+                    });
+
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        });
+
+    </script>
+</body>
+
+</html>
