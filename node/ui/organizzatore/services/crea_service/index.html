@@ -25,7 +25,7 @@
             <div class="card-reveal">
                 <div class="valign-wrapper">
                     <div class="container center-align">
-                        <span class="card-title grey-text text-darken-4">Informazioni servizio<i
+                        <span class="card-title grey-text text-darken-4">Informazioni servizio<i id="close_button"
                                 class="material-icons right">close</i></span>
                         <div id="crea-evento-form">
                             <form id="form-data">
@@ -75,7 +75,13 @@
     <script src="/public/script/utils.js"></script>
 
     <script>
+        let url_params = (new URLSearchParams(window.location.search));
+
+        let service_id = (url_params.has("id")) ? url_params.get("id") : undefined;
+        console.log(service_id);
+
         let index = 0;
+        let i = 0;
 
         let product = () => {
             return `
@@ -90,8 +96,8 @@
                     <label for="product_name${index}">Nome Prodotto</label>
                 </div>
                 <div class="input-field col s3 product_input valign-wrapper">
-                    <input class="product_price" id="product_price${index}" type="number" required="true" step="any">
-                    <label for="product_price${index}">Prezzo</label>
+                    <input class="product_price" id="price${index}" type="number" required="true" step="any">
+                    <label for="price${index}">Prezzo</label>
                     <span class="right">€</span>
                 </div>
             </div>
@@ -103,6 +109,35 @@
             addBottomBar("o", 1);
 
             $(".card-reveal").css({ "display": "block", "transform": "translateY(-100%)" });
+
+            if (service_id) {
+                $("#create_button").text("Modifica");
+                $.ajax({
+                    url: "/api/service/get_by_id",
+                    type: "GET",
+                    data: {
+                        service_id: service_id
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        service = data.message;
+                        $("#name").val(service.name);
+                        M.updateTextFields();
+
+                        service.products_list.forEach((product) => {
+                            $("#add_product").click();
+                            $("#product_name" + i).val(product.name);
+                            $("#price" + i).val(product.price);
+                            M.updateTextFields();
+                            i++;
+                        });
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
         });
 
         $("#add_product").on("click", (e) => {
@@ -122,6 +157,10 @@
             index++;
         });
 
+        $("#close_button").on("click", (e) => {
+            window.location.replace("/organizzatore/");
+        });
+
         $('#form-data').submit((e) => {
             e.preventDefault();
             let name = $("#name").val();
@@ -137,21 +176,47 @@
                 products.push(product);
             });
 
-            $.ajax({
-                url: "/api/service/crea",
-                type: "POST",
-                data: {
-                    name: name,
-                    products: products,
-                },
-                success: (data) => {
-                    console.log(data);
-                },
-                error: (data) => {
-                    console.log(data);
-                    M.toast({ html: data.responseJSON.message });
-                }
-            });
+
+            console.log("Products: ", products);
+
+            if (service_id) {
+                console.log("Modifica", name, products);
+                $.ajax({
+                    url: "/api/service/modifica",
+                    type: "PUT",
+                    data: {
+                        id: service_id,
+                        name: name,
+                        products: products
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        window.location.replace("/organizzatore/");
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            } else {
+                console.log("Crea", name, products);
+                $.ajax({
+                    url: "/api/service/crea",
+                    type: "POST",
+                    data: {
+                        name: name,
+                        products: products,
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        window.location.replace("/organizzatore/");
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
         });
 
 
