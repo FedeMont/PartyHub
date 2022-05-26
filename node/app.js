@@ -488,7 +488,6 @@ const event = require("./api/event/event");
 const service = require("./api/service/service");
 const dipendente = require("./api/dipendente/dipendente");
 const biglietto = require("./api/biglietto/biglietto");
-const { fstat } = require('fs');
 
 app.use("/api/auth", auth);
 app.use("/api/event", event);
