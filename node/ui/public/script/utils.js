@@ -54,9 +54,8 @@ let topBar = (title, rightContent, shouldShearch = false) => {
             <div class="section"></div>
             <div class="section"></div>
             <div class="section"></div>
-            ${
-                (shouldShearch)?
-                `
+            ${(shouldShearch) ?
+            `
                     <nav class="grey lighten-2">
                         <div class="nav-wrapper">
                             <form id="party_search">
@@ -68,7 +67,7 @@ let topBar = (title, rightContent, shouldShearch = false) => {
                         </div>
                     </nav>
                 ` : ""
-            }
+        }
             <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
         </div>
     </div>
@@ -191,7 +190,7 @@ $(window).on("load", () => {
             url: "/api/auth/validate_token",
             type: "GET",
             data: {},
-            success: (data) => {   
+            success: (data) => {
                 console.log(data);
                 switch (data.message) {
                     case "up":
@@ -203,11 +202,11 @@ $(window).on("load", () => {
                     case "o":
                         if (window.location.pathname.split('/')[1] !== "organizzatore") window.location.replace("/organizzatore/");
                         break;
-                }   
+                }
             },
             error: (data) => {
                 console.log(data);
-                window.location.replace("/login");    
+                window.location.replace("/login");
             }
         });
     }

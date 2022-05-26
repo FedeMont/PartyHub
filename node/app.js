@@ -46,9 +46,9 @@ app.use('/dipendente/sezione_vendita_prodotti', express.static(path.join(__dirna
 // end - dipendente
 
 // organizzatore
-app.use('/organizzatore/', express.static(path.join(__dirname, '/ui/organizzatore/services/crea_service')));
+app.use('/organizzatore/', express.static(path.join(__dirname, '/ui/organizzatore/services/lista_services')));
 app.use('/organizzatore/crea_evento', express.static(path.join(__dirname, '/ui/organizzatore/events/crea_evento')));
-// app.use('/organizzatore/crea_servizio', express.static(path.join(__dirname, '/ui/organizzatore/services/crea_service')));
+app.use('/organizzatore/crea_servizio', express.static(path.join(__dirname, '/ui/organizzatore/services/crea_service')));
 app.use('/organizzatore/crea_dipendente', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/crea_dipendente')));
 // end - organizzatore
 
