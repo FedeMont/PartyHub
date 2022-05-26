@@ -261,6 +261,223 @@ routes.get('/get_servizi', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
+ *  /api/service/get_by_id:
+ *      get:
+ *          summary: Informazioni del servizio
+ *          description: Dato l'id di un servizio ritorna le informazioni di quel servizio
+ *          security:
+ *              - bearerAuth: []
+ *          parameters:
+ *              - name: service_id
+ *                in: query
+ *                required: true
+ *                description: Id del servizio
+ *          responses:
+ *              200:
+ *                  description: Servizi.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      $ref: "#/components/schemas/Service"
+ *              401:
+ *                  description: Token email errata.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 401
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Token email errata.
+ *              500:
+ *                  description: Errore nella ricerca di servizio.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 500
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nella ricerca di servizio.
+ */
+routes.get('/get_by_id', authenticateToken, (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [req.query.service_id]
+        )
+    ) {
+        Service.find({ _id: req.query.service_id }, "", (err, services) => {
+            if(errHandler(res, err, "servizio")) {
+                if (services.length === 0) return standardRes(res, 401, "Non è stato possibile recuperare il servizio.");
+
+                let servizio = services[0];
+                console.log(servizio);
+
+                User.find({ $and: [{ _id: servizio.owner }, { email: req.user.mail },  { account_type: "o" }] }, "", (err, users) => {
+                    if (errHandler(res, err, "utente")) {
+                        if (users.length === 0) return standardRes(res, 401, "Non ti è possibile recuperare il servizio.");
+
+                        // let user = users[0];
+                        // console.log(users);
+
+                        return standardRes(res, 200, servizio);
+                    }
+                });
+            }
+        });
+    }
+});
+
+/**
+ * @openapi
+ * paths:
+ *  /api/service/modifica:
+ *      put:
+ *          summary: Modifica il servizio
+ *          description: Dato l'id di un servizio modifica le sue informazioni
+ *          security:
+ *              - bearerAuth: []
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              id:
+ *                                  type: string
+ *                                  description: Id del servizio
+ *                              name:
+ *                                  type: string
+ *                                  description: Nome del servizio
+ *                              products:
+ *                                  type: array
+ *                                  items:
+ *                                      name:
+ *                                          type: string
+ *                                          description: Nome del prodotto
+ *                                      price:
+ *                                          type: integer
+ *                                          description: Prezzo del prodotto
+ *          responses:
+ *              200:
+ *                  description: Servizio modificato.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Servizio modificato.
+ *              401:
+ *                  description: Token email errata.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 401
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Token email errata.
+ *              409:
+ *                  description: Errore nell'aggiornamento del servizio.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 409
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nell'aggiornamento del servizio.
+ *              500:
+ *                  description: Errore nella ricerca di servizio.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 500
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nella ricerca di servizio.
+ */
+routes.put('/modifica', authenticateToken, (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [req.body.id, req.body.name, req.body.products]
+        )
+    ) {
+        Service.find({ _id: req.body.id }, "", (err, services) => {
+            if(errHandler(res, err, "servizio")) {
+                if (services.length === 0) return standardRes(res, 401, "Non è stato possibile recuperare il servizio.");
+
+                let service = services[0];
+                console.log(service);
+
+                User.find({ $and: [{ _id: service.owner },  { account_type: "o" }] }, "", (err, users) => {
+                    if (errHandler(res, err, "utente")) {
+                        if (users.length === 0) return standardRes(res, 401, "Non ti è possibile recuperare il servizio.");
+
+                        // let user = users[0];
+                        // console.log(users);
+
+                        service["name"] = req.body.name;
+                        service["products_list"] = req.body.products;
+
+                        service.save((err) => {
+                            if (errHandler(res, err, "Errore nell'aggiornamento del servizio", false, 409)) {
+                                return standardRes(res, 200, "Servizio modificato.");
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+
+/**
+ * @openapi
+ * paths:
  *  /api/service/sell_products:
  *      post:
  *          summary: Vendita prodotti
