@@ -4,7 +4,7 @@ networks:
     driver: bridge
 
 services:
-  nodejs:
+  nodejs_ui:
     image: node:18.1.0
     working_dir: /home/node/app
     restart: unless-stopped
@@ -13,7 +13,7 @@ services:
     volumes:
       - ./node/:/home/node/app
     ports:
-      - 3000:3000
+      - 3001:3000
     command: bash -c "npm i && npm run start-dev"
 #    networks:
 #      - partyhub

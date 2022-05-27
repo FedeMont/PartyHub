@@ -36,12 +36,12 @@
 
     <script>
         $(document).ready(() => {
-            addTopBar("Biglietto",
-                `   <form id="files_form">
+            addTopBar("Foto",
+                `   <form id="files_form" enctype="multipart/form-data">
                         <div class="file-field input-field">
                         <div class="btn grey lighten-4" style="box-shadow:none !important">
                             <i class="large material-icons blue-text" style=" font-size:2rem !important; padding-top: 10px">add_a_photo</i>
-                            <input type="file" id="files_path" multiple>
+                            <input type="file" id="files_path" name="photos" multiple>
                         </div>
                         <div class="file-path-wrapper">
                             <input class="file-path validate" type="text" style="width:0px !important">
@@ -61,7 +61,7 @@
             $("#files_path").change((e) => {
                 let formData = new FormData($("#files_form")[0])
                 $.ajax({
-                    url: "/api/v1/products/",
+                    url: "/api/event/photos/add/",
                     type: "post",
                     enctype: 'multipart/form-data',
                     data: formData,

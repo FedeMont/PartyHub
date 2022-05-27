@@ -1,5 +1,5 @@
 $.ajaxSetup({
-    beforeSend: (jqXHR, settings) => { settings.url = "http://192.168.80.9:3000" + settings.url },
+    beforeSend: (jqXHR, settings) => { settings.url = "http://localhost:3000" + settings.url },
     contentType: "application/x-www-form-urlencoded",
     headers: {
         "Authorization": "Bearer " + readCookie("token")
