@@ -423,4 +423,268 @@ routes.get('/get_dipendenti', authenticateToken, (req, res) => {
     });
 });
 
+
+/**
+ * @openapi
+ * paths:
+ *  /api/dipendente/modifica:
+ *      put:
+ *          summary: Modifica il dipendente
+ *          description: Dato l'id, il nome, il cognome, la lista degli eventi e dei servizi del dipendente modifica le sue informazioni
+ *          security:
+ *              - bearerAuth: []
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              id:
+ *                                  type: string
+ *                                  description: Id del dipendente
+ *                              name:
+ *                                  type: string
+ *                                  description: Nome del dipendente
+ *                              surname:
+ *                                  type: string
+ *                                  description: Cognome del dipendente
+ *                              events_list:
+ *                                  type: array
+ *                                  items:
+ *                                      type: string
+ *                                      description: Nome dell' evento.
+ *                                      example: Evento
+ *                              services_list:
+ *                                  type: array
+ *                                  items:
+ *                                      type: string
+ *                                      description: Nome del servizio.
+ *                                      example: Servizio
+ *          responses:
+ *              200:
+ *                  description: Dipendente modificato.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Dipendente modificato.
+ *              401:
+ *                  description: Token email errata.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 401
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Token email errata.
+ *              409:
+ *                  description: Errore nell'aggiornamento del dipendente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 409
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nell'aggiornamento del dipendente.
+ *              500:
+ *                  description: Errore nella ricerca di dipendente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 500
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nella ricerca di dipendente.
+ */
+routes.put('/modifica', authenticateToken, (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [req.body.id, req.body.name, req.body.surname, req.body.services_list, req.body.events_list]
+        )
+    ) {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
+            if (errHandler(res, err, "utente")) {
+
+                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile recuperare il dipendente.");
+
+                let user = users[0];
+                console.log(users);
+
+                User.find({ $and: [{ _id: req.body.id }, { _id: user.dipendenti_list }] }, "", (err, dipendenti) => {
+                    if (errHandler(res, err, "dipendente")) {
+                        if (dipendenti.length === 0) return standardRes(res, 401, "Non è stato possibile recuperare il dipendente.");
+
+                        let dipendente = dipendenti[0];
+                        console.log(dipendente);
+
+                        dipendente["name"] = req.body.name;
+                        dipendente["surname"] = req.body.surname;
+                        dipendente["services_list"] = req.body.services_list;
+                        dipendente["events_list"] = req.body.events_list;
+
+                        dipendente.save((err) => {
+                            if (errHandler(res, err, "Errore nell'aggiornamento del dipendente", false, 409)) {
+                                return standardRes(res, 200, "Dipendente modificato.");
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+
+
+/**
+ * @openapi
+ * paths:
+ *  /api/dipendente/get_by_id:
+ *      get:
+ *          summary: Informazioni del dipendente
+ *          description: Dato l'id di un dipendente ritorna le informazioni di quel dipendente
+ *          security:
+ *              - bearerAuth: []
+ *          parameters:
+ *              - name: dipendente_id
+ *                in: query
+ *                required: true
+ *                description: Id del dipendente
+ *          responses:
+ *              200:
+ *                  description: Dipendenti.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      _id:
+*                                           type: string
+ *                                          description: Id del dipendente.
+ *                                          example: 6288ec25fe5bb453c76a62fa
+ *                                      name:
+ *                                          type: string
+ *                                          description: Nome del dipendente.
+ *                                          example: Nome dipendente
+ *                                      cognome:
+ *                                          type: string
+ *                                          description: Cognome del dipendente.
+ *                                          example: Cognome dipendente
+ *                                      email:
+ *                                          type: string
+ *                                          description: Email del dipendente.
+ *                                          example: nome.cognome@email.com
+ *                                      number_of_services:
+ *                                          type: integer
+ *                                          description: Numero di servizi appartenenti al dipendente.
+ *                                          example: 3
+ *                                      services_list:
+ *                                          type: array
+ *                                          items:
+ *                                              type: string
+ *                                              description: Id del servizio.
+ *                                              example: 6288ec25fe5bb453c76a62fa
+ *                                      number_of_events:
+ *                                          type: integer
+ *                                          description: Numero di eventi appartenenti al dipendente.
+ *                                          example: 3
+ *                                      events_list:
+ *                                          type: array
+ *                                          items:
+ *                                              type: string
+ *                                              description: Id dell' evento.
+ *                                              example: 6288ec25fe5bb453c76a62fa
+ *              401:
+ *                  description: Token email errata.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 401
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Token email errata.
+ *              500:
+ *                  description: Errore nella ricerca di dipendente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 500
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nella ricerca di dipendente.
+ */
+routes.get('/get_by_id', authenticateToken, (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [req.query.dipendente_id]
+        )
+    ) {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
+            if (errHandler(res, err, "utente")) {
+
+                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile recuperare il dipendente.");
+
+                let user = users[0];
+                console.log(users);
+
+                User.find({ $and: [{ _id: req.query.dipendente_id }, { _id: user.dipendenti_list }] }, "", (err, dipendenti) => {
+                    if (errHandler(res, err, "dipendente")) {
+                        if (dipendenti.length === 0) return standardRes(res, 401, "Non ti è possibile recuperare il dipendente.");
+
+                        let dipendente = dipendenti[0];
+                        console.log(dipendente);
+
+                        return standardRes(res, 200, dipendente);
+                    }
+                });
+            }
+        });
+    }
+});
+
 module.exports = routes;
