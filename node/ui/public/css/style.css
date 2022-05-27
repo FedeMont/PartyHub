@@ -80,7 +80,7 @@ main {
 
 .tabs .tab {
     height: 70px;
-    padding: 12px 12px;
+    padding: 12px 10px;
 }
 
 .tabs .tab a {

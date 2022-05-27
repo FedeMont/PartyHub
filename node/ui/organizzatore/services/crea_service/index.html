@@ -19,14 +19,17 @@
     <main>
         <div class="card m-0" style="height: 100%;">
             <div class="card-content">
-                <span class="card-title activator grey-text text-darken-4"><i
-                        class="material-icons right">more_vert</i></span>
+                <span class="card-title activator grey-text text-darken-4">
+                    <i class="material-icons right">more_vert</i>
+                </span>
             </div>
             <div class="card-reveal">
                 <div class="valign-wrapper">
                     <div class="container center-align">
-                        <span class="card-title grey-text text-darken-4">Informazioni servizio<i id="close_button"
-                                class="material-icons right">close</i></span>
+                        <span class="card-title grey-text text-darken-4">
+                            Informazioni servizio
+                            <i id="close_button" class="material-icons right">close</i>
+                        </span>
                         <div id="crea-evento-form">
                             <form id="form-data">
                                 <div class="row">
@@ -105,7 +108,6 @@
         }
 
         $(document).ready(function () {
-            M.updateTextFields();
             addBottomBar("o", 1);
 
             $(".card-reveal").css({ "display": "block", "transform": "translateY(-100%)" });
@@ -120,17 +122,17 @@
                     },
                     success: (data) => {
                         console.log(data);
-                        service = data.message;
+                        let service = data.message;
                         $("#name").val(service.name);
-                        M.updateTextFields();
 
                         service.products_list.forEach((product) => {
                             $("#add_product").click();
                             $("#product_name" + i).val(product.name);
                             $("#price" + i).val(product.price);
-                            M.updateTextFields();
                             i++;
                         });
+
+                        M.updateTextFields();
                     },
                     error: (data) => {
                         console.log(data);

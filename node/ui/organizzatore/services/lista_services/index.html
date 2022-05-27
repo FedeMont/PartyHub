@@ -20,7 +20,7 @@
 
     <!-- Main content -->
     <main>
-        <div id="container_biglietti" class="container">
+        <div id="container_servizi" class="container">
             <div class="row">
                 <div class="row">
                     <ul id="servizi_list" class="collection">
@@ -73,7 +73,7 @@
                 },
                 success: (data) => {
                     console.log(data.message);
-                    services = data.message;
+                    let services = data.message;
                     services.forEach((service) => {
                         $("#servizi_list").append(servizio_item(service));
                         $("#button_" + service._id).click(() => {

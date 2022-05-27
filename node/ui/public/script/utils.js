@@ -71,8 +71,6 @@ let topBar = (title, rightContent, shouldShearch = false) => {
             <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
         </div>
     </div>
-
-
     `;
 };
 
@@ -210,4 +208,9 @@ $(window).on("load", () => {
             }
         });
     }
+});
+
+$(document).ready(() => {
+    M.updateTextFields();
+    $('select').formSelect();
 });
