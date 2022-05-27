@@ -145,7 +145,7 @@ let organizzatoreBottomBar = () => {
                 </a>
             </li>
             <li class="tab col s3">
-                <a target="_self" href="/organizzatore/crea_dipendente" id="2">
+                <a target="_self" href="/organizzatore/lista_dipendenti" id="2">
                     <i class="material-icons">group</i>
                     Dipendenti
                 </a>
