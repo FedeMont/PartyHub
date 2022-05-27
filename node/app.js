@@ -224,6 +224,64 @@ const options = {
                         },
                     }
                 },
+                Dipendente: {
+                    type: "object",
+                    properties: {
+                        _id: {
+                            type: "string",
+                            description: "Id del dipendente",
+                            example: "6288ec25fe5bb453c76a62fa"
+                        },
+                        name: {
+                            type: "string",
+                            description: "Il nome del dipendente",
+                            example: "Nome"
+                        },
+                        surname: {
+                            type: "string",
+                            description: "Il cognome del dipendente",
+                            example: "Cognome"
+                        },
+                        username: {
+                            type: "string",
+                            description: "Il nome utente del dipendente",
+                            example: "username"
+                        },
+                        email: {
+                            type: "string",
+                            format: "email",
+                            description: "La e-mail del dipendente",
+                            example: "nome.cognome@mail.com"
+                        },
+                        account_type: {
+                            type: "string",
+                            description: "Il tipo di account del dipendente",
+                            example: "d"
+                        },
+                        number_of_services: {
+                            type: "integer",
+                            description: "Numero di servizi associati al dipendente",
+                            example: 3
+                        },
+                        services_list: {
+                            type: "array",
+                            items: {
+                                "$ref": "#/components/schemas/Service"
+                            }
+                        },
+                        number_of_events: {
+                            type: "integer",
+                            description: "Numero di eventi associati al dipendente",
+                            example: 3
+                        },
+                        events_list: {
+                            type: "array",
+                            items: {
+                                "$ref": "#/components/schemas/Event"
+                            }
+                        }
+                    }
+                },
                 Geoposition: {
                     type: "object",
                     properties: {

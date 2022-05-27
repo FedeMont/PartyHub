@@ -185,7 +185,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                                              name:
  *                                                  type: string
  *                                                  description: Nome del servizo.
- *                                                  example: 6288ec25fe5bb453c76a62fa
+ *                                                  example: Nome servizio
  *                                              number_of_products:
  *                                                  type: integer
  *                                                  description: Numero di prodotti all'interno del servizio.

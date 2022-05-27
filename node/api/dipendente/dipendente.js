@@ -1,7 +1,7 @@
 const routes = require('express').Router();
 const { mongoose, documents, standardRes, bcrypt, saltRounds } = require("../../utils");
 const { authenticateToken } = require("../../token");
-const {requiredParametersErrHandler, errHandler} = require("../../error_handlers");
+const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
 
 const User = mongoose.model("User", documents.userSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
@@ -110,44 +110,54 @@ routes.post('/crea', authenticateToken, (req, res) => {
                 let user = users[0];
                 console.log(users);
 
-                Event.find({ $and: [{ _id: req.body.events_list}, { owner: user._id }] }, "", (err, events) => {
-                   if (errHandler(res, err, "eventi")) {
-                       if (events.length === 0) return standardRes(res, 401, "Non ti è possibile creare dipendenti legati a questi eventi.");
+                Event.find({ $and: [{ _id: req.body.events_list }, { owner: user._id }] }, "", (err, events) => {
+                    if (errHandler(res, err, "eventi")) {
+                        if (events.length === 0) return standardRes(res, 401, "Non ti è possibile creare dipendenti legati a questi eventi.");
 
-                       console.log(events);
+                        console.log(events);
 
-                       Service.find({ $and: [{ _id: req.body.services_list }, { owner: user._id }] }, "", (err, services) => {
-                           if (errHandler(res, err, "servizi")) {
-                               if (services.length === 0) return standardRes(res, 401, "Non ti è possibile creare dipendenti legati a questi servizi.");
+                        Service.find({ $and: [{ _id: req.body.services_list }, { owner: user._id }] }, "", (err, services) => {
+                            if (errHandler(res, err, "servizi")) {
+                                if (services.length === 0) return standardRes(res, 401, "Non ti è possibile creare dipendenti legati a questi servizi.");
 
-                               console.log(services);
+                                console.log(services);
 
-                               bcrypt.hash(req.body.email, saltRounds, function (err, hash) {
-                                   if (errHandler(res, err, "Errore nella generazione dell'hash della password.", false)) {
+                                bcrypt.hash(req.body.email, saltRounds, function (err, hash) {
+                                    if (errHandler(res, err, "Errore nella generazione dell'hash della password.", false)) {
 
-                                       const dipendente = new User({
-                                           _id: new mongoose.Types.ObjectId(),
-                                           name: req.body.name,
-                                           surname: req.body.surname,
-                                           username: req.body.email,
-                                           email: req.body.email,
-                                           events_list: req.body.events_list,
-                                           number_of_events: req.body.events_list.length,
-                                           services_list: req.body.services_list,
-                                           number_of_services: req.body.services_list.length,
-                                           password: hash
-                                       });
+                                        const dipendente = new User({
+                                            _id: new mongoose.Types.ObjectId(),
+                                            name: req.body.name,
+                                            surname: req.body.surname,
+                                            username: req.body.email,
+                                            email: req.body.email,
+                                            events_list: req.body.events_list,
+                                            number_of_events: req.body.events_list.length,
+                                            services_list: req.body.services_list,
+                                            number_of_services: req.body.services_list.length,
+                                            password: hash,
+                                            account_type: "d"
+                                        });
 
-                                       dipendente.save((err) => {
-                                           if (errHandler(res, err, "Errore nella registrazione del dipendente.", false, 409)) {
-                                               return standardRes(res, 200, "Registrazione avvenuta con successo.");
-                                           }
-                                       });
-                                   }
-                               });
-                           }
-                       });
-                   }
+                                        dipendente.save((err) => {
+                                            if (errHandler(res, err, "Errore nella registrazione del dipendente.", false, 409)) {
+
+                                                user.dipendenti_list = user.dipendenti_list || [];
+                                                user.dipendenti_list.push(dipendente._id);
+                                                user.number_of_dipendenti = user.number_of_dipendenti + 1;
+
+                                                user.save((err) => {
+                                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
+                                                        return standardRes(res, 200, "Dipendente creato correttamente.");
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
                 });
             }
         });
@@ -239,7 +249,7 @@ routes.post('/activate_turno', authenticateToken, (req, res) => {
     if (
         requiredParametersErrHandler(
             res,
-            [ req.body.event_id ]
+            [req.body.event_id]
         )
     ) {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "d" }] }, "", (err, users) => {
