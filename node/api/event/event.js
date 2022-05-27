@@ -112,7 +112,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
         requiredParametersErrHandler(
             res,
             [
-                req.body.name, req.body.address, req.body.strat_datetime, req.body.end_datetime,
+                req.body.name, req.body.address, req.body.start_datetime, req.body.end_datetime,
                 req.body.age_range, req.body.maximum_partecipants
             ]
         )
