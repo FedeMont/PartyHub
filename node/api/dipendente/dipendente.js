@@ -590,42 +590,44 @@ routes.put('/modifica', authenticateToken, (req, res) => {
  *                                      description: http status.
  *                                      example: 200
  *                                  message:
- *                                      _id:
-*                                           type: string
- *                                          description: Id del dipendente.
- *                                          example: 6288ec25fe5bb453c76a62fa
- *                                      name:
- *                                          type: string
- *                                          description: Nome del dipendente.
- *                                          example: Nome dipendente
- *                                      cognome:
- *                                          type: string
- *                                          description: Cognome del dipendente.
- *                                          example: Cognome dipendente
- *                                      email:
- *                                          type: string
- *                                          description: Email del dipendente.
- *                                          example: nome.cognome@email.com
- *                                      number_of_services:
- *                                          type: integer
- *                                          description: Numero di servizi appartenenti al dipendente.
- *                                          example: 3
- *                                      services_list:
- *                                          type: array
- *                                          items:
+ *                                      type: object
+ *                                      properties:
+ *                                          _id:
  *                                              type: string
- *                                              description: Id del servizio.
+ *                                              description: Id del dipendente.
  *                                              example: 6288ec25fe5bb453c76a62fa
- *                                      number_of_events:
- *                                          type: integer
- *                                          description: Numero di eventi appartenenti al dipendente.
- *                                          example: 3
- *                                      events_list:
- *                                          type: array
- *                                          items:
+ *                                          name:
  *                                              type: string
- *                                              description: Id dell' evento.
- *                                              example: 6288ec25fe5bb453c76a62fa
+ *                                              description: Nome del dipendente.
+ *                                              example: Nome dipendente
+ *                                          cognome:
+ *                                              type: string
+ *                                              description: Cognome del dipendente.
+ *                                              example: Cognome dipendente
+ *                                          email:
+ *                                              type: string
+ *                                              description: Email del dipendente.
+ *                                              example: nome.cognome@email.com
+ *                                          number_of_services:
+ *                                              type: integer
+ *                                              description: Numero di servizi appartenenti al dipendente.
+ *                                              example: 3
+ *                                          services_list:
+ *                                              type: array
+ *                                              items:
+ *                                                  type: string
+ *                                                  description: Id del servizio.
+ *                                                  example: 6288ec25fe5bb453c76a62fa
+ *                                          number_of_events:
+ *                                              type: integer
+ *                                              description: Numero di eventi appartenenti al dipendente.
+ *                                              example: 3
+ *                                          events_list:
+ *                                              type: array
+ *                                              items:
+ *                                                  type: string
+ *                                                  description: Id dell' evento.
+ *                                                  example: 6288ec25fe5bb453c76a62fa
  *              401:
  *                  description: Token email errata.
  *                  content:
