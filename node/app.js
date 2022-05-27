@@ -38,6 +38,7 @@ app.use('/utente/', express.static(path.join(__dirname, '/ui/utente_partecipante
 app.use('/utente/iscrizione_evento', express.static(path.join(__dirname, '/ui/utente_partecipante/iscrizione_evento')));
 app.use('/utente/lista_biglietti', express.static(path.join(__dirname, '/ui/utente_partecipante/lista_biglietti')));
 app.use('/utente/biglietto', express.static(path.join(__dirname, '/ui/utente_partecipante/biglietto')));
+app.use('/utente/storico_eventi', express.static(path.join(__dirname, '/ui/utente_partecipante/storico_eventi')));
 // end - utente partecipante
 
 // dipendente

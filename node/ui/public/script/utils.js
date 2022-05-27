@@ -97,7 +97,7 @@ let utentePartecipanteBottomBar = () => {
                     </a>
                 </li>
                 <li class="tab col s3">
-                    <a target="_self" href="../../TODO" id="3">
+                    <a target="_self" href="/utente/storico_eventi" id="3">
                         <i class="material-icons">bookmark</i>
                         Eventi
                     </a>
