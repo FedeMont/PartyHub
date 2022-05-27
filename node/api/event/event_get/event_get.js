@@ -606,4 +606,140 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
     }
 });
 
+/**
+ * @openapi
+ * paths:
+ *  /api/event/get/storico_eventi_futuri:
+ *      get:
+ *          summary: Ritorna lo storico degli eventi futuri
+ *          description: Restituisce la lista degli eventi futuri dell'utente loggato
+ *          security:
+ *              - bearerAuth: []
+ *          responses:
+ *              200:
+ *                  description: Eventi futuri.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: array
+ *                                      items:
+ *                                          $ref: "#/components/schemas/Event"
+ *              401:
+ *                   $ref: "#/components/responses/NoToken"
+ *              409:
+ *                  description: Nessun utente trovato.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 409
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Nessun utente trovato.
+ *              500:
+ *                  description: Errore nella ricerca di utente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                               $ref: "#/components/schemas/Code500"
+ */
+routes.get('/storico_eventi_futuri', authenticateToken, (req, res) => {
+    User.find(
+        { $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] },
+        "number_of_events events_list"
+    ).populate("events_list").exec().then((users) => {
+        if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
+
+        let user = users[0];
+        console.log(user);
+
+        let events = user.events_list.filter(event => event.end_datetime >= new Date());
+
+        return standardRes(res, 200, events);
+    })
+        .catch((err) => {
+            errHandler(res, err, "utente");
+        })
+});
+
+/**
+ * @openapi
+ * paths:
+ *  /api/event/get/storico_eventi_passati:
+ *      get:
+ *          summary: Ritorna lo storico degli eventi passati
+ *          description: Restituisce la lista degli eventi passati dell'utente loggato
+ *          security:
+ *              - bearerAuth: []
+ *          responses:
+ *              200:
+ *                  description: Eventi passati.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: array
+ *                                      items:
+ *                                          $ref: "#/components/schemas/Event"
+ *              401:
+ *                   $ref: "#/components/responses/NoToken"
+ *              409:
+ *                  description: Nessun utente trovato.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 409
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Nessun utente trovato.
+ *              500:
+ *                  description: Errore nella ricerca di utente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                               $ref: "#/components/schemas/Code500"
+ */
+routes.get('/storico_eventi_passati', authenticateToken, (req, res) => {
+    User.find(
+        { $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] },
+        "number_of_events events_list"
+    ).populate("events_list").exec().then((users) => {
+        if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
+
+        let user = users[0];
+        console.log(user);
+
+        let events = user.events_list.filter(event => event.end_datetime < new Date());
+
+        return standardRes(res, 200, events);
+    })
+        .catch((err) => {
+            errHandler(res, err, "utente");
+        })
+});
+
 module.exports = routes;
