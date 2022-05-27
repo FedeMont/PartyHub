@@ -2,7 +2,7 @@ const routes = require('express').Router();
 const { mongoose, documents, standardRes } = require("../../../utils");
 const { authenticateToken } = require("../../../token");
 const axios = require('axios');
-const {requiredParametersErrHandler, errHandler} = require("../../../error_handlers");
+const { requiredParametersErrHandler, errHandler } = require("../../../error_handlers");
 
 const User = mongoose.model("User", documents.userSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
@@ -129,7 +129,7 @@ routes.get('/events', authenticateToken, (req, res) => {
                         output: "json"
                     };
 
-                    axios.get('http://api.positionstack.com/v1/reverse', {params})
+                    axios.get('http://api.positionstack.com/v1/reverse', { params })
                         .then((response) => {
                             console.log(response.data.data[0]);
                             let data = response.data.data[0];
@@ -292,14 +292,14 @@ routes.get('/by_address', authenticateToken, (req, res) => {
             output: "json"
         }
 
-        axios.get('http://api.positionstack.com/v1/forward', {params})
+        axios.get('http://api.positionstack.com/v1/forward', { params })
             .then((response) => {
                 console.log(response.data.data[0]);
                 let data = response.data.data[0];
 
                 Event.find(
                     // { "address.locality": data.locality },
-                    {$or: [{"address.locality": data.locality}, {"address.reqion": data.region}]},
+                    { $or: [{ "address.locality": data.locality }, { "address.reqion": data.region }] },
                     "",
                     (err, events) => {
                         if (errHandler(res, err, "eventi")) {
@@ -399,19 +399,24 @@ routes.get('/by_id', authenticateToken, (req, res) => {
             [req.query.event_id]
         )
     ) {
-        if (req.user.role !== "up") return standardRes(res, 403, "Non ti è possibile cercare eventi.");
+        User.find({ $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] }, "", (err, users) => {
+            if (errHandler(res, err, "utente")) {
+                if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
 
-        console.log(req.query);
+                let user = users[0];
+                console.log(user);
 
-        Event.find({_id: req.query.event_id}, "", (err, events) => {
-            if (errHandler(res, err, "evento")) {
+                Event.find({ $and: [{ _id: req.query.event_id }, { _id: user.events_list }] }, "", (err, events) => {
+                    if (errHandler(res, err, "evento")) {
 
-                if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
+                        if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
 
-                let event = events[0];
-                console.log(event);
+                        let event = events[0];
+                        console.log(event);
 
-                return standardRes(res, 200, event);
+                        return standardRes(res, 200, event);
+                    }
+                });
             }
         });
     }
@@ -477,9 +482,9 @@ routes.get('/by_id', authenticateToken, (req, res) => {
  *                               $ref: "#/components/schemas/Code500"
  */
 routes.get('/by_user', authenticateToken, (req, res) => {
-    User.find({ $and: [{ email: req.user.mail }, { account_type: "o"}] }, "", (err, users) => {
+    User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
         if (errHandler(res, err, "utente")) {
-            if (users.length === 0)  return standardRes(res, 409, "Nessun utente trovato.");
+            if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
 
             let user = users[0];
             console.log(user);
@@ -566,7 +571,7 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
             [req.query.biglietto_id]
         )
     ) {
-        User.find({$and: [{email: req.user.mail}, {account_type: "up"}]}, "", (err, users) => {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
                 if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
 
