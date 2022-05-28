@@ -52,6 +52,7 @@ app.use('/organizzatore/crea_servizio', express.static(path.join(__dirname, '/ui
 app.use('/organizzatore/crea_evento', express.static(path.join(__dirname, '/ui/organizzatore/events/crea_evento')));
 app.use('/organizzatore/lista_dipendenti', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/lista_dipendenti')));
 app.use('/organizzatore/crea_dipendente', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/crea_dipendente')));
+app.use('/organizzatore/event/gallery', express.static(path.join(__dirname, '/ui/organizzatore/events/gallery')));
 // end - organizzatore
 
 //
