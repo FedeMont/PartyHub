@@ -19,15 +19,20 @@ const options = {
         },
         servers: [
             {
-                url: "http://federicomontagna.ddns.net:3000"
+                url: "http://federicomontagna.ddns.net:3000",
+                url: "http://localhost:3000",
+
             }
         ],
         components: {
             securitySchemes: {
                 bearerAuth: {
+                    // type: "apiKey",
                     type: "http",
                     scheme: "bearer",
-                    bearerFormat: "JWT"
+                    bearerFormat: "JWT",
+                    // name: "authorization",
+                    // in: "header"
                 }
             },
             responses: {

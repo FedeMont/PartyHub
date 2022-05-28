@@ -37,6 +37,12 @@ const productSchema = new mongoose.Schema({
     // icon: Image()
 }, { _id: false });
 
+const eventPhotoSchema = new mongoose.Schema({
+    photo: { type: String, required: true },
+    datetime: { type: Date, required: true, default: Date.now },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
+}, { _id: false })
+
 let documents = {
     userSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
@@ -80,12 +86,7 @@ let documents = {
         active_event: { type: mongoose.Schema.Types.ObjectId, ref: "Event" },
         last_login: { type: Date, default: Date.now },
     }),
-    gallery_photo: new mongoose.Schema({
-        // photo: Image(),
-        datetime: { type: Date, required: true, default: Date.now },
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-        event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true }
-    }),
+    eventPhotoSchema: eventPhotoSchema,
     geopositionSchema: geopositionSchema,
     eventSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
@@ -109,8 +110,7 @@ let documents = {
         description: { type: String },
         number_of_photos: { type: Number, default: 0 },
         gallery: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "GalleryPhoto"
+            type: eventPhotoSchema
         }],
         owner: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" }
     }),
@@ -128,8 +128,8 @@ let documents = {
     bigliettoSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
         event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
-        entrance_datetime: {type: Date},
-        exit_datetime: {type: Date},
+        entrance_datetime: { type: Date },
+        exit_datetime: { type: Date },
         number_of_products: { type: Number, default: 0 },
         total_price: { type: Number, default: 0 },
         products_list: [{

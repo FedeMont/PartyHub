@@ -474,5 +474,6 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
 });
 
 routes.use("/get", require("./event_get/event_get"));
+routes.use("/photos", require("./photos/photos"));
 
 module.exports = routes;
