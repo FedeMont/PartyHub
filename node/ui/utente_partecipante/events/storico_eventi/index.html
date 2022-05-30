@@ -59,7 +59,7 @@
             console.log(obj);
             return `
             <div class="col s6">
-                <div class="card">
+                <div class="card" id="${obj._id}">
                     <div class="card-image waves-effect waves-block waves-light">
                         <img src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
                     </div>
@@ -71,12 +71,12 @@
                             ${new Date(obj.end_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}
                         </p>
                     </div>
-                    <div class="card-reveal">
-                        <span class="card-title grey-text text-darken-4">Card Title<i
-                                class="material-icons right">close</i></span>
-                        <p>Here is some more information about this product that is only revealed once
-                            clicked on.</p>
-                    </div>
+<!--                    <div class="card-reveal">-->
+<!--                        <span class="card-title grey-text text-darken-4">Card Title<i-->
+<!--                                class="material-icons right">close</i></span>-->
+<!--                        <p>Here is some more information about this product that is only revealed once-->
+<!--                            clicked on.</p>-->
+<!--                    </div>-->
                 </div>
             </div>
             `;
@@ -94,6 +94,9 @@
                     $("#eventi_futuri_list").append(storico_event_item(event));
                 });
 
+                $(".card").click(function() {
+                    window.location.replace("/utente/dettaglio_evento?id="+$(this).prop("id"))
+                });
             }, error: (data) => {
                 console.log(data);
                 M.toast({ html: data.responseJSON.message });

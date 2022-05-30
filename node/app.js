@@ -39,6 +39,7 @@ app.use('/utente/iscrizione_evento', express.static(path.join(__dirname, '/ui/ut
 app.use('/utente/lista_biglietti', express.static(path.join(__dirname, '/ui/utente_partecipante/lista_biglietti')));
 app.use('/utente/biglietto', express.static(path.join(__dirname, '/ui/utente_partecipante/biglietto')));
 app.use('/utente/storico_eventi', express.static(path.join(__dirname, '/ui/utente_partecipante/events/storico_eventi')));
+app.use('/utente/dettaglio_evento', express.static(path.join(__dirname, '/ui/utente_partecipante/events/dettaglio')));
 // end - utente partecipante
 
 // dipendente
@@ -52,6 +53,7 @@ app.use('/organizzatore/crea_servizio', express.static(path.join(__dirname, '/ui
 app.use('/organizzatore/crea_evento', express.static(path.join(__dirname, '/ui/organizzatore/events/crea_evento')));
 app.use('/organizzatore/lista_dipendenti', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/lista_dipendenti')));
 app.use('/organizzatore/storico_eventi', express.static(path.join(__dirname, '/ui/organizzatore/events/storico_eventi')));
+app.use('/organizzatore/dettaglio_evento', express.static(path.join(__dirname, '/ui/organizzatore/events/dettaglio')));
 app.use('/organizzatore/crea_dipendente', express.static(path.join(__dirname, '/ui/organizzatore/dipendenti/crea_dipendente')));
 app.use('/organizzatore/event/gallery', express.static(path.join(__dirname, '/ui/organizzatore/events/gallery')));
 // end - organizzatore
