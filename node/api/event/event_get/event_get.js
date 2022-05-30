@@ -362,6 +362,11 @@ routes.get('/by_address', authenticateToken, (req, res) => {
  *                                                  format: date
  *                                                  description: Data e ora di inizio dell'evento.
  *                                                  example: 2000-05-21T00:00:00.000Z
+ *                                              end_datetime:
+ *                                                  type: string
+ *                                                  format: date
+ *                                                  description: Data e ora di fine dell'evento.
+ *                                                  example: 2000-05-21T00:00:00.000Z
  *                                              number_of_partecipants:
  *                                                  type: integer
  *                                                  description: Numero di partecipenti.

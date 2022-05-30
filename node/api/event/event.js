@@ -182,6 +182,188 @@ routes.post('/crea', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
+ *  /api/event/modifica:
+ *      patch:
+ *          summary: Modifica evento
+ *          description: Dati i dati dell'evento il sistema aggiorna i nuovi dati
+ *          security:
+ *              - bearerAuth: []
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              _id:
+ *                                  type: string
+ *                                  description: Id dell'evento
+ *                              name:
+ *                                  type: string
+ *                                  description: Nome dell'evento
+ *                              address:
+ *                                  type: string
+ *                                  description: Indirizzo dell'evento
+ *                              start_datetime:
+ *                                  type: string
+ *                                  format: date
+ *                                  description: Data e ora di inizio dell'evento
+ *                              end_datetime:
+ *                                  type: string
+ *                                  format: date
+ *                                  description: Data e ora di fine dell'evento
+ *                              age_range:
+ *                                  type: string
+ *                                  description: Range di età a cui è consentito l'ingresso all'evento
+ *                              maximum_partecipants:
+ *                                  type: integer
+ *                                  description: Numero massimo di persone a cui è consentito l'ingresso all'evento
+ *          responses:
+ *              200:
+ *                  description: Evento modificato correttamente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Evento modificato correttamente.
+ *              401:
+ *                  description: Token email errata.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 401
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Token email errata.
+ *              403:
+ *                  description: Non è possibile modificare un evento passato.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 403
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Non è possibile modificare un evento passato.
+ *              409:
+ *                  description: Errore nella creazione dell'evento.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 409
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nella creazione dell'evento.
+ *              500:
+ *                  description: Errore nella ricerca di utente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 500
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nella ricerca di utente.
+ */
+routes.patch('/modifica', authenticateToken, (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [
+                req.body.id, req.body.name, req.body.address, req.body.start_datetime, req.body.end_datetime,
+                req.body.age_range, req.body.maximum_partecipants
+            ]
+        )
+    ) {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
+            if (errHandler(res, err, "utente")) {
+                if (users.length === 0) return standardRes(res, 401, "Non è stato trovato nessun evento.");
+
+                let user = users[0];
+                console.log(user);
+
+                Event.find({ _id: req.body.id }, "", (err, events) => {
+                    if (events.length === 0) return standardRes(res, 401, "Non è stato trovato nessun evento.");
+
+                    let event = events[0];
+                    console.log(event);
+
+                    if (event.end_datetime < new Date()) return standardRes(res, 403, "Non puoiè possibile modificare un evento passato.");
+
+                    if (req.body.start_datetime >= req.body.end_datetime) return standardRes(res, 409, "La data di fine evento deve succedere quella di inizio evento.");
+
+                    let age_range = req.body.age_range.split('-');
+
+                    const params = {
+                        access_key: process.env.positionstack_api_key,
+                        query: req.body.address,
+                        output: "json"
+                    }
+
+                    axios.get('http://api.positionstack.com/v1/forward', { params })
+                        .then((response) => {
+                            console.log(response.data.data);
+
+                            const geopositionData = new GeopositionData(response.data.data[0]);
+
+                            event["name"] = req.body.name;
+                            event["address"] = geopositionData;
+                            event["start_datetime"] = req.body.start_datetime;
+                            event["end_datetime"] = req.body.end_datetime;
+                            event["age_range_min"] = age_range[0];
+                            event["age_range_max"] = age_range[1];
+                            event["maximum_partecipants"] = req.body.maximum_partecipants;
+                            event["description"] = req.body.description;
+
+                            event.save((err) => {
+                                if (errHandler(res, err, "Errore nella modifica dell'evento.", false, 409)) {
+                                    return standardRes(res, 200, "Evento aggiornato correttamente.");
+                                }
+                            });
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                            return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
+                        });
+                });
+            }
+        });
+    }
+});
+
+/**
+ * @openapi
+ * paths:
  *  /api/event/iscrizione:
  *      post:
  *          summary: Iscrizione evento
