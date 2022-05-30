@@ -115,6 +115,9 @@
                     $("#eventi_passati_list").append(storico_event_item(event));
                 });
 
+                $(".card").click(function() {
+                    window.location.replace("/utente/dettaglio_evento?id="+$(this).prop("id"))
+                });
             }, error: (data) => {
                 console.log(data);
                 M.toast({ html: data.responseJSON.message });

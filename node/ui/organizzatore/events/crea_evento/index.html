@@ -98,7 +98,7 @@
                                     </div>
 
                                     <div class="input-field col s12">
-                                        <input id="description" type="text" required="true">
+                                        <input id="description" type="text">
                                         <label for="description">Descrizione</label>
                                     </div>
 
@@ -132,15 +132,56 @@
 
     <script>
 
+        let url_params = (new URLSearchParams(window.location.search));
+
+        let event_id = (url_params.has("id")) ? url_params.get("id") : undefined;
+        console.log(event_id);
+
         $(document).ready(function () {
             M.updateTextFields();
             addBottomBar("o", 3);
 
             $(".card-reveal").css({ "display": "block", "transform": "translateY(-100%)" });
-        });
 
-        $("#close_btn").click(() => {
-           window.location.replace("/organizzatore/storico_eventi");
+            if (event_id) {
+                $("#close_btn").click(() => {
+                    window.location.replace("/organizzatore/dettaglio_evento?id=" + event_id);
+                });
+
+                $("#create_button").text("Modifica");
+                $.ajax({
+                    url: "/api/event/get/by_id",
+                    type: "GET",
+                    data: {
+                        event_id: event_id
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        let event = data.message;
+
+                        $("#name").val(event.name);
+                        $("#start_datetime").val(event.start_datetime.split('.')[0]);
+                        $("#end_datetime").val(event.end_datetime.split('.')[0]);
+                        $("#via").val(event.address.street);
+                        $("#n_civico").val(event.address.number);
+                        $("#comune").val(event.address.locality);
+                        $("#provincia").val(event.address.region_code);
+                        $("#age_range").val(event.age_range_min + "-" + event.age_range_max);
+                        $("#maximum_partecipants").val(event.maximum_partecipants);
+                        $("#description").val(event.description);
+
+                        M.updateTextFields();
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }else{
+                $("#close_btn").click(() => {
+                    window.location.replace("/organizzatore/storico_eventi");
+                });
+            }
         });
 
         $('#form-data').submit((e) => {
@@ -157,28 +198,53 @@
 
             console.log(address);
 
-            $.ajax({
-                url: "/api/event/crea",
-                type: "POST",
-                data: {
-                    // poster: poster,
-                    name: name,
-                    start_datetime: start_datetime,
-                    end_datetime: end_datetime,
-                    address: address,
-                    age_range: age_range,
-                    maximum_partecipants: maximum_partecipants,
-                    description: description
-                },
-                success: (data) => {
-                    console.log(data);
-                    window.location.replace("/organizzatore/storico_eventi");
-                },
-                error: (data) => {
-                    console.log(data);
-                    M.toast({ html: data.responseJSON.message });
-                }
-            });
+            if (event_id) {
+                $.ajax({
+                    url: "/api/event/modifica",
+                    type: "PATCH",
+                    data: {
+                        id: event_id,
+                        name: name,
+                        start_datetime: start_datetime,
+                        end_datetime: end_datetime,
+                        address: address,
+                        age_range: age_range,
+                        maximum_partecipants: maximum_partecipants,
+                        description: description
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        window.location.replace("/organizzatore/dettaglio_evento?id=" + event_id);
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: "/api/event/crea",
+                    type: "POST",
+                    data: {
+                        // poster: poster,
+                        name: name,
+                        start_datetime: start_datetime,
+                        end_datetime: end_datetime,
+                        address: address,
+                        age_range: age_range,
+                        maximum_partecipants: maximum_partecipants,
+                        description: description
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        window.location.replace("/organizzatore/storico_eventi");
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
         });
 
 
