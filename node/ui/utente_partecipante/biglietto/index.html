@@ -23,11 +23,11 @@
         <div class="card m-0" style="height: 100%; width: 100%;">
             <div class="card-content">
                 <div id="container_without_checkboxes" class="container" style="width:100%">
-                    <div class="row">
+                    <div class="row m-0">
                         <div class="container">
                             <div id="event_info" class="col s12" style="width:100%">
                                 <!-- EVENT INFO -->
-                                <div class="row"></div>
+                                <div class="row m-0"></div>
                             </div>
                         </div>
                     </div>
@@ -71,7 +71,7 @@
 
         let event_info = (obj) => {
             return `
-            <div class="row valign-wrapper">
+            <div class="row m-0 valign-wrapper">
                 <div class="col s7 left-align">
                     <h5>${obj.name}</h5>
                     <h6 class="grey-text">${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}</h6>
@@ -82,16 +82,16 @@
 
         let event_disable_item = (obj) => {
             return event_info(obj) + `
-            <div class="row center-align">
+            <div class="row m-0 center-align">
                 <div class="col s12 center-align">
-                    <div class="row">
+                    <div class="row m-0">
                         <h6 class="grey-text">${obj.name}</h6>
                     </div>
 
-                    <div class="row">
+                    <div class="row m-0">
                         <i class="xl material-icons grey-text">confirmation_number</i>
                     </div>
-                    <div class="row">
+                    <div class="row m-0">
                         <a class="activator" id="entra_button">Entra e genera QR code</a>
                     </div>
                 </div>
@@ -101,9 +101,9 @@
 
         let event_active_item = (event, biglietto, src) => {
             return event_info(event) +
-                `<div class="row center-align">
+                `<div class="row m-0 center-align">
                     <div class="col s12 center-align">
-                        <div class="row">
+                        <div class="row m-0">
                             <div id="biglietto" style="position: relative;">
                                 <i class="xl material-icons blue-text" style="position: relative;">confirmation_number</i>
                                 <img src=${src} style="top: 0; left: 0; position: absolute;">
@@ -112,7 +112,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row m-0">
                     <ul id="products_list" class="collection">
                         <!-- PRODUCT -->
                     </ul>

@@ -24,14 +24,16 @@
             </div>
             <div class="card-reveal">
                 <div class="container center-align">
-                    <span class="card-title grey-text text-darken-4">Informazioni evento<i
-                            class="material-icons right">close</i></span>
+                    <span class="card-title grey-text text-darken-4">
+                        Informazioni evento
+                        <i class="material-icons right" id="close_btn">close</i>
+                    </span>
                     <div class="valign-wrapper">
                         <div id="crea-evento-form">
                             <form id="form-data">
-                                <div class="row valign-wrapper">
+                                <div class="row m-0 valign-wrapper">
                                     <div class="col s7">
-                                        <div class="row">
+                                        <div class="row m-0">
                                             <div class="input-field">
                                                 <input disabled value="Locandina" type="text">
                                             </div>
@@ -45,7 +47,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <div class="row m-0">
                                     <div class="input-field col s12">
                                         <input id="name" type="text" required="true">
                                         <label for="name">Nome evento</label>
@@ -61,7 +63,7 @@
                                         <input id="end_datetime" type="datetime-local" required="true">
                                     </div>
 
-                                    <div class="row">
+                                    <div class="row m-0">
                                         <div class="input-field col s9">
                                             <input id="via" type="text" required="true">
                                             <label for="via">Indirizzo</label>
@@ -73,7 +75,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="row">
+                                    <div class="row m-0">
                                         <div class="input-field col s6">
                                             <input id="comune" type="text" required="true">
                                             <label for="comune">Comune</label>
@@ -102,7 +104,7 @@
 
                                 </div>
 
-                                <div class="row">
+                                <div class="row m-0">
                                     <button class="btn-large waves-effect waves-light" type="submit"
                                         id="create_button">Crea</button>
                                 </div>
@@ -137,6 +139,10 @@
             $(".card-reveal").css({ "display": "block", "transform": "translateY(-100%)" });
         });
 
+        $("#close_btn").click(() => {
+           window.location.replace("/organizzatore/storico_eventi");
+        });
+
         $('#form-data').submit((e) => {
 
             e.preventDefault();
@@ -166,6 +172,7 @@
                 },
                 success: (data) => {
                     console.log(data);
+                    window.location.replace("/organizzatore/storico_eventi");
                 },
                 error: (data) => {
                     console.log(data);

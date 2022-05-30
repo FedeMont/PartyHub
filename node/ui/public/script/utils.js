@@ -36,15 +36,22 @@ function eraseCookie(name) {
     createCookie(name, "", -1);
 }
 
-let topBar = (title, rightContent, shouldShearch = false) => {
+let topBar = (title, rightContent, shouldShearch = false, topContent = undefined) => {
+    console.log(topContent);
     return `
     <div class="col s12 grey lighten-4 top_tab">
-        <div class="container">
-            <div class="row valign-wrapper">
-                <div class="col s8">
-                    <h4><b>${title}</b></h4>
+        <div class="container" style="margin-top: 1.4rem">
+            <div class="row m-0">
+                ${topContent?? ""}
+            </div>
+            <div class="row m-0 valign-wrapper">
+                <div class="col s9">
+                    <h4 class="left m-0" id="top-bar-title" style="font-weight: bold">${title}</h4>
                 </div>
-                ${rightContent}
+<!--                <div class="col s8"></div>-->
+                <div class="col s3 valign-wrapper right">
+                    ${rightContent?? ""}
+                </div>
             </div>
         </div>
     </div>
@@ -178,8 +185,8 @@ function addBottomBar(user_type, tab) {
     $('.tabs').tabs({ "duration": 0 });
 }
 
-function addTopBar(title, rightContent, shouldShearch = false) {
-    $("#top_bar").append(topBar(title, rightContent, shouldShearch));
+function addTopBar(title, rightContent, shouldShearch = false, topContent = undefined) {
+    $("#top_bar").append(topBar(title, rightContent, shouldShearch, topContent));
 }
 
 $(window).on("load", () => {

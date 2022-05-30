@@ -43,14 +43,10 @@
     <script>
         $(document).ready(function () {
             addTopBar("Home", `
-                <div class="col s2 valign-wrapper">
                     <i class="small material-icons blue-text" id="settings_button">settings</i>
-                </div>
-                <div class="col s2 valign-wrapper">
                     <!-- TODO: ADD IMAGE DYNAMICALLY -->
                     <img src="https://i1.sndcdn.com/avatars-000589085979-2y82p5-t500x500.jpg"
                         class="circle responsive-img" style="max-width: 40px;" id="profile_picture">
-                </div>
             `, true);
 
             addBottomBar("up", 0);
@@ -58,20 +54,20 @@
 
         let generate_event_post = ((obj) => {
             return `
-            <div class="row">
+            <div class="row m-0">
                 <div class="col s12 ">
                     <div class="card event_post grey lighten-5">
                         <div class="card-content black-text" style="padding: 10px;">
-                            <div class="row valign-wrapper">
+                            <div class="row m-0 valign-wrapper">
                                 <div class="col s2 left-align">
                                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4MGr6udTT7bxrsABWU60TXK4calrrWvpmw&usqp=CAU"
                                         alt="" class="circle responsive-img" style="max-width: 40px;">
                                 </div>
                                 <div class="col s6">
-                                    <div class="row">
+                                    <div class="row m-0">
                                         <b class="truncate">${obj.name}</b>
                                     </div>
-                                    <div class="row grey-text">
+                                    <div class="row m-0 grey-text">
                                         <span>${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}</span>
                                     </div>
                                 </div>
@@ -80,23 +76,23 @@
                                     <a id="${obj._id}" class="iscriviti_button waves-effect waves-light btn-small white blue-text right-align blue-border">Iscriviti</a>
                                 </div>
                             </div>
-                            <div class="row valign-wrapper">
+                            <div class="row m-0 valign-wrapper">
                                 <div class="col s12 grey-text right-align">
                                     <p class="right-align">${obj.address.name}, ${obj.address.region_code}</p>
                                 </div>
                             </div>
-                            <div class="row valign-wrapper" style="padding-bottom: 10px ;">
+                            <div class="row m-0 valign-wrapper" style="padding-bottom: 10px ;">
                                 <div class="col s12">
                                     <p>${obj.description}</p>
                                 </div>
                             </div>
-                            <div class="row valign-wrapper">
+                            <div class="row m-0 valign-wrapper">
                                 <div class="col s12">
                                     <img style="border-radius: 10px;" class="responsive-img"
                                         src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
                                 </div>
                             </div>
-                            <div class="row valign-wrapper">
+                            <div class="row m-0 valign-wrapper">
                                 <div class="col s12">
                                     <span class="grey-text">Partecipanti: ${obj.number_of_partecipants}</span>
                                 </div>

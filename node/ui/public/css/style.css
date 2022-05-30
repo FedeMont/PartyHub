@@ -14,10 +14,6 @@ main {
     flex: 1 0 auto;
 }
 
-.row {
-    margin: 0 !important;
-}
-
 .container {
     max-width: 600px;
 }
@@ -47,6 +43,16 @@ main {
 .xl {
     font-size: 15rem !important;
 }
+
+
+.galleria-title {
+    position: absolute;
+    top: 0;
+    left: 5%;
+    font-weight: bold;
+    text-shadow: 1px 1px grey;
+}
+
 
 /* IOS-STYLE TAB BAR*/
 

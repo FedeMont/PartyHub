@@ -32,14 +32,14 @@
                         </span>
                         <div id="crea-evento-form">
                             <form id="form-data">
-                                <div class="row">
+                                <div class="row m-0">
                                     <div class="input-field col s12">
                                         <input id="name" type="text" required="true">
                                         <label for="name">Nome servizio</label>
                                     </div>
                                 </div>
 
-                                <div class="row valign-wrapper">
+                                <div class="row m-0 valign-wrapper">
                                     <div class="input-field col s10 left">
                                         <span class="left">Lista Prodotti</span>
                                     </div>
@@ -52,7 +52,7 @@
 
                                 <div class="col s12" id="products_list"></div>
 
-                                <div class="row">
+                                <div class="row m-0">
                                     <button class="btn-large waves-effect waves-light" type="submit"
                                         id="create_button">Crea</button>
                                 </div>
@@ -88,7 +88,7 @@
 
         let product = () => {
             return `
-            <div class="product row valign-wrapper" id="product${index}">
+            <div class="product row m-0 valign-wrapper" id="product${index}">
                  <div class="col s1 m-0 pl-0">
                     <a class="btn-small btn-floating" id="remove_product${index}">
                         <i class="material-icons">remove</i>

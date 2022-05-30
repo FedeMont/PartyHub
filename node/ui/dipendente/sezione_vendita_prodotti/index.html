@@ -24,7 +24,7 @@
             <div class="card-content">
                 <div id="container_without_checkboxes" class="container" style="width:100%">
                     <form id="products_form">
-                        <div class="row valign-wrapper">
+                        <div class="row m-0 valign-wrapper">
                             <div id="event_info" class="col s7">
                                 <!-- EVENT INFO -->
                             </div>
@@ -37,7 +37,7 @@
                                 <!-- <h6 class="secondary-content black-text">Nome lista</h6> -->
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row m-0">
                             <ul id="products_list" class="collection">
                                 <!-- PRODUCT -->
                             </ul>
@@ -79,7 +79,7 @@
         let event_info_item = (event) => {
             return `
                 <h5>${event.name}</h5>
-                <div class="row">
+                <div class="row m-0">
                     <h6 class="grey-text"> ${new Date(event.entrance_datetime).toTimeString().slice(0, 5)}</h6>
                 </div>
             `;
@@ -90,7 +90,7 @@
             $('select').formSelect();
 
             addTopBar("Prodotti", `
-                <div class="row">
+                <div class="row m-0">
                     <span id="seleziona" class="blue-text">Seleziona</span>
                 </div>`);
             addBottomBar("d", 1);
@@ -195,7 +195,7 @@
 
         let confirm_button = () => {
             return `
-            <div id="scannerizza_button" class="row">
+            <div id="scannerizza_button" class="row m-0">
                 <button id="scannerizza" class="waves-effect waves-light btn-large activator" type="submit">Scannerizza</button>
             </div>
             `;

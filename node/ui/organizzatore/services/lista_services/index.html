@@ -21,8 +21,8 @@
     <!-- Main content -->
     <main>
         <div id="container_servizi" class="container">
-            <div class="row">
-                <div class="row">
+            <div class="row m-0">
+                <div class="row m-0">
                     <ul id="servizi_list" class="collection">
                         <!-- LISTA SERVIZI -->
                     </ul>
@@ -49,7 +49,7 @@
             console.log(obj);
             return `
             <li id="${obj._id}" class="collection-item">
-                <div class="row valign-wrapper">
+                <div class="row m-0 valign-wrapper">
                     <div class="col s8"><p><h6>${obj.name}</h6></p></div>
                     <div class="col s4 right-align">
                         <a id="button_${obj._id}" class="modifica_button waves-effect waves-light btn-small white blue-text right-align blue-border">Modifica</a>

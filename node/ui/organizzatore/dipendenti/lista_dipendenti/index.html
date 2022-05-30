@@ -21,8 +21,8 @@
     <!-- Main content -->
     <main>
         <div id="container_dipendenti" class="container">
-            <div class="row">
-                <div class="row">
+            <div class="row m-0">
+                <div class="row m-0">
                     <ul id="dipendenti_list" class="collection">
                         <!-- LISTA SERVIZI -->
                     </ul>
@@ -53,17 +53,17 @@
 
             return `
             <li id="${obj._id}" class="collection-item">
-                <div class="row valign-wrapper">
+                <div class="row m-0 valign-wrapper">
                     <div class="col s8">
-                        <div class="row">
-                            <div class="row">
+                        <div class="row m-0">
+                            <div class="row m-0">
                                 <h6>${obj.name} ${obj.surname}</h6>
                             </div>
-                            <div class="row">
+                            <div class="row m-0">
                                 <p class="truncate grey-text m-0" style="font-size: x-small">${obj.email}</p>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row m-0">
                             <div class="col s6 m-0 p-0" style="padding-right: 5px !important;">
                                 <p class="truncate grey-text" style="font-size: xx-small">E: ${events}</p>
                             </div>
