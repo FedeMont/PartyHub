@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+<!-- TOP BAR -->
+<div id="top_bar"></div>
+
+<!-- Main content -->
+<main>
+    <div class="container">
+        <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
+
+        <div class="row">
+            <h6>Informazioni evento</h6>
+        </div>
+
+        <div class="row m-0">
+            <div class="col s6">
+                <img class="materialboxed" style="width: 100%; border-radius: 17px;" src="/public/images/locandina_example.jpg">
+            </div>
+            <div class="col s6">
+                <div class="row">
+                    <div class="row m-0">
+                        <span class="grey-text">Nome: </span>
+                        <span class="right" id="name"></span>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+                <div class="row">
+                    <div class="row m-0">
+                        <div class="row m-0">
+                            <div class="row m-0">
+                                <span class="grey-text">Indirizzo: </span>
+                                <a class="right" id="maps-link" href="https://maps.google.com" target="_blank">Maps</a>
+                            </div>
+                            <div class="row m-0">
+                                <span class="right" id="address" style="text-align: right"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+                <div class="row">
+                    <div class="row m-0">
+                        <span class="grey-text">Inizio: </span>
+                        <span class="right" id="start-datetime"></span>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+                <div class="row">
+                    <div class="row m-0">
+                        <span class="grey-text">Fine: </span>
+                        <span class="right" id="end-datetime"></span>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+                <div class="row">
+                    <div class="row m-0">
+                        <span class="grey-text">Età: </span>
+                        <span class="right" id="age-range"></span>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+                <div class="row">
+                    <div class="row m-0">
+                        <span class="grey-text">Nº iscritti: </span>
+                        <span class="right" id="partecipants"></span>
+                    </div>
+                    <div class="divider"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row"></div>
+        <div class="row">
+            <div style="position: relative" id="gallery">
+                <img style="width: 100%; border-radius: 17px;" src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
+                <div class="row m-0 galleria-title valign-wrapper" style="width: 100%">
+                    <div class="col s6">
+                        <h6 class="white-text left">GALLERIA</h6>
+                    </div>
+
+                    <div class="col s6">
+                        <div class="row m-0 valign-wrapper right">
+                            <span class="white-text" id="nr-photos"></span>
+                            <i class="material-icons white-text">photos</i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row"></div>
+        <div class="row m-0">
+            <div class="row m-0">
+                <span class="grey-text">Feedbacks: </span>
+                <span class="right blue-text" id="feedbacks"></span>
+            </div>
+            <div class="divider"></div>
+        </div>
+
+        <div class="section" style="height: 70px;"></div>
+        <div class="section"></div>
+    </div>
+</main>
+
+<!-- NAVIGATION TABS-BAR -->
+<div id="bottom_bar"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="/public/script/utils.js"></script>
+
+<script>
+    let url_params = (new URLSearchParams(window.location.search));
+    let event_id = (url_params.has("id")) ? url_params.get("id") : undefined;
+
+    $(document).ready(function () {
+        addTopBar(
+        "",
+        `<a class="btn-floating btn-medium waves-effect waves-light blue right">
+            <i id="edit_event_btn" class="material-icons">edit</i>
+        </a>`,
+        false,
+        `<a class="blue-text left valign-wrapper" href="/organizzatore/storico_eventi">
+            <i class="material-icons">chevron_left</i>
+            <span>Events</span>
+        </a>`
+        );
+        addBottomBar("o", 3);
+
+        M.updateTextFields();
+        $('.materialboxed').materialbox();
+    });
+
+    let calculateFeedbacks = (feedbacks) => {
+        let full = `<i class="material-icons">star</i>`;
+        let half = `<i class="material-icons">star_half</i>`;
+        let empty = `<i class="material-icons">star_border</i>`;
+
+        let stars = "";
+        let stars_number = 0;
+
+        for (let i=0; i < Math.floor(feedbacks); i++) {
+            stars += full;
+            stars_number++;
+        }
+
+        if ((feedbacks - Math.floor(feedbacks)) >= 0.5) {
+            stars += half;
+            stars_number++;
+        }
+
+        for (let i=stars_number; i < 5; i++) {
+            stars += empty;
+            stars_number++;
+        }
+
+        return stars;
+    };
+
+
+    $.ajax({
+        url: "/api/event/get/by_id",
+        type: "GET",
+        data: {
+            event_id: event_id
+        },
+        success: (data) => {
+            console.log(data);
+
+            $("#top-bar-title").html(data.message.name);
+
+            $("#name").html(data.message.name);
+
+            let address = data.message.address;
+            $("#maps-link").prop("href", "https://google.com/maps/place/"+address.label);
+            $("#address").html(address.name + ", " + address.locality);
+
+            $("#start-datetime").html(new Date(data.message.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/"));
+            $("#end-datetime").html(new Date(data.message.end_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/"));
+            $("#age-range").html(data.message.age_range_min + " - " +data.message.age_range_max);
+            $("#partecipants").html(data.message.number_of_partecipants + " / " + data.message.maximum_partecipants);
+            $("#feedbacks").html(calculateFeedbacks(1.2));
+
+            $("#nr-photos").html(data.message.number_of_photos);
+        },
+        error: (data) => {
+            console.log(data);
+            M.toast({html: data.responseJSON.message});
+        }
+    });
+
+</script>
+</body>
+
+</html>

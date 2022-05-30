@@ -158,7 +158,7 @@ let organizzatoreBottomBar = () => {
                 </a>
             </li>
             <li class="tab col s3">
-                <a target="_self" href="/organizzatore/crea_evento" id="3">
+                <a target="_self" href="/organizzatore/storico_eventi" id="3">
                     <i class="material-icons">bookmark</i>
                     Events
                 </a>
