@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- TOP BAR -->
+    <div id="top_bar"></div>
+
+    <!-- Main content -->
+    <main>
+        <div class="container">
+            <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
+            <div id="myevents_list">
+                <div class="row m-0">
+                    <h6>Prossimi eventi</h6>
+                    <div id="eventi_futuri_list" class="row m-0">
+                        <!-- EVENTI FUTURI -->
+                    </div>
+                    <h6>Eventi passati</h6>
+                    <div id="eventi_passati_list" class="row m-0">
+                        <!-- EVENTI PASSATI -->
+                    </div>
+                </div>
+            </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            addTopBar("MyEvents", `<a class="btn-floating btn-medium waves-effect waves-light blue right"><i id="add_event_btn" class="material-icons">add</i></a>`);
+            addBottomBar("o", 3);
+
+            $("#add_event_btn").click(() => {
+                window.location.replace("/organizzatore/crea_evento");
+            });
+        });
+
+        let storico_event_item = (obj) => {
+            console.log(obj);
+            return `
+            <div class="col s6">
+                <div class="card" id="${obj._id}">
+                    <div class="card-image waves-effect waves-block waves-light">
+                        <img src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
+                    </div>
+                    <div class="card-content" style="padding: 10px;">
+                        <span class="card-title activator grey-text">${obj.name}</span>
+                        <p class="grey-text" style="font-size: x-small">
+                            ${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}
+                             -
+                            ${new Date(obj.end_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}
+                        </p>
+                    </div>
+<!--                    <div class="card-reveal">-->
+<!--                        <span class="card-title grey-text text-darken-4">Card Title<i-->
+<!--                                class="material-icons right">close</i></span>-->
+<!--                        <p>Here is some more information about this product that is only revealed once-->
+<!--                            clicked on.</p>-->
+<!--                    </div>-->
+                </div>
+            </div>
+            `;
+        };
+
+        $.ajax({
+            url: "/api/event/get/storico_eventi_futuri",
+            type: "GET",
+            data: {
+            },
+            success: (data) => {
+                console.log(data.message);
+                events = data.message;
+                events.forEach((event) => {
+                    $("#eventi_futuri_list").append(storico_event_item(event));
+                });
+
+                $(".card").click(function() {
+                    window.location.replace("/organizzatore/dettaglio_evento?id="+$(this).prop("id"))
+                });
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+        $.ajax({
+            url: "/api/event/get/storico_eventi_passati",
+            type: "GET",
+            data: {
+            },
+            success: (data) => {
+                console.log(data.message);
+                events = data.message;
+                events.forEach((event) => {
+                    $("#eventi_passati_list").append(storico_event_item(event));
+                });
+
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+    </script>
+</body>
+
+</html>
