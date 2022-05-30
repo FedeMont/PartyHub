@@ -61,12 +61,15 @@
             <div class="col s6">
                 <div class="card">
                     <div class="card-image waves-effect waves-block waves-light">
-                        <img
-                            src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
+                        <img src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
                     </div>
                     <div class="card-content" style="padding: 10px;">
                         <span class="card-title activator grey-text">${obj.name}</span>
-                        <p class="grey-text">${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")} - ${new Date(obj.end_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}</p>
+                        <p class="grey-text" style="font-size: x-small">
+                            ${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}
+                             -
+                            ${new Date(obj.end_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}
+                        </p>
                     </div>
                     <div class="card-reveal">
                         <span class="card-title grey-text text-darken-4">Card Title<i
