@@ -2,7 +2,7 @@ const routes = require('express').Router();
 const { mongoose, documents, standardRes } = require("../../utils");
 const { authenticateToken } = require("../../token");
 const axios = require('axios');
-const {requiredParametersErrHandler, errHandler} = require("../../error_handlers");
+const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
 
 const User = mongoose.model("User", documents.userSchema);
 const GeopositionData = mongoose.model("GeopositionData", documents.geopositionSchema);
@@ -135,45 +135,45 @@ routes.post('/crea', authenticateToken, (req, res) => {
                 }
 
                 axios.get('http://api.positionstack.com/v1/forward', { params })
-                .then((response) => {
-                    console.log(response.data.data);
+                    .then((response) => {
+                        console.log(response.data.data);
 
-                    const geopositionData = new GeopositionData(response.data.data[0]);
+                        const geopositionData = new GeopositionData(response.data.data[0]);
 
-                    const event = new Event({
-                        _id: new mongoose.Types.ObjectId(),
-                        // code: { type: String, required: true },
-                        name: req.body.name,
-                        address: geopositionData,
-                        start_datetime: req.body.start_datetime,
-                        end_datetime: req.body.end_datetime,
-                        // poster: Image(),
-                        age_range_min: age_range[0],
-                        age_range_max: age_range[1],
-                        maximum_partecipants: req.body.maximum_partecipants,
-                        description: req.body.description,
-                        owner: user._id
+                        const event = new Event({
+                            _id: new mongoose.Types.ObjectId(),
+                            // code: { type: String, required: true },
+                            name: req.body.name,
+                            address: geopositionData,
+                            start_datetime: req.body.start_datetime,
+                            end_datetime: req.body.end_datetime,
+                            // poster: Image(),
+                            age_range_min: age_range[0],
+                            age_range_max: age_range[1],
+                            maximum_partecipants: req.body.maximum_partecipants,
+                            description: req.body.description,
+                            owner: user._id
+                        });
+
+                        event.save((err) => {
+                            if (errHandler(res, err, "Errore nella creazione dell'evento.", false, 409)) {
+
+                                user.events_list = user.events_list || [];
+                                user.events_list.push(event._id);
+                                user.number_of_events = user.number_of_events + 1;
+
+                                user.save((err) => {
+                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
+                                        return standardRes(res, 200, "Evento creato correttamente.");
+                                    }
+                                });
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
                     });
-
-                    event.save((err) => {
-                        if (errHandler(res, err, "Errore nella creazione dell'evento.", false, 409)) {
-
-                            user.events_list = user.events_list || [];
-                            user.events_list.push(event._id);
-                            user.number_of_events = user.number_of_events + 1;
-
-                            user.save((err) => {
-                                if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
-                                    return standardRes(res, 200, "Evento creato correttamente.");
-                                }
-                            });
-                        }
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
-                });
             }
         });
     }
@@ -195,7 +195,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                      schema:
  *                          type: object
  *                          properties:
- *                              _id:
+ *                              id:
  *                                  type: string
  *                                  description: Id dell'evento
  *                              name:
@@ -318,7 +318,7 @@ routes.patch('/modifica', authenticateToken, (req, res) => {
                     let event = events[0];
                     console.log(event);
 
-                    if (event.end_datetime < new Date()) return standardRes(res, 403, "Non puoiè possibile modificare un evento passato.");
+                    if (event.end_datetime < new Date()) return standardRes(res, 403, "Non è possibile modificare un evento passato.");
 
                     if (req.body.start_datetime >= req.body.end_datetime) return standardRes(res, 409, "La data di fine evento deve succedere quella di inizio evento.");
 
@@ -360,6 +360,139 @@ routes.patch('/modifica', authenticateToken, (req, res) => {
         });
     }
 });
+
+
+/**
+ * @openapi
+ * paths:
+ *  /api/event/elimina:
+ *      delete:
+ *          summary: Elimina un evento
+ *          description: Elimina l'evento con id indicato
+ *          security:
+ *              - bearerAuth: []
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              event_id:
+ *                                  type: string
+ *                                  description: Id dell'evento che l'utente vuole eliminare
+ *          responses:
+ *              200:
+ *                  description: Evento eliminato correttamente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Evento eliminato correttamente.
+ *              401:
+ *                  description: Token email errata.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 401
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Token email errata.
+ *              409:
+ *                  description: Errore nell'eliminazione dell'evento.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 409
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nell'eliminazione dell'evento.
+ */
+routes.delete('/elimina', authenticateToken, (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [req.body.event_id]
+        )
+    ) {
+
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => { // organizzatore
+            if (errHandler(res, err, "utente")) {
+                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile eliminare eventi.");
+
+                let user = users[0];
+                console.log(user);
+
+                Event.find({ $and: [{ _id: req.body.event_id }, { owner: user._id }] }, "", (err, events) => { // evento da eliminare
+                    if (errHandler(res, err, "evento")) {
+                        if (events.length === 0) return standardRes(res, 401, "Non ti è possibile eliminare questo evento.");
+
+                        let event = events[0];
+                        console.log(event);
+
+                        Biglietto.find({ event: req.body.event_id }, "", (err, biglietti) => { // biglietti di tutti gli utenti iscritti all'evento da eliminare
+                            if (errHandler(res, err, "biglietti")) {
+
+                                lista_id_biglietti = [];
+                                biglietti.forEach(biglietto => {
+                                    lista_id_biglietti.push(biglietto._id);
+                                });
+
+                                User.updateMany({
+                                    $and: [{ events_list: event._id }, { number_of_events: { $gt: 0 } }, { number_of_biglietti: { $gt: 0 } }]
+                                },
+                                    {
+                                        $inc: { number_of_events: -1, number_of_biglietti: -1 },
+                                        $pull: { events_list: event._id },
+                                        $pullAll: { biglietti_list: lista_id_biglietti }
+                                    }
+                                ).exec()
+                                    .then((result) => {
+
+                                        Biglietto.deleteMany({
+                                            event: event._id
+                                        }).exec()
+                                            .then((results) => {
+                                                Event.deleteOne({ _id: event._id }).exec()
+                                                    .then((result) => {
+                                                        return standardRes(res, 200, "Evento eliminato correttamente.");
+                                                    })
+                                                    .catch((err) => {
+                                                        errHandler(res, err, "Errore nella eliminazione di evento", false, 409);
+                                                    });
+                                            });
+                                    }).catch((err) => {
+                                        errHandler(res, 401, "Non ti è possibile effettuare l'update");
+                                    });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+
 
 /**
  * @openapi
@@ -597,7 +730,7 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
             [req.body.event_id]
         )
     ) {
-        User.find({$and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
                 if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.")
 
@@ -635,11 +768,11 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
                                         console.log(user);
 
                                         event.save((err) => {
-                                        console.log("DIO CANE")
+                                            console.log("DIO CANE")
                                             if (errHandler(res, err, "Errore nell'aggiornamento di evento.", false, 409)) {
                                                 user.save((err) => {
                                                     if (errHandler(res, err, "Errore nell'aggiornamento di utente.", false, 409)) {
-                                                    return standardRes(res, 200, "Disiscrizione effettuata.");
+                                                        return standardRes(res, 200, "Disiscrizione effettuata.");
                                                     }
                                                 });
                                             }

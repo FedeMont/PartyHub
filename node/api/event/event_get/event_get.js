@@ -411,7 +411,7 @@ routes.get('/by_id', authenticateToken, (req, res) => {
                 let user = users[0];
                 console.log(user);
 
-                Event.find({ $and: [{ _id: req.query.event_id }, { _id: user.events_list }] }, "", (err, events) => {
+                Event.find({ $or: [{ _id: req.query.event_id }, { _id: user.events_list }] }, "", (err, events) => {
                     if (errHandler(res, err, "evento")) {
 
                         if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
