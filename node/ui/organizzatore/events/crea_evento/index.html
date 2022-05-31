@@ -104,9 +104,8 @@
 
                                 </div>
 
-                                <div class="row m-0">
-                                    <button class="btn-large waves-effect waves-light" type="submit"
-                                        id="create_button">Crea</button>
+                                <div class="row">
+                                    <button class="btn-large waves-effect waves-light" type="submit" id="create_button">Crea</button>
                                 </div>
                             </form>
 
@@ -114,9 +113,11 @@
                     </div>
                 </div>
             </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
         </div>
         <div class="section" style="height: 70px;"></div>
-        <div class="section"></div>
+<!--        <div class="section"></div>-->
         </div>
     </main>
 
@@ -148,7 +149,37 @@
                     window.location.replace("/organizzatore/dettaglio_evento?id=" + event_id);
                 });
 
+                $(`
+                    <button class="btn-large waves-effect waves-light red-text white red-border" type="submit" id="elimina_button">
+                        Elimina
+                    </button>
+                `).insertAfter("form");
+
+                $("#elimina_button").click(function () {
+
+                    if (confirm("Sei sicuro di voler eliminare questo evento?")) {
+                        console.log("You pressed OK ", event_id);
+
+                        $.ajax({
+                            url: "/api/event/elimina",
+                            type: "DELETE",
+                            data: {
+                                event_id: event_id
+                            },
+                            success: (data) => {
+                                console.log(data);
+                                window.location.replace("/organizzatore/storico_eventi");
+                            },
+                            error: (data) => {
+                                console.log(data);
+                                M.toast({ html: data.responseJSON.message });
+                            }
+                        });
+                    }
+                });
+
                 $("#create_button").text("Modifica");
+
                 $.ajax({
                     url: "/api/event/get/by_id",
                     type: "GET",
