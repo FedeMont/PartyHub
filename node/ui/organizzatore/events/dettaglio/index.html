@@ -93,9 +93,9 @@
                 <div class="divider"></div>
             </div>
             <div class="row">
-                <div style="position: relative" id="gallery">
+                <div style="position: relative; cursor: pointer;" id="gallery">
                     <img style="width: 100%; border-radius: 17px;"
-                        src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
+                        src="/public/images/gallery.png" id="gallery_preview">
                     <div class="row m-0 galleria-title valign-wrapper" style="width: 100%">
                         <div class="col s6">
                             <h6 class="white-text left">GALLERIA</h6>
@@ -138,6 +138,26 @@
 
         $(document).ready(function () {
             addBottomBar("o", 3);
+            $("#gallery").click(()=>{
+                window.location.replace("/organizzatore/gallery?id="+event_id);
+            })
+
+            $.ajax({
+                url: "/api/event/photos/get_photos",
+                type: "POST",
+                data: {
+                    event_id: event_id
+                },
+                success: (data) => {
+                    if(data.message.length !== 0){
+                        let photo = data.message[0];
+                        $("#gallery_preview").attr('src',`data:image/png;base64,${photo}`)
+                    }
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
 
             $.ajax({
                 url: "/api/event/get/by_id",
