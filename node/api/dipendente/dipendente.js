@@ -281,7 +281,6 @@ routes.post('/activate_turno', authenticateToken, (req, res) => {
     }
 });
 
-
 /**
  * @openapi
  * paths:
@@ -423,7 +422,6 @@ routes.get('/get_dipendenti', authenticateToken, (req, res) => {
     });
 });
 
-
 /**
  * @openapi
  * paths:
@@ -547,8 +545,10 @@ routes.put('/modifica', authenticateToken, (req, res) => {
 
                         dipendente["name"] = req.body.name;
                         dipendente["surname"] = req.body.surname;
+                        dipendente["number_of_services"] = req.body.services_list.length;
                         dipendente["services_list"] = req.body.services_list;
                         dipendente["events_list"] = req.body.events_list;
+                        dipendente["number_of_events"] = req.body.events_list.length;
 
                         dipendente.save((err) => {
                             if (errHandler(res, err, "Errore nell'aggiornamento del dipendente", false, 409)) {
@@ -561,7 +561,6 @@ routes.put('/modifica', authenticateToken, (req, res) => {
         });
     }
 });
-
 
 /**
  * @openapi

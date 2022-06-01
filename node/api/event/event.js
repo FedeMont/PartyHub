@@ -361,7 +361,6 @@ routes.patch('/modifica', authenticateToken, (req, res) => {
     }
 });
 
-
 /**
  * @openapi
  * paths:
@@ -492,7 +491,6 @@ routes.delete('/elimina', authenticateToken, (req, res) => {
         });
     }
 });
-
 
 /**
  * @openapi

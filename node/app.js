@@ -21,7 +21,6 @@ const options = {
             {
                 url: "http://federicomontagna.ddns.net:3000",
                 url: "http://localhost:3000",
-
             }
         ],
         components: {

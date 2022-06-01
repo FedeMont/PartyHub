@@ -35,7 +35,7 @@ const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
     // icon: Image()
-}, { _id: false });
+}); // , { _id: false });
 
 const eventPhotoSchema = new mongoose.Schema({
     photo: { type: String, required: true },

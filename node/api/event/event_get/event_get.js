@@ -553,6 +553,10 @@ routes.get('/by_user', authenticateToken, (req, res) => {
  *                                                  type: boolean
  *                                                  description: Se il biglietto è attivo
  *                                                  example: true
+ *                                              biglietto_used:
+ *                                                  type: boolean
+ *                                                  description: Se il biglietto è stato attivato e disattivato
+ *                                                  example: true
  *
  *              401:
  *                   $ref: "#/components/responses/NoToken"
@@ -599,7 +603,8 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
 
                                 let to_return = {}
                                 if (biglietto.entrance_datetime !== null) {
-                                    to_return["biglietto_active"] = true;
+                                    to_return["biglietto_active"] = (biglietto.entrance_datetime !== undefined);
+                                    to_return["biglietto_used"] = (biglietto.exit_datetime !== undefined);
                                     to_return["name"] = event.name;
                                     to_return["start_datetime"] = event.start_datetime;
                                     to_return["_id"] = event._id;
