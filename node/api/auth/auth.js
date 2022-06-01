@@ -5,6 +5,7 @@ const { authenticateToken, generateAccessToken } = require("../../token");
 const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
 
 const User = mongoose.model("User", documents.userSchema);
+const TokenBlackList = mongoose.model("TokenBlackList", documents.tokenBlackListSchema);
 
 /**
  * @openapi
@@ -249,6 +250,21 @@ routes.post('/login', (req, res) => {
             }
         });
     }
+});
+
+routes.post("/logout", authenticateToken, (req, res) => {
+    console.log(req.user.token);
+
+    const token = new TokenBlackList({
+       _id: new mongoose.Types.ObjectId(),
+       token: req.user.token
+    });
+
+    token.save((err) => {
+       if (errHandler(res, err, "Errore nel logout")) {
+           return standardRes(res, 200, "Logout effettuato con successo");
+       }
+    });
 });
 
 /**
