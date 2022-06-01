@@ -32,7 +32,7 @@
 
     <!-- NAVIGATION TABS-BAR -->
     <div id="bottom_bar"></div>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
@@ -48,6 +48,10 @@
                     <img src="https://i1.sndcdn.com/avatars-000589085979-2y82p5-t500x500.jpg"
                         class="circle responsive-img" style="max-width: 40px;" id="profile_picture">
             `, true);
+
+            $("#settings_button").click(() => {
+                window.location.replace("/utente/settings");
+            });
 
             addBottomBar("up", 0);
         });
