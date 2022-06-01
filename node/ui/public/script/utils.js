@@ -186,7 +186,7 @@ function addBottomBar(user_type, tab) {
 }
 
 function addTopBar(title, rightContent, shouldShearch = false, topContent = undefined) {
-    $("#top_bar").append(topBar(title, rightContent, shouldShearch, topContent));
+    $("#top_bar").html(topBar(title, rightContent, shouldShearch, topContent));
 }
 
 $(window).on("load", () => {
