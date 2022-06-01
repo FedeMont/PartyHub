@@ -136,6 +136,10 @@ let documents = {
             type: productSchema
         }],
         // owner: ??
+    }),
+    tokenBlackListSchema: new mongoose.Schema({
+       _id: mongoose.Schema.Types.ObjectId,
+        token: { type: String }
     })
 };
 
