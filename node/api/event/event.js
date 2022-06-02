@@ -165,6 +165,8 @@ routes.post('/crea', authenticateToken, (req, res) => {
                                 user.save((err) => {
                                     if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
                                         return standardRes(res, 200, "Evento creato correttamente.");
+
+                                        // TODO: implementare invio del codice QRcode dell'evento
                                     }
                                 });
                             }

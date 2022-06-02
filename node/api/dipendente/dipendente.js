@@ -2,6 +2,7 @@ const routes = require('express').Router();
 const { mongoose, documents, standardRes, bcrypt, saltRounds } = require("../../utils");
 const { authenticateToken } = require("../../token");
 const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
+const {createEmailMessage, sendMail} = require("../../emailer");
 
 const User = mongoose.model("User", documents.userSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
@@ -92,7 +93,6 @@ const Service = mongoose.model("Service", documents.serviceSchema);
  *                                      description: messaggio.
  *                                      example: Errore nella generazione dell'hash della password.
  */
-// TODO: Implementare invio della mail
 routes.post('/crea', authenticateToken, (req, res) => {
     if (
         requiredParametersErrHandler(
@@ -148,7 +148,28 @@ routes.post('/crea', authenticateToken, (req, res) => {
 
                                                 user.save((err) => {
                                                     if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
-                                                        return standardRes(res, 200, "Dipendente creato correttamente.");
+
+                                                        let link = "http://localhost:3001/recupera_password"
+
+                                                        let message = createEmailMessage(
+                                                            dipendente.email,
+                                                            "PartyHub - benvenuto come diependente",
+                                                            `
+                                                                <p>Il tuo account di tipo dipendente è stato attivato</p>
+                                                                <p>Le tue credenziali di accesso sono:</p>
+                                                                <p>Email: ${dipendente.email}</p>
+                                                                <p>Password: ${dipendente.email}</p>
+                                                                <p>Ti consigliamo di effettuare un recupero password seguendo le istruzioni presso:</p>
+                                                                <a href="${link}">${link}</a>
+                                                            `);
+
+                                                        sendMail(message)
+                                                            .then((result) => {
+                                                                return standardRes(res, 200, "Dipendente creato correttamente.");
+                                                            })
+                                                            .catch((err) => {
+                                                                errHandler(res, err, "Errore nell'invio dell'email.", false, 409);
+                                                            });
                                                     }
                                                 });
                                             }
