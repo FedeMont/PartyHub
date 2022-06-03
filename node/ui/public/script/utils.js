@@ -190,7 +190,7 @@ function addTopBar(title, rightContent = undefined, shouldShearch = false, topCo
 }
 
 $(window).on("load", () => {
-    if (window.location.pathname !== "/login/" && window.location.pathname !== "/signin/") {
+    if (window.location.pathname !== "/login/" && window.location.pathname !== "/signin/" && window.location.pathname !== "/recupera_password/") {
         $.ajax({
             url: "/api/auth/validate_token",
             type: "GET",
