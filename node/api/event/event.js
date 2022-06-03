@@ -768,7 +768,6 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
                                         console.log(user);
 
                                         event.save((err) => {
-                                            console.log("DIO CANE")
                                             if (errHandler(res, err, "Errore nell'aggiornamento di evento.", false, 409)) {
                                                 user.save((err) => {
                                                     if (errHandler(res, err, "Errore nell'aggiornamento di utente.", false, 409)) {
@@ -785,6 +784,143 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
                 });
             }
         });
+    }
+});
+
+
+/**
+ * @openapi
+ * paths:
+ *  /api/event/feedback:
+ *      patch:
+ *          summary: Feedback evento
+ *          description: Dato l'id dell'evento desiderato e il feedback, il sistema salva il feedback dell'utente loggato all'evento
+ *          security:
+ *              - bearerAuth: []
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              event_id:
+ *                                  type: string
+ *                                  description: Id dell'evento a cui l'utente vuole lasciare un feedback
+ *                              feedback:
+ *                                  type: integer
+ *                                  description: Numero da 0 a 5 di feedback
+ *          responses:
+ *              200:
+ *                  description: Feedback salvato correttamente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Feedback salvato correttamente.
+ *              401:
+ *                  description: Token email errata.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 401
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Token email errata.
+ *              409:
+ *                  description: Errore nel salvataggio del feedback.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 409
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nel salvataggio del feedback.
+ *              500:
+ *                  description: Errore nella ricerca.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 500
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Errore nella ricerca.
+ */
+routes.patch('/feedback', authenticateToken, (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [req.body.event_id, req.body.feedback]
+        )
+    ) {
+        if (req.body.feedback >= 0 && req.body.feedback <= 5) {
+            User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
+                if (errHandler(res, err, "utente")) {
+                    if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.")
+
+                    let user = users[0];
+                    console.log(user);
+
+                    Event.find({ _id: req.body.event_id }, "", (err, events) => {
+                        if (errHandler(res, err, "evento")) {
+                            if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.")
+
+                            let event = events[0];
+                            console.log(event);
+
+                            Biglietto.find({ $and: [{ _id: user.biglietti_list }, { event: event._id }] }, "", (err, biglietti) => {
+                                if (errHandler(res, err, "biglietto")) {
+                                    if (biglietti.length === 0) return standardRes(res, 409, "Nessun biglietto trovato.")
+
+                                    let biglietto = biglietti[0];
+                                    console.log(biglietto);
+
+                                    if (biglietto.exit_datetime === undefined) return standardRes(res, 401, "Il biglietto deve essere disattivato per lasciare un feedback.");
+
+                                    event.feedbacks_list.push(req.body.feedback);
+
+                                    event.number_of_feedbacks = event.number_of_feedbacks + 1;
+
+                                    event.save((err) => {
+                                        if (errHandler(res, err, "Errore nel salvataggio del feedback.", false, 409)) {
+                                            return standardRes(res, 200, "Feedback salvato.");
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        } else {
+            return standardRes(res, 409, "Valore del feedback deve essere compreso tra 0 e 5.");
+        }
     }
 });
 
