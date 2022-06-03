@@ -238,7 +238,7 @@
 
         let currentEvent;
 
-        let get_products = (src, isUsed) => {
+        let get_products = (src = "", isUsed = false) => {
             $.ajax({
                 url: "/api/biglietto/get_products",
                 type: "GET",
@@ -340,6 +340,110 @@
                             // QR Code scanning is stopped.
                             $("#scan").hide();
                             console.log("QR Code scanning stopped.");
+
+                            $("#container_without_checkboxes").append(`
+                                <div id="feedback">
+                                    <!-- Modal Trigger -->
+                                    <a class="modal-trigger" href="#modal1" id="modal_btn" style="display: none;"></a>
+
+                                    <!-- Modal Structure -->
+                                    <div id="modal1" class="modal">
+                                        <div class="modal-content">
+                                            <h4>Feedback</h4>
+                                            <p>Lascia un feedback a questo evento:</p>
+
+                                            <div class="row valign-wrapper m-0">
+                                                <div class="col s2">
+                                                    <div class="btn-floating btn-small" id="remove_feedback"><i class="material-icons">remove</i></div>
+                                                </div>
+                                                <div class="col s8 center">
+                                                    <i class="material-icons blue-text" id="feedback_star_0">star_border</i>
+                                                    <i class="material-icons blue-text" id="feedback_star_1">star_border</i>
+                                                    <i class="material-icons blue-text" id="feedback_star_2">star_border</i>
+                                                    <i class="material-icons blue-text" id="feedback_star_3">star_border</i>
+                                                    <i class="material-icons blue-text" id="feedback_star_4">star_border</i>
+                                                </div>
+                                                <div class="col s2">
+                                                    <div class="btn-floating btn-small" id="add_feedback"><i class="material-icons">add</i></div>
+                                                </div>
+                                            </div>
+
+                                            <form id="feedback_from" style="display:none;">
+                                                <input type="number" id="feedback_nr" min="0" max="5" value="0">
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="#!" class="modal-close waves-effect waves-green btn-flat left" id="close_btn">Annulla</a>
+                                            <a href="#!" class="modal-close waves-effect waves-green btn-flat right" id="ok_btn">Agree</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+
+                            $('.modal').modal();
+
+                            $("#modal_btn")[0].click();
+
+                            $("#remove_feedback").click(function() {
+                                let $feeback_nr = $("#feedback_nr");
+
+                                let prev_value = ($feeback_nr[0].valueAsNumber > 0)? $feeback_nr[0].valueAsNumber - 1 : 0;
+                                $feeback_nr.val(prev_value);
+
+                                for (let i=0; i<prev_value; i++) {
+                                    $("#feedback_star_"+i).html("star");
+                                }
+                                for (let i=prev_value; i<5; i++) {
+                                    $("#feedback_star_"+i).html("star_border");
+                                }
+
+                                console.log($feeback_nr.val());
+                            });
+
+                            $("#add_feedback").click(function() {
+                                let $feeback_nr = $("#feedback_nr");
+
+                                let next_value = ($feeback_nr[0].valueAsNumber < 5)? $feeback_nr[0].valueAsNumber + 1 : 5;
+                                $feeback_nr.val(next_value);
+
+                                for (let i=0; i<next_value; i++) {
+                                    $("#feedback_star_"+i).html("star");
+                                }
+                                for (let i=next_value; i<5; i++) {
+                                    $("#feedback_star_"+i).html("star_border");
+                                }
+
+                                console.log($feeback_nr.val());
+                            });
+
+                            $("#ok_btn").click(function() {
+                                console.log($(this));
+                                console.log($("#feedback_nr").val());
+
+                                $.ajax({
+                                    url: "/api/event/feedback",
+                                    type: "PATCH",
+                                    data: {
+                                        event_id: decodedText,
+                                        feedback: $("#feedback_nr").val()
+                                    },
+                                    success: (data) => {
+                                        console.log(data.message);
+                                        $("#feedback").remove();
+
+                                        window.location.reload();
+                                    },
+                                    error: (data) => {
+                                        console.log(data);
+                                        M.toast({ html: data.responseJSON.message });
+                                    }
+                                });
+                            });
+
+                            $("#close_btn").click(function() {
+                                $("#feedback").remove();
+                            });
+
                         }).catch((err) => {
                             // Stop failed, handle it.
                             console.log(err);

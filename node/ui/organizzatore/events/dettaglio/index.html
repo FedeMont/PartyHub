@@ -27,7 +27,7 @@
                 <h6>Informazioni evento</h6>
             </div>
 
-            <div class="row m-0">
+            <div class="row">
                 <div class="col s6">
                     <img class="materialboxed" style="width: 100%; border-radius: 17px;"
                         src="/public/images/locandina_example.jpg">
@@ -112,8 +112,13 @@
             </div>
             <div class="row m-0">
                 <div class="row m-0">
-                    <span class="grey-text">Feedbacks: </span>
-                    <span class="right blue-text" id="feedbacks"></span>
+                    <div class="col s6">
+                        <span class="grey-text">Feedbacks: </span>
+                    </div>
+                    <div class="col s6">
+                        <span class="left" id="number_of_feedbacks"></span>
+                        <span class="right blue-text" id="feedbacks"></span>
+                    </div>
                 </div>
                 <div class="divider"></div>
             </div>
@@ -209,7 +214,9 @@
                     $("#age-range").html(data.message.age_range_min + " - " + data.message.age_range_max);
                     $("#partecipants").html(data.message.number_of_partecipants + " / " + data.message.maximum_partecipants);
                     $("#description").html(data.message.description);
-                    $("#feedbacks").html(calculateFeedbacks(1.2));
+
+                    $("#number_of_feedbacks").html(data.message.number_of_feedbacks);
+                    $("#feedbacks").html(calculateFeedbacks(data.message.avg_feedback));
 
                     $("#nr-photos").html(data.message.number_of_photos);
                 },
