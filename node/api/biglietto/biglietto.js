@@ -1,7 +1,7 @@
 const routes = require('express').Router();
 const { mongoose, documents, standardRes } = require("../../utils");
 const { authenticateToken } = require("../../token");
-const {requiredParametersErrHandler, errHandler} = require("../../error_handlers");
+const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
 
 const User = mongoose.model("User", documents.userSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
@@ -83,16 +83,16 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
     User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
         if (errHandler(res, err, "utente")) {
 
-            if (users.length === 0)  return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
+            if (users.length === 0) return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
 
             let user = users[0];
             console.log("User: ", user);
 
             let biglietti_ids = user.biglietti_list;
-            Biglietto.find({_id: biglietti_ids}, "", (err, biglietti) => {
+            Biglietto.find({ _id: biglietti_ids }, "", (err, biglietti) => {
                 if (errHandler(res, err, "biglietti")) {
 
-                    if (biglietti.length === 0)  return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
+                    if (biglietti.length === 0) return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
 
                     console.log("Biglietti: ", biglietti);
 
@@ -101,11 +101,11 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
                         event_ids.push(biglietto.event);
                     });
 
-                    Event.find({$and: [{ _id: event_ids }, { start_datetime: { $gte: new Date() } }] }, "", (err, events) => {
+                    Event.find({ $and: [{ _id: event_ids }, { $or: [{ start_datetime: { $gte: new Date() } }, { end_datetime: { $gte: new Date() } }] }] }, "", (err, events) => {
                         if (errHandler(res, err, "eventi")) {
 
                             console.log("Eventi:", events);
-                            if (events.length === 0)  return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
+                            if (events.length === 0) return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
 
 
                             let biglietti_list = [];
@@ -408,7 +408,7 @@ routes.post('/activate', authenticateToken, (req, res) => {
             [req.body.biglietto_id, req.body.event_id]
         )
     ) {
-        User.find({$and: [{email: req.user.mail}, {account_type: "up"}]}, "", (err, users) => {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
                 if (users.length === 0) return standardRes(res, 401, "Non ti è possibile attivare il biglietto.");
@@ -606,7 +606,7 @@ routes.post('/deactivate', authenticateToken, (req, res) => {
             [req.body.biglietto_id, req.body.event_id]
         )
     ) {
-        User.find({$and: [{email: req.user.mail}, {account_type: "up"}]}, "", (err, users) => {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
                 if (users.length === 0) return standardRes(res, 401, "Non ti è possibile disattivare il biglietto.");

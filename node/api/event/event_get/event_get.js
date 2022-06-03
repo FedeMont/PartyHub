@@ -375,6 +375,14 @@ routes.get('/by_address', authenticateToken, (req, res) => {
  *                                                  type: string
  *                                                  description: Descrizione dell'evento.
  *                                                  example: Descrizione
+ *                                              number_of_feedbacks:
+ *                                                  type: integer
+ *                                                  description: Numero di feedback dell'evento.
+ *                                                  example: 100
+ *                                              avg_feedback:
+ *                                                  type: integer
+ *                                                  description: Media dei feedback.
+ *                                                  example: 4.5
  *                                              is_user_iscritto:
  *                                                  type: boolean
  *                                                  description: Se l'utente loggato è iscritto all'evento.
@@ -404,12 +412,20 @@ routes.get('/by_id', authenticateToken, (req, res) => {
             [req.query.event_id]
         )
     ) {
-        User.find({ $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] }, "", (err, users) => {
+        User.find({ $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] }, "", async (err, users) => {
             if (errHandler(res, err, "utente")) {
                 if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
 
                 let user = users[0];
                 console.log(user);
+
+                let avg_feedbacks = await Event.aggregate([
+                    {
+                        $project: { avg_feedback: { $avg: "$feedbacks_list" } }
+                    }
+                ]);
+
+                console.log(avg_feedbacks);
 
                 Event.find({ $or: [{ _id: req.query.event_id }, { _id: user.events_list }] }, "", (err, events) => {
                     if (errHandler(res, err, "evento")) {
@@ -419,7 +435,15 @@ routes.get('/by_id', authenticateToken, (req, res) => {
                         let event = events[0];
                         console.log(event);
 
-                        return standardRes(res, 200, event);
+                        let to_return = JSON.stringify(event);
+                        to_return = JSON.parse(to_return);
+                        delete to_return.feedbacks_list;
+
+                        to_return["avg_feedback"] = avg_feedbacks.filter(avg_feedback => avg_feedback._id.equals(event._id))[0].avg_feedback;
+
+                        console.log("to_return", to_return);
+
+                        return standardRes(res, 200, to_return);
                     }
                 });
             }

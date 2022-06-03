@@ -41,7 +41,7 @@ const eventPhotoSchema = new mongoose.Schema({
     photo: { type: String, required: true },
     datetime: { type: Date, required: true, default: Date.now },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
-}, { _id: false })
+}, { _id: false });
 
 let documents = {
     userSchema: new mongoose.Schema({
@@ -112,7 +112,9 @@ let documents = {
         gallery: [{
             type: eventPhotoSchema
         }],
-        owner: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" }
+        owner: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
+        number_of_feedbacks: { type: Number, default: 0 },
+        feedbacks_list: [{ type: Number }]
     }),
     productSchema: productSchema,
     serviceSchema: new mongoose.Schema({
@@ -138,7 +140,7 @@ let documents = {
         // owner: ??
     }),
     tokenBlackListSchema: new mongoose.Schema({
-       _id: mongoose.Schema.Types.ObjectId,
+        _id: mongoose.Schema.Types.ObjectId,
         token: { type: String }
     })
 };
