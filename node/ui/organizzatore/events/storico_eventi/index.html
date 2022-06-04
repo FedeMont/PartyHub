@@ -61,11 +61,16 @@
 
         let storico_event_item = (obj) => {
             console.log(obj);
+            let poster = "/public/images/gallery.png"
+            if(obj.poster !== ""){
+                poster = `data:image/png;base64,${obj.poster}`;
+            }
+
             return `
             <div class="col s6">
                 <div class="card" id="${obj._id}">
                     <div class="card-image waves-effect waves-block waves-light">
-                        <img src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
+                        <img src="${poster}" style="height:10rem; object-fit:cover">
                     </div>
                     <div class="card-content" style="padding: 10px;">
                         <span class="card-title activator grey-text">${obj.name}</span>

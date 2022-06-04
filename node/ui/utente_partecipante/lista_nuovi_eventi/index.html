@@ -32,7 +32,7 @@
 
     <!-- NAVIGATION TABS-BAR -->
     <div id="bottom_bar"></div>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
@@ -43,16 +43,54 @@
     <script>
         $(document).ready(function () {
             addTopBar("Home", `
-                    <i class="small material-icons blue-text" id="settings_button">settings</i>
-                    <!-- TODO: ADD IMAGE DYNAMICALLY -->
-                    <img src="https://i1.sndcdn.com/avatars-000589085979-2y82p5-t500x500.jpg"
-                        class="circle responsive-img" style="max-width: 40px;" id="profile_picture">
+                    <i class="small material-icons blue-text left m-0" id="settings_button">settings</i>
+                    <img src="/public/images/profile.png"
+                        class="responsive-img circle right" style="width: 35px; height: 35px; object-fit: cover;" id="profile_picture">
             `, true);
 
             addBottomBar("up", 0);
+
+            $.ajax({
+                url: "/api/auth/get_user_info",
+                type: "GET",
+                data: {
+                },
+                success: (data) => {
+                    console.log(data);
+                    let user = data.message;
+
+                    $.ajax({
+                        url: "/api/auth/get_profile_picture_by_id",
+                        type: "GET",
+                        data: {
+                            id: user._id
+                        },
+                        success: (data) => {
+                            console.log(data)
+                            $("#profile_picture").attr('src', `data:image/png;base64,${data.message}`);
+                        }
+                    })
+
+
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
         });
 
-        let generate_event_post = ((obj) => {
+        let generate_event_post = ((obj, profile_picture) => {
+
+            let poster_img = ""
+            if (obj.poster !== "" && obj.poster !== undefined) {
+                poster_img = `
+                <div class="col s12">
+                    <img style="width:100%; border-radius: 10px" class="materialboxed responsive-img"
+                        src="data:image/png;base64,${obj.poster}">
+                </div>
+                `
+            }
             return `
             <div class="row m-0">
                 <div class="col s12 ">
@@ -60,8 +98,8 @@
                         <div class="card-content black-text" style="padding: 10px;">
                             <div class="row m-0 valign-wrapper">
                                 <div class="col s2 left-align">
-                                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4MGr6udTT7bxrsABWU60TXK4calrrWvpmw&usqp=CAU"
-                                        alt="" class="circle responsive-img" style="max-width: 40px;">
+                                    <img src="${profile_picture}"
+                                        alt="" class="circle " style="width: 40px; height: 40px; object-fit: cover">
                                 </div>
                                 <div class="col s6">
                                     <div class="row m-0">
@@ -87,10 +125,7 @@
                                 </div>
                             </div>
                             <div class="row m-0 valign-wrapper">
-                                <div class="col s12">
-                                    <img style="border-radius: 10px;" class="responsive-img"
-                                        src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
-                                </div>
+                                ${poster_img}
                             </div>
                             <div class="row m-0 valign-wrapper">
                                 <div class="col s12">
@@ -170,7 +205,19 @@
                         console.log(data.message);
                         events = data.message;
                         data.message.forEach((event) => {
-                            $("#events_list").append(generate_event_post(event));
+                            let profile_picture = "/public/images/profile.png";
+                            $.ajax({
+                                url: "/api/auth/get_profile_picture_by_id",
+                                type: "GET",
+                                data: {
+                                    id: event.owner
+                                },
+                                success: (data) => {
+                                    profile_picture = data.message;
+                                }
+                            })
+
+                            $("#events_list").append(generate_event_post(event, profile_picture));
 
                             if (event.is_user_iscritto) {
                                 // $('.iscriviti_button#'+event._id).click(function () { disiscriviti_click($(this)); });
@@ -180,6 +227,7 @@
                                 disiscriviti_click($('.iscriviti_button#' + event._id), false);
                             }
                         });
+                        $('.materialboxed').materialbox();
                     },
                     error: (data) => {
                         console.log(data);

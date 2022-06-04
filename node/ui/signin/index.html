@@ -75,21 +75,33 @@
 
             <div id="signin-form2">
                 <form id="form-data2">
+                    <input id="username2" name="username" type="hidden">
+                    <input id="email2" name="email" type="hidden">
+                    <input id="password2" name="password" type="hidden">
                     <div class="row m-0 valign-wrapper">
                         <div class="col s5">
-                            <div class="input-field">
-                                <i class="medium material-icons">add_a_photo</i>
+                            <div class="file-field input-field m-0" style="height: 4rem">
+                                <div class="btn white lighten-4" style="box-shadow:none !important">
+                                    <i class="large material-icons black-text"
+                                        style=" font-size:5rem !important">add_a_photo</i>
+                                    <input type="file" id="files_path" name="profile_picture">
+                                </div>
+                                <div class="file-path-wrapper">
+                                    <input class="file-path validate" type="text"
+                                        style="width:0px !important; height: 2rem !important">
+                                </div>
+                                <input name="event_id" id="event_id" type="hidden" value="ciao">
                             </div>
                         </div>
 
                         <div class="col s7">
                             <div class="row m-0">
                                 <div class="input-field ">
-                                    <input id="name" type="text" required="true">
+                                    <input id="name" name="name" type="text" required="true">
                                     <label for="name">Nome</label>
                                 </div>
                                 <div class="input-field">
-                                    <input id="surname" type="text" required="true">
+                                    <input id="surname" name="surname" type="text" required="true">
                                     <label for="surname">Cognome</label>
                                 </div>
                             </div>
@@ -99,11 +111,11 @@
 
                     <div class="row m-0">
                         <div class="input-field">
-                            <input id="birthday" type="date" class="grey-text" required="true">
+                            <input id="birthday" name="birthday" type="date" class="grey-text" required="true">
                             <label for="birthday">Data di nascita</label>
                         </div>
                         <div class="input-field">
-                            <input id="description" type="text">
+                            <input id="description" name="description" type="text">
                             <label for="description">Descrizione</label>
                         </div>
                     </div>
@@ -181,30 +193,28 @@
                         console.log(data);
                         $('#signin-form1').hide();
                         $('#signin-form2').show();
+                        $("#username2").val(username);
+                        $("#email2").val(email);
+                        $("#password2").val(password);
+
 
                         $('#form-data2').submit((e) => {
                             e.preventDefault();
-                            let name = $("#name").val();
-                            let surname = $("#surname").val();
+                            // let name = $("#name").val();
+                            // let surname = $("#surname").val();
                             //  TODO: Add file picker
                             // let foto = $("#").val();
-                            let birthday = $("#birthday").val();
-                            let description = $("#description").val();
-
+                            // let birthday = $("#birthday").val();
+                            // let description = $("#description").val();
+                            let formData = new FormData($("#form-data2")[0])
                             $.ajax({
                                 url: "/api/auth/signin",
                                 type: "POST",
-                                data: {
-                                    username: username,
-                                    email: email,
-                                    password: password,
-                                    name: name,
-                                    surname: surname,
-                                    // profile_picture: foto,
-                                    birthday: birthday,
-                                    description: description
-
-                                },
+                                enctype: 'multipart/form-data',
+                                data: formData,
+                                contentType: false,
+                                processData: false,
+                                cache: false,
                                 success: (data) => {
                                     console.log(data);
                                     $('#signin-form1').hide();
