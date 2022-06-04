@@ -1,13 +1,28 @@
 const routes = require('express').Router();
+const multer = require("multer");
+const fs = require('fs');
+const path = require('path');
 const { mongoose, documents, standardRes } = require("../../utils");
 const { authenticateToken } = require("../../token");
 const axios = require('axios');
-const {requiredParametersErrHandler, errHandler} = require("../../error_handlers");
+const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
 
 const User = mongoose.model("User", documents.userSchema);
 const GeopositionData = mongoose.model("GeopositionData", documents.geopositionSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
 const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
+
+
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now())
+    }
+});
+
+let upload = multer({ storage: storage });
 
 /**
  * @openapi
@@ -21,7 +36,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *          requestBody:
  *              required: true
  *              content:
- *                  application/json:
+ *                  multipart/form-data:
  *                      schema:
  *                          type: object
  *                          properties:
@@ -31,6 +46,10 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                              address:
  *                                  type: string
  *                                  description: Indirizzo dell'evento
+ *                              poster:
+ *                                  type: string
+ *                                  format: binary
+ *                                  description: Foto locandina evento
  *                              start_datetime:
  *                                  type: string
  *                                  format: date
@@ -107,7 +126,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                      description: messaggio.
  *                                      example: Errore nella ricerca di utente.
  */
-routes.post('/crea', authenticateToken, (req, res) => {
+routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
     if (
         requiredParametersErrHandler(
             res,
@@ -127,6 +146,11 @@ routes.post('/crea', authenticateToken, (req, res) => {
                 if (req.body.start_datetime >= req.body.end_datetime) return standardRes(res, 409, "La data di fine evento deve succedere quella di inizio evento.");
 
                 let age_range = req.body.age_range.split('-');
+                let poster = "";
+                if (req.file !== undefined) {
+                    poster = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
+                    fs.unlinkSync(path.resolve('./uploads/' + req.file.filename));
+                }
 
                 const params = {
                     access_key: process.env.positionstack_api_key,
@@ -135,45 +159,45 @@ routes.post('/crea', authenticateToken, (req, res) => {
                 }
 
                 axios.get('http://api.positionstack.com/v1/forward', { params })
-                .then((response) => {
-                    console.log(response.data.data);
+                    .then((response) => {
+                        console.log(response.data.data);
 
-                    const geopositionData = new GeopositionData(response.data.data[0]);
+                        const geopositionData = new GeopositionData(response.data.data[0]);
 
-                    const event = new Event({
-                        _id: new mongoose.Types.ObjectId(),
-                        // code: { type: String, required: true },
-                        name: req.body.name,
-                        address: geopositionData,
-                        start_datetime: req.body.start_datetime,
-                        end_datetime: req.body.end_datetime,
-                        // poster: Image(),
-                        age_range_min: age_range[0],
-                        age_range_max: age_range[1],
-                        maximum_partecipants: req.body.maximum_partecipants,
-                        description: req.body.description,
-                        owner: user._id
+                        const event = new Event({
+                            _id: new mongoose.Types.ObjectId(),
+                            // code: { type: String, required: true },
+                            name: req.body.name,
+                            address: geopositionData,
+                            start_datetime: req.body.start_datetime,
+                            end_datetime: req.body.end_datetime,
+                            poster: poster,
+                            age_range_min: age_range[0],
+                            age_range_max: age_range[1],
+                            maximum_partecipants: req.body.maximum_partecipants,
+                            description: req.body.description,
+                            owner: user._id
+                        });
+
+                        event.save((err) => {
+                            if (errHandler(res, err, "Errore nella creazione dell'evento.", false, 409)) {
+
+                                user.events_list = user.events_list || [];
+                                user.events_list.push(event._id);
+                                user.number_of_events = user.number_of_events + 1;
+
+                                user.save((err) => {
+                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
+                                        return standardRes(res, 200, "Evento creato correttamente.");
+                                    }
+                                });
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
                     });
-
-                    event.save((err) => {
-                        if (errHandler(res, err, "Errore nella creazione dell'evento.", false, 409)) {
-
-                            user.events_list = user.events_list || [];
-                            user.events_list.push(event._id);
-                            user.number_of_events = user.number_of_events + 1;
-
-                            user.save((err) => {
-                                if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
-                                    return standardRes(res, 200, "Evento creato correttamente.");
-                                }
-                            });
-                        }
-                    });
-                })
-                .catch((error) => {
-                    console.log(error);
-                    return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
-                });
             }
         });
     }
@@ -191,7 +215,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *          requestBody:
  *              required: true
  *              content:
- *                  application/json:
+ *                  multipart/form-data:
  *                      schema:
  *                          type: object
  *                          properties:
@@ -204,6 +228,10 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                              address:
  *                                  type: string
  *                                  description: Indirizzo dell'evento
+ *                              poster:
+ *                                  type: string
+ *                                  format: binary
+ *                                  description: Foto locandina evento
  *                              start_datetime:
  *                                  type: string
  *                                  format: date
@@ -295,7 +323,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                                      description: messaggio.
  *                                      example: Errore nella ricerca di utente.
  */
-routes.patch('/modifica', authenticateToken, (req, res) => {
+routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res) => {
     if (
         requiredParametersErrHandler(
             res,
@@ -323,6 +351,11 @@ routes.patch('/modifica', authenticateToken, (req, res) => {
                     if (req.body.start_datetime >= req.body.end_datetime) return standardRes(res, 409, "La data di fine evento deve succedere quella di inizio evento.");
 
                     let age_range = req.body.age_range.split('-');
+                    let poster = event.poster;
+                    if (req.file !== undefined) {
+                        poster = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
+                        fs.unlinkSync(path.resolve('./uploads/' + req.file.filename));
+                    }
 
                     const params = {
                         access_key: process.env.positionstack_api_key,
@@ -338,6 +371,7 @@ routes.patch('/modifica', authenticateToken, (req, res) => {
 
                             event["name"] = req.body.name;
                             event["address"] = geopositionData;
+                            event["poster"] = poster;
                             event["start_datetime"] = req.body.start_datetime;
                             event["end_datetime"] = req.body.end_datetime;
                             event["age_range_min"] = age_range[0];
@@ -597,7 +631,7 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
             [req.body.event_id]
         )
     ) {
-        User.find({$and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
                 if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.")
 
@@ -635,11 +669,11 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
                                         console.log(user);
 
                                         event.save((err) => {
-                                        console.log("DIO CANE")
+                                            console.log("DIO CANE")
                                             if (errHandler(res, err, "Errore nell'aggiornamento di evento.", false, 409)) {
                                                 user.save((err) => {
                                                     if (errHandler(res, err, "Errore nell'aggiornamento di utente.", false, 409)) {
-                                                    return standardRes(res, 200, "Disiscrizione effettuata.");
+                                                        return standardRes(res, 200, "Disiscrizione effettuata.");
                                                     }
                                                 });
                                             }

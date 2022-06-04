@@ -150,6 +150,8 @@ routes.get('/events', authenticateToken, (req, res) => {
                                             event_info["number_of_partecipants"] = event.number_of_partecipants;
                                             event_info["description"] = event.description;
                                             event_info["is_user_iscritto"] = (event.partecipants_list.includes(user._id));
+                                            event_info["owner"] = event.owner;
+                                            event_info["poster"] = event.poster;
                                             to_return.push(event_info);
                                         });
                                         console.log(events);
@@ -175,6 +177,8 @@ routes.get('/events', authenticateToken, (req, res) => {
                             event_info["start_datetime"] = event.start_datetime;
                             event_info["number_of_partecipants"] = event.number_of_partecipants;
                             event_info["description"] = event.description;
+                            event_info["owner"] = event.owner;
+                            event_info["poster"] = event.poster;
                             if (event.partecipants_list.includes(user._id)) {
                                 event_info["is_user_iscritto"] = true;
                             }
