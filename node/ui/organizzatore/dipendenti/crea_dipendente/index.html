@@ -127,7 +127,7 @@
         success: (data) => {
             console.log(data);
             data.message.forEach((event) => {
-                $('#events_list').append($('<option>').val(event._id).text(event.name + " del " + new Date(event.start_datetime).toTimeString().slice(0, 5)));
+                $('#events_list').append($('<option>').val(event._id).text(event.name + " del " + new Date(event.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")));
             });
 
             $('select').formSelect();

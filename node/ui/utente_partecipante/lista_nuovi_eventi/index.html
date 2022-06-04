@@ -48,6 +48,10 @@
                         class="responsive-img circle right" style="width: 35px; height: 35px; object-fit: cover;" id="profile_picture">
             `, true);
 
+            $("#settings_button").click(() => {
+                window.location.replace("/utente/settings");
+            });
+
             addBottomBar("up", 0);
 
             $.ajax({

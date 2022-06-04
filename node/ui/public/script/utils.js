@@ -36,7 +36,7 @@ function eraseCookie(name) {
     createCookie(name, "", -1);
 }
 
-let topBar = (title, rightContent, shouldShearch = false, topContent = undefined) => {
+let topBar = (title, rightContent = undefined, shouldShearch = false, topContent = undefined) => {
     console.log(topContent);
     return `
     <div class="col s12 grey lighten-4 top_tab" style="padding-bottom: 20px">
@@ -119,7 +119,7 @@ let dipendenteBottomBar = () => {
         <div class="col s12 navigation_tabs">
             <ul class="tabs tabs-fixed-width tabs-icon">
                 <li class="tab col s3">
-                    <a target="_self" href="../../TODO" id="0">
+                    <a target="_self" href="/dipendente/settings" id="0">
                         <i class="material-icons">settings</i>
                         Impostazioni
                     </a>
@@ -139,25 +139,25 @@ let organizzatoreBottomBar = () => {
     return `
     <div class="col s12 navigation_tabs">
         <ul class="tabs tabs-fixed-width tabs-icon">
-            <li class="tab col s3">
-                <a target="_self" href="../../TODO" id="0">
-                    <i class="material-icons">person</i>
-                    Profilo
+            <li class="tab col s3 ph-0">
+                <a target="_self" href="/organizzatore/settings" id="0">
+                    <i class="material-icons">settings</i>
+                    Impostazioni
                 </a>
             </li>
-            <li class="tab col s3">
+            <li class="tab col s3 ph-0">
                 <a target="_self" href="/organizzatore/" id="1">
                     <i class="material-icons">list</i>
                     Servizi
                 </a>
             </li>
-            <li class="tab col s3">
+            <li class="tab col s3 ph-0">
                 <a target="_self" href="/organizzatore/lista_dipendenti" id="2">
                     <i class="material-icons">group</i>
                     Dipendenti
                 </a>
             </li>
-            <li class="tab col s3">
+            <li class="tab col s3 ph-0">
                 <a target="_self" href="/organizzatore/storico_eventi" id="3">
                     <i class="material-icons">bookmark</i>
                     Events
@@ -185,12 +185,12 @@ function addBottomBar(user_type, tab) {
     $('.tabs').tabs({ "duration": 0 });
 }
 
-function addTopBar(title, rightContent, shouldShearch = false, topContent = undefined) {
-    $("#top_bar").append(topBar(title, rightContent, shouldShearch, topContent));
+function addTopBar(title, rightContent = undefined, shouldShearch = false, topContent = undefined) {
+    $("#top_bar").html(topBar(title, rightContent, shouldShearch, topContent));
 }
 
 $(window).on("load", () => {
-    if (window.location.pathname !== "/login/" && window.location.pathname !== "/signin/") {
+    if (window.location.pathname !== "/login/" && window.location.pathname !== "/signin/" && window.location.pathname !== "/recupera_password/") {
         $.ajax({
             url: "/api/auth/validate_token",
             type: "GET",
@@ -220,4 +220,23 @@ $(window).on("load", () => {
 $(document).ready(() => {
     M.updateTextFields();
     $('select').formSelect();
+});
+
+$("#logout_btn").click(() => {
+    console.log("Logout");
+    if (confirm("Sei sicuro di voler uscire?")) {
+        $.ajax({
+            url: "/api/auth/logout",
+            type: "POST",
+            data: {},
+            success: (data) => {
+                console.log(data);
+                eraseCookie("token");
+                window.location.replace("/login");
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+    }
 });

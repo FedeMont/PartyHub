@@ -38,7 +38,7 @@
                     <div class="container center-align">
                         <span class="card-title blue-text" style="font-size: 14px;">
                             <div class="valign-wapper" id="reader"></div>
-                            <i id="exit_button" class="blue-text">Esci</i>
+                            <i id="annulla_button" class="blue-text">Annulla</i>
                         </span>
                     </div>
                 </div>
@@ -61,9 +61,79 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script>
-        $(document).ready(()=> {
-            addTopBar("Biglietto", ``);
+        $(document).ready(() => {
             addBottomBar("up", 1);
+
+            $.ajax({
+                url: "/api/event/get/by_biglietto_id",
+                type: "GET",
+                data: {
+                    biglietto_id: biglietto_id
+                },
+                success: (data) => {
+                    console.log(data.message);
+                    currentEvent = data.message;
+                    $("#event_info").append(event_disable_item(currentEvent));
+
+                    if (currentEvent.biglietto_active && !currentEvent.biglietto_used) {
+                        addTopBar(
+                            "Biglietto",
+                            `<div class="row m-0">
+                                <span class="activator blue-text" id="esci_button">Esci</span>
+                            </div>`,
+                            false,
+                            `<a class="blue-text left valign-wrapper" href="/utente/lista_biglietti">
+                                <i class="material-icons">chevron_left</i>
+                                <span>Biglietti</span>
+                            </a>`
+                        );
+                        get_products(getQRCodeImageSrc(biglietto_id), currentEvent.biglietto_used);
+
+                        $("#esci_button").click(() => {
+                            $("#esci_button_hidden")[0].click();
+                        });
+
+                    } else if (currentEvent.biglietto_active && currentEvent.biglietto_used) {
+                        addTopBar(
+                            "Biglietto",
+                            ``,
+                            false,
+                            `<a class="blue-text left valign-wrapper" href="/utente/lista_biglietti">
+                                <i class="material-icons">chevron_left</i>
+                                <span>Biglietti</span>
+                            </a>`
+                        );
+
+                        get_products(getQRCodeImageSrc(biglietto_id), currentEvent.biglietto_used);
+                    }
+                    else {
+                        addTopBar(
+                            "Biglietto",
+                            ``,
+                            false,
+                            `<a class="blue-text left valign-wrapper" href="/utente/lista_biglietti">
+                                <i class="material-icons">chevron_left</i>
+                                <span>Biglietti</span>
+                            </a>`
+                        );
+                        $("#entra_button").click(() => {
+                            toggleQRcodeEnter = true;
+
+                            html5QrCodeEnter = new Html5Qrcode(
+                                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+                            const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+                            // If you want to prefer front camera
+                            html5QrCodeEnter.start({ facingMode: "user" }, config, qrCodeEnterCallback);
+                        });
+                    }
+
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
         });
 
         let biglietto_id = (new URLSearchParams(window.location.search)).get("id");
@@ -112,6 +182,31 @@
                         </div>
                     </div>
                 </div>
+                <a class="activator" id="esci_button_hidden" style="display:none;"></a>
+                <div class="row m-0">
+                    <ul id="products_list" class="collection">
+                        <!-- PRODUCT -->
+                    </ul>
+                </div>
+            `;
+        };
+
+        let event_deactive_item = (event, biglietto) => {
+            return event_info(event) +
+                `<div class="row m-0 center-align">
+                    <div class="col s12 center-align">
+                        <div class="row m-0">
+                            <div id="biglietto" style="position: relative;">
+                                <i class="xl material-icons grey-text" style="position: relative;">confirmation_number</i>
+                            </div>
+                            <h6 class="grey-text" style="margin-top: -1rem;">
+                                Entrata: ${new Date(biglietto.entrance_datetime).toTimeString().slice(0, 5)} -
+                                Uscita: ${new Date(biglietto.exit_datetime).toTimeString().slice(0, 5)}
+                            </h6> 
+                        </div>
+                    </div>
+                </div>
+                <a class="activator" id="esci_button_hidden" style="display:none;"></a>
                 <div class="row m-0">
                     <ul id="products_list" class="collection">
                         <!-- PRODUCT -->
@@ -135,12 +230,15 @@
             return "https://api.qrserver.com/v1/create-qr-code/?data=" + text + "&amp;size=100x100 alt='' title='' ";
         }
 
-        let html5QrCode;
-        let toggleQRcodeSuccess;
+        let html5QrCodeEnter;
+        let toggleQRcodeEnter;
+
+        let html5QrCodeExit;
+        let toggleQRcodeExit;
 
         let currentEvent;
 
-        let get_products = (src) => {
+        let get_products = (src = "", isUsed = false) => {
             $.ajax({
                 url: "/api/biglietto/get_products",
                 type: "GET",
@@ -150,7 +248,26 @@
                 success: (data) => {
                     console.log(data.message);
 
-                    $("#event_info").replaceWith(event_active_item(currentEvent, data.message, src));
+                    if (!isUsed) {
+                        $("#event_info").replaceWith(event_active_item(currentEvent, data.message, src));
+
+                        $("#esci_button_hidden").click(() => {
+                            console.log("esci button hidden clicked");
+
+                            toggleQRcodeExit = true;
+
+                            html5QrCodeExit = new Html5Qrcode(
+                                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+                            const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+                            // If you want to prefer front camera
+                            html5QrCodeExit.start({ facingMode: "user" }, config, qrCodeExitCallback);
+                        });
+                    }else{
+                        $("#event_info").replaceWith(event_deactive_item(currentEvent, data.message));
+                    }
+
                     const h = document.querySelector('#biglietto').offsetHeight / 2 - 50;
                     const w = document.querySelector('#biglietto').offsetWidth / 2 - 50;
                     $("#biglietto > img").css({ "padding": h + "px " + w + "px" });
@@ -166,9 +283,9 @@
             });
         };
 
-        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-            if (toggleQRcodeSuccess) {
-                toggleQRcodeSuccess = false;
+        const qrCodeEnterCallback = (decodedText, decodedResult) => {
+            if (toggleQRcodeEnter) {
+                toggleQRcodeEnter = false;
                 $.ajax({
                     url: "/api/biglietto/activate",
                     type: "POST",
@@ -179,13 +296,20 @@
                     success: (data) => {
                         console.log(data.message);
 
-                        html5QrCode.stop().then((ignore) => {
+                        html5QrCodeEnter.stop().then((ignore) => {
                             // QR Code scanning is stopped.
                             $("#scan").hide();
                             console.log("QR Code scanning stopped.");
 
+                            addTopBar(
+                                "Biglietto",
+                                `<div class="row m-0">
+                                    <span id="esci_button" class="blue-text">Esci</span>
+                                </div>`,
+                                false,
+                                ``
+                            );
                             get_products(getQRCodeImageSrc(data.message._id));
-
                         }).catch((err) => {
                             // Stop failed, handle it.
                             console.log(err);
@@ -199,38 +323,139 @@
             }
         };
 
-        $.ajax({
-            url: "/api/event/get/by_biglietto_id",
-            type: "GET",
-            data: {
-                biglietto_id: biglietto_id
-            },
-            success: (data) => {
-                console.log(data.message);
-                currentEvent = data.message;
-                $("#event_info").append(event_disable_item(currentEvent));
+        const qrCodeExitCallback = (decodedText, decodedResult) => {
+            if (toggleQRcodeExit) {
+                toggleQRcodeExit = false;
+                $.ajax({
+                    url: "/api/biglietto/deactivate",
+                    type: "POST",
+                    data: {
+                        biglietto_id: biglietto_id,
+                        event_id: decodedText
+                    },
+                    success: (data) => {
+                        console.log(data.message);
 
-                if (currentEvent.biglietto_active) {
-                    get_products(getQRCodeImageSrc(biglietto_id));
-                } else {
-                    $("#entra_button").click(() => {
-                        toggleQRcodeSuccess = true;
+                        html5QrCodeExit.stop().then((ignore) => {
+                            // QR Code scanning is stopped.
+                            $("#scan").hide();
+                            console.log("QR Code scanning stopped.");
 
-                        html5QrCode = new Html5Qrcode(
-                            "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+                            $("#container_without_checkboxes").append(`
+                                <div id="feedback">
+                                    <!-- Modal Trigger -->
+                                    <a class="modal-trigger" href="#modal1" id="modal_btn" style="display: none;"></a>
 
-                        const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+                                    <!-- Modal Structure -->
+                                    <div id="modal1" class="modal">
+                                        <div class="modal-content">
+                                            <h4>Feedback</h4>
+                                            <p>Lascia un feedback a questo evento:</p>
 
-                        // If you want to prefer front camera
-                        html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
-                    });
-                }
+                                            <div class="row valign-wrapper m-0">
+                                                <div class="col s2">
+                                                    <div class="btn-floating btn-small" id="remove_feedback"><i class="material-icons">remove</i></div>
+                                                </div>
+                                                <div class="col s8 center">
+                                                    <i class="material-icons blue-text" id="feedback_star_0">star_border</i>
+                                                    <i class="material-icons blue-text" id="feedback_star_1">star_border</i>
+                                                    <i class="material-icons blue-text" id="feedback_star_2">star_border</i>
+                                                    <i class="material-icons blue-text" id="feedback_star_3">star_border</i>
+                                                    <i class="material-icons blue-text" id="feedback_star_4">star_border</i>
+                                                </div>
+                                                <div class="col s2">
+                                                    <div class="btn-floating btn-small" id="add_feedback"><i class="material-icons">add</i></div>
+                                                </div>
+                                            </div>
 
-            }, error: (data) => {
-                console.log(data);
-                M.toast({ html: data.responseJSON.message });
+                                            <form id="feedback_from" style="display:none;">
+                                                <input type="number" id="feedback_nr" min="0" max="5" value="0">
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="#!" class="modal-close waves-effect waves-green btn-flat left" id="close_btn">Annulla</a>
+                                            <a href="#!" class="modal-close waves-effect waves-green btn-flat right" id="ok_btn">Agree</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+
+                            $('.modal').modal();
+
+                            $("#modal_btn")[0].click();
+
+                            $("#remove_feedback").click(function() {
+                                let $feeback_nr = $("#feedback_nr");
+
+                                let prev_value = ($feeback_nr[0].valueAsNumber > 0)? $feeback_nr[0].valueAsNumber - 1 : 0;
+                                $feeback_nr.val(prev_value);
+
+                                for (let i=0; i<prev_value; i++) {
+                                    $("#feedback_star_"+i).html("star");
+                                }
+                                for (let i=prev_value; i<5; i++) {
+                                    $("#feedback_star_"+i).html("star_border");
+                                }
+
+                                console.log($feeback_nr.val());
+                            });
+
+                            $("#add_feedback").click(function() {
+                                let $feeback_nr = $("#feedback_nr");
+
+                                let next_value = ($feeback_nr[0].valueAsNumber < 5)? $feeback_nr[0].valueAsNumber + 1 : 5;
+                                $feeback_nr.val(next_value);
+
+                                for (let i=0; i<next_value; i++) {
+                                    $("#feedback_star_"+i).html("star");
+                                }
+                                for (let i=next_value; i<5; i++) {
+                                    $("#feedback_star_"+i).html("star_border");
+                                }
+
+                                console.log($feeback_nr.val());
+                            });
+
+                            $("#ok_btn").click(function() {
+                                console.log($(this));
+                                console.log($("#feedback_nr").val());
+
+                                $.ajax({
+                                    url: "/api/event/feedback",
+                                    type: "PATCH",
+                                    data: {
+                                        event_id: decodedText,
+                                        feedback: $("#feedback_nr").val()
+                                    },
+                                    success: (data) => {
+                                        console.log(data.message);
+                                        $("#feedback").remove();
+
+                                        window.location.reload();
+                                    },
+                                    error: (data) => {
+                                        console.log(data);
+                                        M.toast({ html: data.responseJSON.message });
+                                    }
+                                });
+                            });
+
+                            $("#close_btn").click(function() {
+                                $("#feedback").remove();
+                            });
+
+                        }).catch((err) => {
+                            // Stop failed, handle it.
+                            console.log(err);
+                        });
+
+                    }, error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
             }
-        });
+        };
 
     </script>
 </body>
