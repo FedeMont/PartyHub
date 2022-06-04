@@ -7,8 +7,10 @@ const { mongoose, documents, standardRes, bcrypt, saltRounds } = require("../../
 const { authenticateToken, generateAccessToken } = require("../../token");
 
 const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
+const { createEmailMessage, sendMail} = require("../../emailer");
 
 const User = mongoose.model("User", documents.userSchema);
+const TokenBlackList = mongoose.model("TokenBlackList", documents.tokenBlackListSchema);
 
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -276,6 +278,59 @@ routes.post('/login', (req, res) => {
 /**
  * @openapi
  * paths:
+ *  /api/auth/logout:
+ *      post:
+ *          summary: Logout
+ *          description: Dati username e password il sistema verifica la corrispondenza della password salvata sul database e genera il token in caso di match
+ *          security:
+ *              - bearerAuth: []
+ *          responses:
+ *              200:
+ *                  description: logout effettuato con successo.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: logout effettuato con successo.
+ *              401:
+ *                  description: Username o password errate.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/components/schemas/Code401"
+ *              409:
+ *                  description: Errore nel logout.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/components/schemas/Code409"
+ */
+routes.post("/logout", authenticateToken, (req, res) => {
+    console.log(req.user.token);
+
+    const token = new TokenBlackList({
+       _id: new mongoose.Types.ObjectId(),
+       token: req.user.token
+    });
+
+    token.save((err) => {
+       if (errHandler(res, err, "Errore nel logout", false, 409)) {
+           return standardRes(res, 200, "Logout effettuato con successo");
+       }
+    });
+});
+
+/**
+ * @openapi
+ * paths:
  *  /api/auth/get_user_info:
  *      get:
  *          summary: User info
@@ -380,6 +435,174 @@ routes.get('/get_profile_picture_by_id', authenticateToken, (req, res) => {
  */
 routes.get("/validate_token", authenticateToken, (req, res) => {
     return standardRes(res, 200, req.user.role);
+});
+
+/**
+ * @openapi
+ * paths:
+ *  /api/auth/recupera_password:
+ *      get:
+ *          summary: Email per recupero password
+ *          description: Invia una email all'email specificata per il recupero della password dell'account collegato a quella email.
+ *          parameters:
+ *              - in: query
+ *                name: email
+ *                description: email dell'account di cui recupeare la password.
+ *                required: true
+ *          responses:
+ *              200:
+ *                  description: Email inviata.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Email inviata.
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
+ *              409:
+ *                  description: Errore nell'invio dell'email.
+ *                  content:
+ *                      application/json:
+ *                          $ref: "#/componentes/schemas/Code409"
+ *              500:
+ *                  description: Errore nella ricerca di utente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/components/schemas/Code500"
+ */
+routes.get("/recupera_password", (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res, [req.query.email]
+        )
+    ) {
+        User.find({ email: req.query.email }, "", (err, users) => {
+            if (errHandler(res, err, "utente")) {
+
+                if (users.length === 0) return standardRes(res, 409, "Non è stato possibile trovare un utente con questa email.");
+
+                let user = users[0];
+                console.log(user);
+
+                let link = "http://localhost:3001/recupero_password?email=" + user.email + "&auth=" + user.password.slice(user.password.length - 10);
+
+                let message = createEmailMessage(
+                    user.email,
+                    "PartyHub - recupero password",
+                    `
+                        <p>Hai richiesto un recupero password?</p>
+                        <p>Se non sei stato tu puoi ignorare questa email, altrimenti segui il link:</p>
+                        <a href="${link}">${link}</a>
+                    `);
+
+                sendMail(message)
+                    .then((result) => {
+                        return standardRes(res, 200, "Email inviata");
+                    })
+                    .catch((err) => {
+                        errHandler(res, err, "Errore nell'invio dell'email.", false, 409);
+                    });
+            }
+        });
+    }
+});
+
+/**
+ * @openapi
+ * paths:
+ *  /api/auth/cambia_password:
+ *      get:
+ *          summary: Cambia password
+ *          description: Data l'email di un account, gli ultimi 10 caratteri dell'hash della password vecchia e una nuova password il sistema cambia la password.
+ *           requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              email:
+ *                                  type: string
+ *                                  description: Email dell'utente.
+ *                              auth:
+ *                                  type: string
+ *                                  description: Ultimi 10 caratteri dell'hash della vecchia password.
+ *                              new_password:
+ *                                  type: string
+ *                                  format: password
+ *                                  description: Nuova password dell'utente.
+ *          responses:
+ *              200:
+ *                  description: Password cambiata correttamente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: messaggio.
+ *                                      example: Password cambiata correttamente.
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
+ *              409:
+ *                  description: Errore nel cambio della password.
+ *                  content:
+ *                      application/json:
+ *                          $ref: "#/componentes/schemas/Code409"
+ *              500:
+ *                  description: Errore nella ricerca di utente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/components/schemas/Code500"
+ */
+routes.patch("/cambia_password", (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [
+                req.body.email, req.body.auth, req.body.new_password
+            ]
+        )
+    ) {
+        User.find({ email: req.body.email }, "", (err, users) => {
+            if (errHandler(res, err, "utente")) {
+
+                if (users.length === 0) return standardRes(res, 409, "Non è stato possibile trovare un utente con questa email.");
+
+                let user = users[0];
+                console.log(user);
+
+                if (user.password.slice(user.password.length - 10) !== req.body.auth) return standardRes(res, 403, "Auth errato, prova ad inviare una nuova richeista di cambio password.");
+
+                bcrypt.hash(req.body.new_password, saltRounds, function (err, hash) {
+                    if (errHandler(res, err, "Errore nella generazione dell'hash della password.", false)) {
+                        user["password"] = hash;
+
+                        user.save((err) => {
+                           if (errHandler(res, err, "Errore nell'aggiornamento della password.", false, 409)) {
+                               return standardRes(res, 200, "Password cambiata correttamente.");
+                           }
+                        });
+                    }
+                });
+            }
+        });
+    }
 });
 
 module.exports = routes;
