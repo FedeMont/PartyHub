@@ -39,7 +39,7 @@ function eraseCookie(name) {
 let topBar = (title, rightContent = undefined, shouldShearch = false, topContent = undefined) => {
     console.log(topContent);
     return `
-    <div class="col s12 grey lighten-4 top_tab">
+    <div class="col s12 grey lighten-4 top_tab" style="padding-bottom: 20px">
         <div class="container" style="margin-top: 1.4rem">
             <div class="row m-0">
                 ${topContent?? ""}

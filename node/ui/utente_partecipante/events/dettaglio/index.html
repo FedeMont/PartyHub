@@ -29,8 +29,9 @@
 
             <div class="row m-0">
                 <div class="col s6">
-                    <img class="materialboxed" style="width: 100%; border-radius: 17px;"
-                        src="/public/images/locandina_example.jpg">
+                    <img class="materialboxed" id="poster_picture"
+                        style="width: 100%; height: 17rem; border-radius: 17px; object-fit: cover;"
+                        src="/public/images/gallery.png">
                 </div>
                 <div class="col s6">
                     <div class="row">
@@ -88,7 +89,7 @@
             <div class="row"></div>
             <div class="row">
                 <div style="position: relative; cursor: pointer;" id="gallery">
-                    <img style="width: 100%; border-radius: 17px;" src="/public/images/gallery.png"
+                    <img style="width: 100%; height: 20rem; border-radius: 17px; object-fit: cover;" src="/public/images/gallery.png"
                         id="gallery_preview">
                     <div class="row m-0 galleria-title valign-wrapper" style="width: 100%">
                         <div class="col s6">
@@ -110,8 +111,7 @@
                 </button>
             </div>
 
-            <div class="section" style="height: 70px;"></div>
-            <!--        <div class="section"></div>-->
+            <div class="section" style="height: 80px;"></div>
         </div>
     </main>
 
@@ -132,9 +132,7 @@
         $(document).ready(function () {
             addTopBar(
                 "",
-                `<a class="btn-floating btn-medium waves-effect waves-light blue">
-                <i id="edit_event_btn" class="material-icons">edit</i>
-            </a>`,
+                ``,
                 false,
                 `<a class="blue-text left valign-wrapper" href="/utente/storico_eventi">
                 <i class="material-icons">chevron_left</i>
@@ -142,8 +140,8 @@
             </a>`
             );
             addBottomBar("up", 3);
-            $("#gallery").click(()=>{
-                window.location.replace("/utente/gallery?id="+event_id);
+            $("#gallery").click(() => {
+                window.location.replace("/utente/gallery?id=" + event_id);
             })
 
             $.ajax({
@@ -153,9 +151,9 @@
                     event_id: event_id
                 },
                 success: (data) => {
-                    if(data.message.length !== 0){
+                    if (data.message.length !== 0) {
                         let photo = data.message[0];
-                        $("#gallery_preview").attr('src',`data:image/png;base64,${photo}`)
+                        $("#gallery_preview").attr('src', `data:image/png;base64,${photo}`)
                     }
                 }, error: (data) => {
                     console.log(data);
@@ -188,7 +186,10 @@
                 $("#end-datetime").html(new Date(data.message.end_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/"));
                 $("#age-range").html(data.message.age_range_min + " - " + data.message.age_range_max);
                 $("#partecipants").html(data.message.number_of_partecipants + " / " + data.message.maximum_partecipants);
-
+                if (data.message.poster !== "") {
+                        let poster_src = `data:image/png;base64,${data.message.poster}`;
+                        $("#poster_picture").attr('src', poster_src);
+                    }
                 $("#nr-photos").html(data.message.number_of_photos);
             },
             error: (data) => {
