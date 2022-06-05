@@ -1,4 +1,7 @@
 const routes = require('express').Router();
+const multer = require("multer");
+const fs = require('fs');
+const path = require('path');
 const { mongoose, documents, standardRes } = require("../../utils");
 const { authenticateToken } = require("../../token");
 const axios = require('axios');
@@ -8,6 +11,18 @@ const User = mongoose.model("User", documents.userSchema);
 const GeopositionData = mongoose.model("GeopositionData", documents.geopositionSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
 const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
+
+
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now())
+    }
+});
+
+let upload = multer({ storage: storage });
 
 /**
  * @openapi
@@ -21,7 +36,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *          requestBody:
  *              required: true
  *              content:
- *                  application/json:
+ *                  multipart/form-data:
  *                      schema:
  *                          type: object
  *                          properties:
@@ -31,6 +46,10 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                              address:
  *                                  type: string
  *                                  description: Indirizzo dell'evento
+ *                              poster:
+ *                                  type: string
+ *                                  format: binary
+ *                                  description: Foto locandina evento
  *                              start_datetime:
  *                                  type: string
  *                                  format: date
@@ -107,7 +126,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                      description: messaggio.
  *                                      example: Errore nella ricerca di utente.
  */
-routes.post('/crea', authenticateToken, (req, res) => {
+routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
     if (
         requiredParametersErrHandler(
             res,
@@ -127,6 +146,11 @@ routes.post('/crea', authenticateToken, (req, res) => {
                 if (req.body.start_datetime >= req.body.end_datetime) return standardRes(res, 409, "La data di fine evento deve succedere quella di inizio evento.");
 
                 let age_range = req.body.age_range.split('-');
+                let poster = "";
+                if (req.file !== undefined) {
+                    poster = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
+                    fs.unlinkSync(path.resolve('./uploads/' + req.file.filename));
+                }
 
                 const params = {
                     access_key: process.env.positionstack_api_key,
@@ -147,7 +171,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
                             address: geopositionData,
                             start_datetime: req.body.start_datetime,
                             end_datetime: req.body.end_datetime,
-                            // poster: Image(),
+                            poster: poster,
                             age_range_min: age_range[0],
                             age_range_max: age_range[1],
                             maximum_partecipants: req.body.maximum_partecipants,
@@ -165,7 +189,6 @@ routes.post('/crea', authenticateToken, (req, res) => {
                                 user.save((err) => {
                                     if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
                                         return standardRes(res, 200, "Evento creato correttamente.");
-
                                         // TODO: implementare invio del codice QRcode dell'evento
                                     }
                                 });
@@ -193,7 +216,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *          requestBody:
  *              required: true
  *              content:
- *                  application/json:
+ *                  multipart/form-data:
  *                      schema:
  *                          type: object
  *                          properties:
@@ -206,6 +229,10 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                              address:
  *                                  type: string
  *                                  description: Indirizzo dell'evento
+ *                              poster:
+ *                                  type: string
+ *                                  format: binary
+ *                                  description: Foto locandina evento
  *                              start_datetime:
  *                                  type: string
  *                                  format: date
@@ -297,7 +324,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                                      description: messaggio.
  *                                      example: Errore nella ricerca di utente.
  */
-routes.patch('/modifica', authenticateToken, (req, res) => {
+routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res) => {
     if (
         requiredParametersErrHandler(
             res,
@@ -325,6 +352,11 @@ routes.patch('/modifica', authenticateToken, (req, res) => {
                     if (req.body.start_datetime >= req.body.end_datetime) return standardRes(res, 409, "La data di fine evento deve succedere quella di inizio evento.");
 
                     let age_range = req.body.age_range.split('-');
+                    let poster = event.poster;
+                    if (req.file !== undefined) {
+                        poster = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
+                        fs.unlinkSync(path.resolve('./uploads/' + req.file.filename));
+                    }
 
                     const params = {
                         access_key: process.env.positionstack_api_key,
@@ -340,6 +372,7 @@ routes.patch('/modifica', authenticateToken, (req, res) => {
 
                             event["name"] = req.body.name;
                             event["address"] = geopositionData;
+                            event["poster"] = poster;
                             event["start_datetime"] = req.body.start_datetime;
                             event["end_datetime"] = req.body.end_datetime;
                             event["age_range_min"] = age_range[0];

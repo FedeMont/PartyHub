@@ -1,4 +1,8 @@
 const routes = require('express').Router();
+const multer = require("multer");
+const fs = require('fs');
+const path = require('path');
+
 const { mongoose, documents, standardRes, bcrypt, saltRounds } = require("../../utils");
 const { authenticateToken, generateAccessToken } = require("../../token");
 
@@ -7,6 +11,17 @@ const { createEmailMessage, sendMail} = require("../../emailer");
 
 const User = mongoose.model("User", documents.userSchema);
 const TokenBlackList = mongoose.model("TokenBlackList", documents.tokenBlackListSchema);
+
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now())
+    }
+});
+
+let upload = multer({ storage: storage });
 
 /**
  * @openapi
@@ -78,7 +93,7 @@ routes.get("/check_availability", (req, res) => {
  *          requestBody:
  *              required: true
  *              content:
- *                  application/json:
+ *                  multipart/form-data:
  *                      schema:
  *                          type: object
  *                          properties:
@@ -95,6 +110,10 @@ routes.get("/check_availability", (req, res) => {
  *                                  type: string
  *                                  format: email
  *                                  description: E-mail dell'utente
+ *                              profile_picture:
+ *                                  type: string
+ *                                  format: binary
+ *                                  description: Foto profile dell'utente
  *                              birthday:
  *                                  type: string
  *                                  format: date
@@ -102,9 +121,6 @@ routes.get("/check_availability", (req, res) => {
  *                              description:
  *                                  type: string
  *                                  description: Descrizione dell'utente
- *                              user_profile:
- *                                  type: string
- *                                  description: Foto profilo dell'utente
  *                              password:
  *                                  type: string
  *                                  format: password
@@ -131,7 +147,7 @@ routes.get("/check_availability", (req, res) => {
  *                          schema:
  *                              $ref: "#/components/schemas/Code500"
  */
-routes.post("/signin", (req, res) => {
+routes.post("/signin", upload.single('profile_picture'), (req, res) => {
     if (
         requiredParametersErrHandler(
             res, [
@@ -141,6 +157,12 @@ routes.post("/signin", (req, res) => {
     ) {
         bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
             if (errHandler(res, err, "Errore nella generazione dell'hash della password.", false)) {
+                
+                let profile_picture = "";
+                if(req.file !== undefined){
+                   profile_picture = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
+                   fs.unlinkSync(path.resolve('./uploads/' + req.file.filename));
+                }
 
                 const user = new User({
                     _id: new mongoose.Types.ObjectId(),
@@ -151,7 +173,7 @@ routes.post("/signin", (req, res) => {
                     password: hash,
                     birthday: Date.parse(req.body.birthday.replace(/(\d+[/])(\d+[/])/, '$2$1')),
                     description: req.body.description,
-                    // profile_picture: req.body.profile_picture,
+                    profile_picture: profile_picture
                 });
 
                 user.save((err) => {
@@ -365,6 +387,20 @@ routes.get('/get_user_info', authenticateToken, (req, res) => {
             let user = users[0];
             console.log(user);
             return standardRes(res, 200, user);
+        }
+    });
+});
+
+
+routes.get('/get_profile_picture_by_id', authenticateToken, (req, res) => {
+    User.find({ _id: req.query.id }, (err, users) => {
+        if (errHandler(res, err, "utente")) {
+
+            if (users.length === 0) return standardRes(res, 409, "Errore nella ricerca dell'utente");
+
+            let user = users[0];
+            console.log(user);
+            return standardRes(res, 200, user.profile_picture);
         }
     });
 });

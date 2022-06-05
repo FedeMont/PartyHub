@@ -54,7 +54,7 @@ let documents = {
         account_type: { type: String, required: true, default: "up" },
         birthday: { type: Date },
         description: { type: String },
-        // profile_picture: Image(),
+        profile_picture: { type: String },
         number_of_followers: { type: Number, default: 0 },
         followers_list: [{
             type: mongoose.Schema.Types.ObjectId,
@@ -98,7 +98,7 @@ let documents = {
         },
         start_datetime: { type: Date, required: true },
         end_datetime: { type: Date, required: true, },
-        // poster: Image(),
+        poster: { type: String },
         age_range_min: { type: Number, required: true },
         age_range_max: { type: Number, required: true },
         number_of_partecipants: { type: Number, default: 0 },

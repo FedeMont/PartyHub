@@ -224,6 +224,10 @@ const options = {
                             description: "La descrizione dell'utente",
                             example: "descrizione"
                         },
+                        profile_picture: {
+                            type: "string",
+                            description: "Foto profilo utente (base64)"
+                        }
                     }
                 },
                 Dipendente: {
@@ -379,6 +383,23 @@ const options = {
                         }
                     }
                 },
+                EventPhotoSchema: {
+                    type: "object",
+                    properties: {
+                        photo: {
+                            type: "string",
+                            description: "Foto evento (base64)"
+                        },
+                        datetime: {
+                            type: "string",
+                            format: "date",
+                            description: "Data di caricamento"
+                        },
+                        user: {
+                            "$ref": "#/components/schemas/User"
+                        }
+                    }
+                },
                 Event: {
                     type: "object",
                     properties: {
@@ -391,9 +412,13 @@ const options = {
                             type: "string",
                             description: "Il nome dell'evento",
                             example: "Nome"
-                        }, 
+                        },
                         address: {
                             "$ref": "#/components/schemas/Geoposition"
+                        },
+                        poster: {
+                            type: "string",
+                            description: "Foto locandina evento (base64)"
                         },
                         start_datetime: {
                             type: "string",
@@ -404,17 +429,17 @@ const options = {
                         end_datetime: {
                             type: "string",
                             format: "date",
-                            description: "Data e ora di fine evento", 
-                            example: "2022-05-29T23:30:00.000Z" 
+                            description: "Data e ora di fine evento",
+                            example: "2022-05-29T23:30:00.000Z"
                         },
                         age_range_min: {
                             type: "integer",
-                            description: "Età minima", 
+                            description: "Età minima",
                             example: 18
                         },
                         age_range_max: {
                             type: "integer",
-                            description: "Età massima", 
+                            description: "Età massima",
                             example: 38
                         },
                         partecipants_list: {
@@ -425,20 +450,26 @@ const options = {
                         },
                         maximum_partecipants: {
                             type: "integer",
-                            description: "Numero massimo di partecipanti", 
+                            description: "Numero massimo di partecipanti",
                             example: 1000
                         },
                         description: {
                             type: "string",
                             description: "Descrizione dell'evento",
                             example: "Descrizione"
-                        }, 
+                        },
                         number_of_photos: {
                             type: "integer",
-                            description: "Numero di foto presenti", 
+                            description: "Numero di foto presenti",
                             example: 10
                         },
-                        owner:{
+                        galley: {
+                            type: "array",
+                            items: {
+                                "$ref": "#/components/schemas/EventPhotoSchema"
+                            }
+                        },
+                        owner: {
                             "$ref": "#/components/schemas/User"
                         }
                     }
@@ -453,7 +484,7 @@ const options = {
                         },
                         price: {
                             type: "integer",
-                            description: "Prezzo prodotto", 
+                            description: "Prezzo prodotto",
                             example: 5
                         }
                     }
@@ -466,7 +497,7 @@ const options = {
                             description: "Id del servizio",
                             example: "6288ec25fe5bb453c76a62fa"
                         },
-                        owner:{
+                        owner: {
                             "$ref": "#/components/schemas/User"
                         },
                         name: {
@@ -476,7 +507,7 @@ const options = {
                         },
                         number_of_products: {
                             type: "integer",
-                            description: "Numero di prodotti presenti", 
+                            description: "Numero di prodotti presenti",
                             example: 10
                         },
                         products_list: {
@@ -507,8 +538,8 @@ const options = {
                         exit_datetime: {
                             type: "string",
                             format: "date",
-                            description: "Data e ora di uscita dall'evento", 
-                            example: "2022-05-29T23:30:00.000Z" 
+                            description: "Data e ora di uscita dall'evento",
+                            example: "2022-05-29T23:30:00.000Z"
                         },
                         number_of_products: {
                             type: "integer",
