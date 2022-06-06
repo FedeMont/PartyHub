@@ -24,7 +24,7 @@
             <div class="card-content">
                 <div id="container_without_checkboxes" class="container" style="width:100%">
                     <form id="products_form">
-                        <div class="row valign-wrapper">
+                        <div class="row m-0 valign-wrapper">
                             <div id="event_info" class="col s7">
                                 <!-- EVENT INFO -->
                             </div>
@@ -33,11 +33,11 @@
                                     <!-- <option value="" disabled>Scegli i servizi</option> -->
                                 </select>
                                 <!-- TODO sistemare -->
-                                <label for="services_list">Lista Servizi</label>
+                                <label for="services_list"></label>
                                 <!-- <h6 class="secondary-content black-text">Nome lista</h6> -->
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row m-0">
                             <ul id="products_list" class="collection">
                                 <!-- PRODUCT -->
                             </ul>
@@ -79,8 +79,8 @@
         let event_info_item = (event) => {
             return `
                 <h5>${event.name}</h5>
-                <div class="row">
-                    <h6 class="grey-text"> ${new Date(event.entrance_datetime).toTimeString().slice(0, 5)}</h6>
+                <div class="row m-0">
+                    <h6 class="grey-text"> ${new Date(event.start_datetime).toLocaleDateString().slice(0, 10)}</h6>
                 </div>
             `;
         };
@@ -90,13 +90,13 @@
             $('select').formSelect();
 
             addTopBar("Prodotti", `
-                <div class="row">
+                <div class="row m-0">
                     <span id="seleziona" class="blue-text">Seleziona</span>
                 </div>`);
             addBottomBar("d", 1);
 
             $.ajax({
-                url: "/api/event/get/by_id",
+                url: "/api/v2/event/get/by_id",
                 type: "GET",
                 data: {
                     event_id: event_id
@@ -115,7 +115,8 @@
         let annulla_click = () => {
             console.log('Hai cliccato annulla');
 
-            $("li").click(li_click);
+            $("li.collection-item").off("click");
+            $("li.collection-item").click(li_click);
 
             $(".product_checkbox").css("display", "none");
             $("input[type='checkbox']").prop("checked", false);
@@ -144,11 +145,22 @@
 
         let products_ids;
 
+        $("#exit_button").click(function () {
+            html5QrCode.stop().then((ignore) => {
+                // QR Code scanning is stopped.
+                console.log("QR Code scanning stopped.");
+                $("#seleziona").show();
+            }).catch((err) => {
+                // Stop failed, handle it.
+                console.log(err);
+            });
+        });
+
         const qrCodeSuccessCallback = (decodedText, decodedResult) => {
             if (toggleQRcodeSuccess) {
                 toggleQRcodeSuccess = false;
                 $.ajax({
-                    url: "/api/service/sell_products",
+                    url: "/api/v2/service/sell_products",
                     type: "POST",
                     data: {
                         biglietto_id: decodedText,
@@ -157,14 +169,7 @@
                     success: (data) => {
                         console.log(data.message);
 
-                        html5QrCode.stop().then((ignore) => {
-                            // QR Code scanning is stopped.
-                            console.log("QR Code scanning stopped.");
-
-                        }).catch((err) => {
-                            // Stop failed, handle it.
-                            console.log(err);
-                        });
+                        $("#exit_button").click();
 
                     }, error: (data) => {
                         console.log(data);
@@ -187,15 +192,15 @@
 
             const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
 
+            $("#seleziona").hide();
+
             // If you want to prefer front camera
             html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
         };
 
-        $('#seleziona').click(seleziona_click);
-
         let confirm_button = () => {
             return `
-            <div id="scannerizza_button" class="row">
+            <div id="scannerizza_button" class="row m-0">
                 <button id="scannerizza" class="waves-effect waves-light btn-large activator" type="submit">Scannerizza</button>
             </div>
             `;
@@ -220,13 +225,13 @@
         };
 
         $.ajax({
-            url: "/api/service/get_servizi",
+            url: "/api/v2/service/get_servizi",
             type: "GET",
             data: {
             },
             success: (data) => {
                 console.log(data.message);
-                serivizi = data.message;
+                let serivizi = data.message;
 
                 let services_json = {};
                 serivizi.forEach((servizio) => {
@@ -245,6 +250,8 @@
                     });
 
                     annulla_click();
+                    // $("li.collection-item").click(li_click);
+                    // $("#seleziona").click(seleziona_click);
                 });
 
                 $("#services_list").change();
@@ -269,10 +276,11 @@
 
             toggleQRcodeSuccess = true;
 
-            html5QrCode = new Html5Qrcode(
-                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+            html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
 
             const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+            $("#seleziona").hide();
 
             // If you want to prefer front camera
             html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);

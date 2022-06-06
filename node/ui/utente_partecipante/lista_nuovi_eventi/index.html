@@ -32,7 +32,7 @@
 
     <!-- NAVIGATION TABS-BAR -->
     <div id="bottom_bar"></div>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
@@ -43,60 +43,145 @@
     <script>
         $(document).ready(function () {
             addTopBar("Home", `
-                <div class="col s2 valign-wrapper">
-                    <i class="small material-icons blue-text" id="settings_button">settings</i>
-                </div>
-                <div class="col s2 valign-wrapper">
-                    <!-- TODO: ADD IMAGE DYNAMICALLY -->
-                    <img src="https://i1.sndcdn.com/avatars-000589085979-2y82p5-t500x500.jpg"
-                        class="circle responsive-img" style="max-width: 40px;" id="profile_picture">
-                </div>
+                    <i class="small material-icons blue-text left m-0" id="settings_button">settings</i>
+                    <img src="/public/images/profile.png"
+                        class="responsive-img circle right" style="width: 35px; height: 35px; object-fit: cover;" id="profile_picture">
             `, true);
 
+            $("#settings_button").click(() => {
+                window.location.replace("/utente/settings");
+            });
+
             addBottomBar("up", 0);
+
+            $.ajax({
+                url: "/api/v2/auth/get_user_info",
+                type: "GET",
+                data: {
+                },
+                success: (data) => {
+                    console.log(data);
+                    let user = data.message;
+
+                    $.ajax({
+                        url: "/api/v2/auth/get_profile_picture_by_id",
+                        type: "GET",
+                        data: {
+                            id: user._id
+                        },
+                        success: (data) => {
+                            console.log(data);
+                            if (data.message !== "")
+                                $("#profile_picture").attr('src', `data:image/png;base64,${data.message}`);
+                        },
+                        error: (data) => {
+                            console.log(data);
+                            M.toast({ html: data.responseJSON.message });
+                        }
+                    });
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+
+            $("#party_search").submit((e) => {
+                e.preventDefault();
+                let address = $("#search").val();
+                console.log(address);
+
+                if (address != "") {
+                    $.ajax({
+                        url: "/api/v2/event/get/by_address",
+                        type: "GET",
+                        data: {
+                            address: address
+                        },
+                        success: (data) => {
+                            console.log(data.message);
+
+                            $("#events_list").html("");
+
+                            data.message.forEach((event) => {
+                                $("#events_list").append(generate_event_post(event));
+                                if (event.is_user_iscritto) {
+                                    iscriviti_click($('.iscriviti_button#' + event._id), false);
+                                } else {
+                                    disiscriviti_click($('.iscriviti_button#' + event._id), false);
+                                }
+                            });
+
+                            $("#search").change(() => {
+                                if ($("#search").val() == "") {
+                                    $("#events_list").html("");
+                                    events.forEach((event) => {
+                                        $("#events_list").append(generate_event_post(event));
+
+                                        if (event.is_user_iscritto) {
+                                            iscriviti_click($('.iscriviti_button#' + event._id), false);
+                                        } else {
+                                            disiscriviti_click($('.iscriviti_button#' + event._id), false);
+                                        }
+                                    });
+                                }
+                            });
+                        },
+                        error: (data) => {
+                            console.log(data);
+                        }
+                    });
+                }
+            });
         });
 
-        let generate_event_post = ((obj) => {
+        let generate_event_post = ((obj, profile_picture = "/public/images/profile.png") => {
+
+            let poster_img = ""
+            if (obj.poster !== "" && obj.poster !== undefined) {
+                poster_img = `
+                <div class="col s12">
+                    <img style="width:100%; border-radius: 10px" class="materialboxed responsive-img"
+                        src="data:image/png;base64,${obj.poster}">
+                </div>
+                `
+            }
             return `
-            <div class="row">
+            <div class="row m-0">
                 <div class="col s12 ">
                     <div class="card event_post grey lighten-5">
                         <div class="card-content black-text" style="padding: 10px;">
-                            <div class="row valign-wrapper">
+                            <div class="row m-0 valign-wrapper">
                                 <div class="col s2 left-align">
-                                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4MGr6udTT7bxrsABWU60TXK4calrrWvpmw&usqp=CAU"
-                                        alt="" class="circle responsive-img" style="max-width: 40px;">
+                                    <img src="${profile_picture}"
+                                        alt="" class="circle " style="width: 40px; height: 40px; object-fit: cover">
                                 </div>
                                 <div class="col s6">
-                                    <div class="row">
+                                    <div class="row m-0">
                                         <b class="truncate">${obj.name}</b>
                                     </div>
-                                    <div class="row grey-text">
+                                    <div class="row m-0 grey-text">
                                         <span>${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}</span>
                                     </div>
                                 </div>
                                 <div class="col s4 right-align">
-                                    <!-- TODO: ADD redirect to pagina iscrizione -->
                                     <a id="${obj._id}" class="iscriviti_button waves-effect waves-light btn-small white blue-text right-align blue-border">Iscriviti</a>
                                 </div>
                             </div>
-                            <div class="row valign-wrapper">
+                            <div class="row m-0 valign-wrapper">
                                 <div class="col s12 grey-text right-align">
                                     <p class="right-align">${obj.address.name}, ${obj.address.region_code}</p>
                                 </div>
                             </div>
-                            <div class="row valign-wrapper" style="padding-bottom: 10px ;">
+                            <div class="row m-0 valign-wrapper" style="padding-bottom: 10px ;">
                                 <div class="col s12">
                                     <p>${obj.description}</p>
                                 </div>
                             </div>
-                            <div class="row valign-wrapper">
-                                <div class="col s12">
-                                    <img style="border-radius: 10px;" class="responsive-img"
-                                        src="https://www.vicenzatoday.it/~media/horizontal-hi/7284805672576/20200408092834_landscape_16_9_mobile-2.jpg">
-                                </div>
+                            <div class="row m-0 valign-wrapper">
+                                ${poster_img}
                             </div>
-                            <div class="row valign-wrapper">
+                            <div class="row m-0 valign-wrapper">
                                 <div class="col s12">
                                     <span class="grey-text">Partecipanti: ${obj.number_of_partecipants}</span>
                                 </div>
@@ -109,13 +194,13 @@
         });
 
         let iscriviti_click = ($obj, should_api_request = true) => {
+            if (should_api_request) window.location.replace("/utente/iscrizione_evento?id=" + $obj.prop("id"));
+
             console.log('Hai cliccato iscriviti', $obj);
             $obj.text("Iscritto");
             $obj.removeClass("white");
             $obj.removeClass("blue-text");
             $obj.addClass("blue");
-
-            if (should_api_request) window.location.replace("/utente/iscrizione_evento?id=" + $obj.prop("id"));
 
             $obj.off("click");
             $obj.click(function () { disiscriviti_click($(this)); });
@@ -131,7 +216,7 @@
                     console.log($obj.prop("id"));
 
                     $.ajax({
-                        url: "/api/event/disiscrizione",
+                        url: "/api/v2/event/disiscrizione",
                         type: "POST",
                         data: {
                             event_id: $obj.prop("id")
@@ -159,22 +244,35 @@
         let events = [];
 
         // Get geolocation
-        if (navigator.geolocation)
+        if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((location) => {
                 $.ajax({
-                    url: "/api/event/get/events",
+                    url: "/api/v2/event/get/events",
                     type: "GET",
                     data: {
                         latitude: location.coords.latitude,
                         longitude: location.coords.longitude,
                         // ENABLE TO TEST API WITHOUT USING GEOLOC API
-                        ext_api: false
+                        // ext_api: false
                     },
                     success: (data) => {
+                        console.log(data);
                         console.log(data.message);
                         events = data.message;
                         data.message.forEach((event) => {
-                            $("#events_list").append(generate_event_post(event));
+                            let profile_picture = "/public/images/profile.png";
+                            $.ajax({
+                                url: "/api/v2/auth/get_profile_picture_by_id",
+                                type: "GET",
+                                data: {
+                                    id: event.owner
+                                },
+                                success: (data) => {
+                                    profile_picture = data.message;
+                                }
+                            })
+
+                            $("#events_list").append(generate_event_post(event, profile_picture));
 
                             if (event.is_user_iscritto) {
                                 // $('.iscriviti_button#'+event._id).click(function () { disiscriviti_click($(this)); });
@@ -184,45 +282,15 @@
                                 disiscriviti_click($('.iscriviti_button#' + event._id), false);
                             }
                         });
+                        $('.materialboxed').materialbox();
                     },
                     error: (data) => {
                         console.log(data);
                     }
                 });
             });
+        }
 
-
-        $("#party_search").submit((e) => {
-            e.preventDefault();
-            let address = $("#search").val();
-            if (address != "") {
-                $.ajax({
-                    url: "/api/event/get/by_address",
-                    type: "GET",
-                    data: {
-                        address: address
-                    },
-                    success: (data) => {
-                        console.log(data.message);
-                        $("#events_list").html("")
-                        data.message.forEach((event) => {
-                            $("#events_list").append(generate_event_post(event));
-                        })
-                        $("#search").change(() => {
-                            if ($("#search").val() == "") {
-                                $("#events_list").html("")
-                                events.forEach((event) => {
-                                    $("#events_list").append(generate_event_post(event));
-                                })
-                            }
-                        })
-                    },
-                    error: (data) => {
-                        console.log(data);
-                    }
-                });
-            }
-        });
     </script>
 </body>
 

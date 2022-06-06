@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- TOP BAR -->
+    <div id="top_bar"></div>
+
+    <!-- Main content -->
+    <main>
+        <div id="container_dipendenti" class="container">
+            <div class="row m-0">
+                <div class="row m-0">
+                    <ul id="dipendenti_list" class="collection">
+                        <!-- LISTA SERVIZI -->
+                    </ul>
+                </div>
+                <div class="section" style="height: 70px;"></div>
+                <div class="section"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+
+        let dipendente_item = (obj) => {
+            console.log(obj);
+
+            let events = (obj.events_list.map((event) => event.name)).join(", ");
+            let services = (obj.services_list.map((service) => service.name)).join(", ");
+
+            return `
+            <li id="${obj._id}" class="collection-item">
+                <div class="row m-0 valign-wrapper">
+                    <div class="col s8">
+                        <div class="row m-0">
+                            <div class="row m-0">
+                                <h6>${obj.name} ${obj.surname}</h6>
+                            </div>
+                            <div class="row m-0">
+                                <p class="truncate grey-text m-0" style="font-size: x-small">${obj.email}</p>
+                            </div>
+                        </div>
+                        <div class="row m-0">
+                            <div class="col s6 m-0 p-0" style="padding-right: 5px !important;">
+                                <p class="truncate grey-text" style="font-size: xx-small">E: ${events}</p>
+                            </div>
+                            <div class="col s6 m-0 p-0" style="padding-left: 5px !important;">
+                                <p class="truncate grey-text" style="font-size: xx-small">S: ${services}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col s4">
+                        <a id="button_${obj._id}" class="modifica_button waves-effect waves-light btn-small white blue-text right-align blue-border">Modifica</a>
+                    </div>
+                </div>
+            </li>
+            `;
+        };
+
+        $(document).ready(() => {
+            addTopBar("Dipendenti", `<a class="btn-floating btn-medium waves-effect waves-light blue"><i id="add_dipendente_btn" class="material-icons">add</i></a>`);
+            $("#add_dipendente_btn").click(() => {
+                window.location.replace("/organizzatore/crea_dipendente");
+            });
+            addBottomBar("o", 2);
+
+            $.ajax({
+                url: "/api/v2/dipendente/get_dipendenti",
+                type: "GET",
+                data: {
+                },
+                success: (data) => {
+                    console.log(data.message);
+                    let dipendenti = data.message;
+                    dipendenti.forEach((dipendente) => {
+                        $("#dipendenti_list").append(dipendente_item(dipendente));
+                        $("#button_" + dipendente._id).click(() => {
+                            window.location.replace("/organizzatore/crea_dipendente?id=" + dipendente._id);
+                        });
+                    });
+
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        });
+
+    </script>
+</body>
+
+</html>

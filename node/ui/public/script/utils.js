@@ -36,15 +36,21 @@ function eraseCookie(name) {
     createCookie(name, "", -1);
 }
 
-let topBar = (title, rightContent, shouldShearch = false) => {
+let topBar = (title, rightContent = undefined, shouldShearch = false, topContent = undefined) => {
     return `
-    <div class="col s12 grey lighten-4 top_tab">
-        <div class="container">
-            <div class="row valign-wrapper">
-                <div class="col s8">
-                    <h4><b>${title}</b></h4>
+    <div class="col s12 grey lighten-4 top_tab" style="padding-bottom: 20px">
+        <div class="container" style="margin-top: 1.4rem">
+            <div class="row m-0">
+                ${topContent?? ""}
+            </div>
+            <div class="row m-0 valign-wrapper">
+                <div class="col s9">
+                    <h4 class="left m-0" id="top-bar-title" style="font-weight: bold">${title}</h4>
                 </div>
-                ${rightContent}
+<!--                <div class="col s8"></div>-->
+                <div class="col s3 valign-wrapper right">
+                    ${rightContent?? ""}
+                </div>
             </div>
         </div>
     </div>
@@ -54,9 +60,8 @@ let topBar = (title, rightContent, shouldShearch = false) => {
             <div class="section"></div>
             <div class="section"></div>
             <div class="section"></div>
-            ${
-                (shouldShearch)?
-                `
+            ${(shouldShearch) ?
+            `
                     <nav class="grey lighten-2">
                         <div class="nav-wrapper">
                             <form id="party_search">
@@ -68,12 +73,10 @@ let topBar = (title, rightContent, shouldShearch = false) => {
                         </div>
                     </nav>
                 ` : ""
-            }
+        }
             <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
         </div>
     </div>
-
-
     `;
 };
 
@@ -93,14 +96,14 @@ let utentePartecipanteBottomBar = () => {
                         Biglietti
                     </a>
                 </li>
+<!--                <li class="tab col s3"> -->
+<!--                    <a target="_self" href="../../TODO" id="2"> -->
+<!--                        <i class="material-icons">group</i> -->
+<!--                        Friends -->
+<!--                    </a> -->
+<!--                </li> -->
                 <li class="tab col s3">
-                    <a target="_self" href="../../TODO" id="2">
-                        <i class="material-icons">group</i>
-                        Friends
-                    </a>
-                </li>
-                <li class="tab col s3">
-                    <a target="_self" href="../../TODO" id="3">
+                    <a target="_self" href="/utente/storico_eventi" id="3">
                         <i class="material-icons">bookmark</i>
                         Eventi
                     </a>
@@ -115,13 +118,13 @@ let dipendenteBottomBar = () => {
         <div class="col s12 navigation_tabs">
             <ul class="tabs tabs-fixed-width tabs-icon">
                 <li class="tab col s3">
-                    <a target="_self" href="../../TODO" id="0">
+                    <a target="_self" href="/dipendente/settings" id="0">
                         <i class="material-icons">settings</i>
                         Impostazioni
                     </a>
                 </li>
                 <li class="tab col s3">
-                    <a target="_self" href="/dipendente/attivazione_turno" id="1">
+                    <a target="_self" href="/dipendente/" id="1">
                         <i class="material-icons">list</i>
                         Prodotti
                     </a>
@@ -135,26 +138,26 @@ let organizzatoreBottomBar = () => {
     return `
     <div class="col s12 navigation_tabs">
         <ul class="tabs tabs-fixed-width tabs-icon">
-            <li class="tab col s3">
-                <a target="_self" href="../../TODO" id="0">
-                    <i class="material-icons">person</i>
-                    Profilo
+            <li class="tab col s3 ph-0">
+                <a target="_self" href="/organizzatore/settings" id="0">
+                    <i class="material-icons">settings</i>
+                    Impostazioni
                 </a>
             </li>
-            <li class="tab col s3">
+            <li class="tab col s3 ph-0">
                 <a target="_self" href="/organizzatore/" id="1">
                     <i class="material-icons">list</i>
                     Servizi
                 </a>
             </li>
-            <li class="tab col s3">
-                <a target="_self" href="/organizzatore/crea_dipendente" id="2">
+            <li class="tab col s3 ph-0">
+                <a target="_self" href="/organizzatore/lista_dipendenti" id="2">
                     <i class="material-icons">group</i>
                     Dipendenti
                 </a>
             </li>
-            <li class="tab col s3">
-                <a target="_self" href="/organizzatore/crea_evento" id="3">
+            <li class="tab col s3 ph-0">
+                <a target="_self" href="/organizzatore/storico_eventi" id="3">
                     <i class="material-icons">bookmark</i>
                     Events
                 </a>
@@ -181,17 +184,17 @@ function addBottomBar(user_type, tab) {
     $('.tabs').tabs({ "duration": 0 });
 }
 
-function addTopBar(title, rightContent, shouldShearch = false) {
-    $("#top_bar").append(topBar(title, rightContent, shouldShearch));
+function addTopBar(title, rightContent = undefined, shouldShearch = false, topContent = undefined) {
+    $("#top_bar").html(topBar(title, rightContent, shouldShearch, topContent));
 }
 
 $(window).on("load", () => {
-    if (window.location.pathname !== "/login/") {
+    if (window.location.pathname !== "/login/" && window.location.pathname !== "/signin/" && window.location.pathname !== "/recupera_password/") {
         $.ajax({
-            url: "/api/auth/validate_token",
+            url: "/api/v2/auth/validate_token",
             type: "GET",
             data: {},
-            success: (data) => {   
+            success: (data) => {
                 console.log(data);
                 switch (data.message) {
                     case "up":
@@ -203,11 +206,35 @@ $(window).on("load", () => {
                     case "o":
                         if (window.location.pathname.split('/')[1] !== "organizzatore") window.location.replace("/organizzatore/");
                         break;
-                }   
+                }
             },
             error: (data) => {
                 console.log(data);
-                window.location.replace("/login");    
+                window.location.replace("/login");
+            }
+        });
+    }
+});
+
+$(document).ready(() => {
+    M.updateTextFields();
+    $('select').formSelect();
+});
+
+$("#logout_btn").click(() => {
+    console.log("Logout");
+    if (confirm("Sei sicuro di voler uscire?")) {
+        $.ajax({
+            url: "/api/v2/auth/logout",
+            type: "POST",
+            data: {},
+            success: (data) => {
+                console.log(data);
+                eraseCookie("token");
+                window.location.replace("/login");
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
             }
         });
     }

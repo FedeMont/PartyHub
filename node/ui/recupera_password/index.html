@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <div class="row m-0"></div>
+    <div class="valign-wrapper" style="height: 100%;">
+        <div class="container center-align">
+            <div class="row m-0">
+                <div class="col s4"></div>
+                <div class="col s4">
+                    <img class="responsive-img" src="/public/images/Party_hub_logo.png">
+                </div>
+                <div class="col s4"></div>
+            </div>
+
+            <div class="row m-0">
+                <h3>Password dimenticata?</h3>
+            </div>
+
+            <div class="row m-0">
+                <h6 class="grey-text">Inserisci la tua email <br> per recuperare la password</h6>
+            </div>
+
+            <div id="recupero_password-form1">
+                <form id="form-data1">
+                    <!-- FORM DATA ITEM -->
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+
+        let url_params = (new URLSearchParams(window.location.search));
+        let email_url = (url_params.has("email")) ? url_params.get("email") : undefined;
+        let auth_url = (url_params.has("auth")) ? url_params.get("auth") : undefined;
+
+        $(document).ready(function () {
+            M.updateTextFields();
+        });
+
+        let cambia_password_item = () => {
+            return `
+                <div class="row m-0">
+                    <div class="input-field col s12">
+                        <input id="email" type="email" required="true">
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <input id="password" type="password" required="true">
+                        <label for="password">Nuova Password</label>
+                    </div>
+                </div>
+
+                <div class="row m-0">
+                    <button id="cambia" class="btn-large waves-effect waves-light" type="submit" id="next_button">Cambia password</button>
+                </div>`;
+        };
+
+        let recupera_password_item = () => {
+            return `
+                <div class="row m-0">
+                    <div class="input-field col s12">
+                        <input id="email" type="email" required="true">
+                        <label for="email">Email</label>
+                    </div>
+                </div>
+
+                <div class="row m-0">
+                    <button class="btn-large waves-effect waves-light" type="submit" id="next_button">Recupera password</button>
+                </div>`;
+        };
+
+        if (email_url && auth_url) {
+
+            $("#form-data1").html(cambia_password_item());
+
+            $("#email").val(email_url);
+            M.updateTextFields();
+
+            $('#form-data1').submit((e) => {
+                e.preventDefault();
+                let password = $("#password").val();
+
+                $.ajax({
+                    url: "/api/v2/auth/cambia_password",
+                    type: "PATCH",
+                    data: {
+                        email: email_url,
+                        auth: auth_url,
+                        new_password: password
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        window.location.replace("/login");
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            });
+        } else {
+            $("#form-data1").html(recupera_password_item());
+            $('#form-data1').submit((e) => {
+                e.preventDefault();
+                let email = $("#email").val();
+
+                $.ajax({
+                    url: "/api/v2/auth/recupera_password",
+                    type: "GET",
+                    data: {
+                        email: email
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        window.location.replace("/login");
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            });
+        }
+
+
+    </script>
+</body>
+
+</html>

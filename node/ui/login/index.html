@@ -15,10 +15,10 @@
 </head>
 
 <body>
-    <div class="row"></div>
+    <div class="row m-0"></div>
     <div class="valign-wrapper" style="height: 100%;">
         <div class="container center-align">
-            <div class="row">
+            <div class="row m-0">
                 <div class="col s4"></div>
                 <div class="col s4">
                     <img class="responsive-img" src="/public/images/Party_hub_logo.png">
@@ -26,17 +26,17 @@
                 <div class="col s4"></div>
             </div>
 
-            <div class="row">
+            <div class="row m-0">
                 <h3>Login</h3>
             </div>
 
-            <div class="row">
+            <div class="row m-0">
                 <h6 class="grey-text">Bentornato, <br> effettua il login per continuare</h6>
             </div>
 
             <div id="login-form">
                 <form id="form-data">
-                    <div class="row">
+                    <div class="row m-0">
                         <div class="input-field col s12">
                             <input id="username_email" type="text" required="true">
                             <label for="username_email">Username o email</label>
@@ -49,12 +49,12 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row m-0">
                         <button class="btn-large waves-effect waves-light" type="submit" id="next_button">Log in</button>
                     </div>
                 </form>
 
-                <div class="row">
+                <div class="row m-0">
                     <h6 class="grey-text">Non hai un account? <a href="/signin" type="submit">Crea account</a></h6>
                 </div>
             </div>
@@ -73,9 +73,12 @@
 
         let validate_token = () => {
             $.ajax({
-                url: "/api/auth/validate_token",
+                url: "/api/v2/auth/validate_token",
                 type: "GET",
                 data: {},
+                headers: {
+                    "Authorization": "Bearer " + readCookie("token")
+                },
                 success: (data) => {    
                     console.log(data);
                     switch (data.message) {
@@ -110,7 +113,7 @@
             let password = $("#password").val();
 
             $.ajax({
-                url: "/api/auth/login",
+                url: "/api/v2/auth/login",
                 type: "POST",
                 data: {
                     username_email: username_email,

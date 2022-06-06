@@ -59,6 +59,22 @@
         $(document).ready(function () {
             addTopBar("Prodotti", ``);
             addBottomBar("d", 1);
+
+            $.ajax({
+                url: "/api/v2/auth/get_user_info",
+                type: "GET",
+                data: {
+                },
+                success: (data) => {
+                    console.log(data.message);
+                    if (data.message.active_event) {
+                        window.location.replace("/dipendente/sezione_vendita_prodotti?id="+data.message.active_event);
+                    }
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
         });
 
         let html5QrCode;
@@ -68,7 +84,7 @@
             if (toggleQRcodeSuccess) {
                 toggleQRcodeSuccess = false;
                 $.ajax({
-                    url: "/api/dipendente/activate_turno",
+                    url: "/api/v2/dipendente/activate_turno",
                     type: "POST",
                     data: {
                         event_id: decodedText

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- TOP BAR -->
+    <div id="top_bar"></div>
+
+    <!-- Main content -->
+    <main>
+        <div class="container">
+            <div class="section" style="height: 70px; padding-bottom: 0.1rem;"></div>
+            <div class="row" id="gallery">
+            </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+
+    <script>
+        $(document).ready(() => {
+            let event_id = (new URLSearchParams(window.location.search)).get("id");
+
+            addTopBar("Foto",
+                `   <form id="files_form" enctype="multipart/form-data">
+                    <div class="file-field input-field m-0" style="height: 4rem">
+                        <div class="btn grey lighten-4" style="box-shadow:none !important">
+                            <i class="large material-icons blue-text" style=" font-size:2rem !important; padding-top: 10px">add_a_photo</i>
+                            <input type="file" id="files_path" name="photos" multiple>
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text" style="width:0px !important; height: 0px !important">
+                        </div>
+                        <input name="event_id" id="event_id" type="hidden">
+                        </div>
+                    </form>`,
+                    false,
+                `<a class="blue-text left valign-wrapper" href="/organizzatore/dettaglio_evento?id=${event_id}">
+                <i class="material-icons">chevron_left</i>
+                <span>Dettaglio evento</span>
+            </a>`
+            );
+            addBottomBar("o", 3);
+
+            $("#event_id").val(event_id);
+
+
+            $("#files_path").change((e) => {
+                let formData = new FormData($("#files_form")[0]);
+
+                $.ajax({
+                    url: "/api/v2/event/photos/add/",
+                    type: "post",
+                    enctype: 'multipart/form-data',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    success: (data) => {
+                        window.location.reload();
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            });
+
+
+            $.ajax({
+                url: "/api/v2/event/photos/get_photos",
+                type: "POST",
+                data: {
+                    event_id: event_id
+                },
+                success: (data) => {
+                    data.message.forEach(photo => {
+                        $("#gallery").append(`
+                        <div class="col s4" style="padding: 0 0.2rem; padding-bottom: 0.2rem">
+                           <img class="materialboxed responsive-img" style="height:110px !important; width:100% ; object-fit: cover; border-radius: 20px" src="data:image/png;base64,${photo}"/>
+                        </div>
+                        `);
+                    });
+
+                    $('.materialboxed').materialbox();
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        });
+
+
+    </script>
+</body>
+
+</html>
