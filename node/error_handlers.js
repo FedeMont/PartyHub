@@ -17,7 +17,7 @@ let requiredParametersErrHandler = (res, params_values) => {
  * @param err: error
  * @param message: message to append to standardRes error
  */
-let errHandler = (res, err, message, is_find_error=true, status = 500) => {
+let errHandler = (res, err, message, is_find_error = true, status = 500) => {
     if (err) {
         console.log(err);
 

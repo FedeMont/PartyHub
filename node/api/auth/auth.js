@@ -1,27 +1,15 @@
 const routes = require('express').Router();
-const multer = require("multer");
 const fs = require('fs');
 const path = require('path');
 
-const { mongoose, documents, standardRes, bcrypt, saltRounds } = require("../../utils");
+const { mongoose, documents, standardRes, bcrypt, saltRounds, upload } = require("../../utils");
 const { authenticateToken, generateAccessToken } = require("../../token");
-
 const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
-const { createEmailMessage, sendMail} = require("../../emailer");
+const { createEmailMessage, sendMail } = require("../../emailer");
 
 const User = mongoose.model("User", documents.userSchema);
 const TokenBlackList = mongoose.model("TokenBlackList", documents.tokenBlackListSchema);
 
-let storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads')
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.fieldname + '-' + Date.now())
-    }
-});
-
-let upload = multer({ storage: storage });
 
 /**
  * @openapi
@@ -46,8 +34,6 @@ let upload = multer({ storage: storage });
  *                      application/json:
  *                          schema:
  *                              $ref: "#/components/schemas/Code200"
- *              401:
- *                  $ref: "#/components/responses/NoToken"
  *              409:
  *                  description: Username o email già presenti nel database.
  *                  content:
@@ -72,7 +58,7 @@ routes.get("/check_availability", (req, res) => {
             ]
         )
     ) {
-        User.find({$or: [{username: req.query.username}, {email: req.query.email}]}, "", (err, users) => {
+        User.find({ $or: [{ username: req.query.username }, { email: req.query.email }] }, "", (err, users) => {
             if (errHandler(res, err, "username e email")) {
                 if (users.length === 0)
                     return standardRes(res, 200, "Username e email disponibili.");
@@ -110,7 +96,7 @@ routes.get("/check_availability", (req, res) => {
  *                                  type: string
  *                                  format: email
  *                                  description: E-mail dell'utente
- *                              profile_picture:
+ *                              file:
  *                                  type: string
  *                                  format: binary
  *                                  description: Foto profile dell'utente
@@ -133,7 +119,7 @@ routes.get("/check_availability", (req, res) => {
  *                          schema:
  *                              $ref: "#/components/schemas/Code200"
  *              409:
- *                  description: Errore nella registrazione.
+ *                  description: Username o email già presenti nel database.
  *                  content:
  *                      application/json:
  *                          schema:
@@ -141,7 +127,7 @@ routes.get("/check_availability", (req, res) => {
  *              422:
  *                  $ref: "#/components/responses/MissingParameters"
  *              500:
- *                  description: Errore nella generazione dell'hash della password.
+ *                  description: Errore nella registrazione.
  *                  content:
  *                      application/json:
  *                          schema:
@@ -150,36 +136,47 @@ routes.get("/check_availability", (req, res) => {
 routes.post("/signin", upload.single('profile_picture'), (req, res) => {
     if (
         requiredParametersErrHandler(
-            res, [
-            req.body.name, req.body.surname, req.body.username, req.body.email, req.body.password, req.body.birthday
+            res,
+            [
+                req.body.name, req.body.surname, req.body.username, req.body.email, req.body.password, req.body.birthday
             ]
         )
     ) {
-        bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
-            if (errHandler(res, err, "Errore nella generazione dell'hash della password.", false)) {
-                
-                let profile_picture = "";
-                if(req.file !== undefined){
-                   profile_picture = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
-                   fs.unlinkSync(path.resolve('./uploads/' + req.file.filename));
+        User.find({ $or: [{ username: req.query.username }, { email: req.query.email }] }, "", (err, users) => {
+            if (errHandler(res, err, "username e email")) {
+                if (users.length === 0) {
+
+                    bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
+                        if (errHandler(res, err, "Errore nella generazione dell'hash della password.", false)) {
+
+                            let profile_picture = "";
+                            if(req.file !== undefined){
+                                profile_picture = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
+                                fs.unlinkSync(path.resolve('./uploads/' + req.file.filename));
+                            }
+
+                            const user = new User({
+                                _id: new mongoose.Types.ObjectId(),
+                                name: req.body.name,
+                                surname: req.body.surname,
+                                username: req.body.username,
+                                email: req.body.email,
+                                password: hash,
+                                birthday: Date.parse(req.body.birthday.replace(/(\d+[/])(\d+[/])/, '$2$1')),
+                                description: req.body.description,
+                                profile_picture: profile_picture
+                            });
+
+                            user.save((err) => {
+                                if (errHandler(res, err, "Errore nella registrazione.", false, 500))
+                                    return standardRes(res, 200, "Registrazione avvenuta con successo.");
+                            });
+                        }
+                    });
+
+                } else {
+                    return standardRes(res, 409, "Username o email già presenti nel database.");
                 }
-
-                const user = new User({
-                    _id: new mongoose.Types.ObjectId(),
-                    name: req.body.name,
-                    surname: req.body.surname,
-                    username: req.body.username,
-                    email: req.body.email,
-                    password: hash,
-                    birthday: Date.parse(req.body.birthday.replace(/(\d+[/])(\d+[/])/, '$2$1')),
-                    description: req.body.description,
-                    profile_picture: profile_picture
-                });
-
-                user.save((err) => {
-                    if (errHandler(res, err, "Errore nella registrazione.", false, 409))
-                        return standardRes(res, 200, "Registrazione avvenuta con successo.");
-                });
             }
         });
     }
@@ -252,7 +249,7 @@ routes.post('/login', (req, res) => {
             ]
         )
     ) {
-        User.find({ $or: [{username: req.body.username_email}, {email: req.body.username_email}] }, "", (err, users) => {
+        User.find({ $or: [{ username: req.body.username_email }, { email: req.body.username_email }] }, "", (err, users) => {
             if (errHandler(res, err, "username e email")) {
 
                 if (users.length === 0) return standardRes(res, 401, "Username o password errate.");
@@ -286,7 +283,7 @@ routes.post('/login', (req, res) => {
  *              - bearerAuth: []
  *          responses:
  *              200:
- *                  description: logout effettuato con successo.
+ *                  description: Logout effettuato con successo.
  *                  content:
  *                      application/json:
  *                          schema:
@@ -299,19 +296,17 @@ routes.post('/login', (req, res) => {
  *                                  message:
  *                                      type: string
  *                                      description: messaggio.
- *                                      example: logout effettuato con successo.
+ *                                      example: Logout effettuato con successo.
  *              401:
- *                  description: Username o password errate.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              $ref: "#/components/schemas/Code401"
- *              409:
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
+ *              500:
  *                  description: Errore nel logout.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schemas/Code409"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post("/logout", authenticateToken, (req, res) => {
     console.log(req.user.token);
@@ -322,8 +317,8 @@ routes.post("/logout", authenticateToken, (req, res) => {
     });
 
     token.save((err) => {
-       if (errHandler(res, err, "Errore nel logout", false, 409)) {
-           return standardRes(res, 200, "Logout effettuato con successo");
+       if (errHandler(res, err, "Errore nel logout", false)) {
+           return standardRes(res, 200, "Logout effettuato con successo.");
        }
     });
 });
@@ -371,6 +366,8 @@ routes.post("/logout", authenticateToken, (req, res) => {
  *                                              example: 2000-05-21T00:00:00.000Z
  *              401:
  *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              500:
  *                  description: Errore nella ricerca dell'utente.
  *                  content:
@@ -382,7 +379,7 @@ routes.get('/get_user_info', authenticateToken, (req, res) => {
     User.find({ email: req.user.mail }, "name surname birthday", (err, users) => {
         if (errHandler(res, err, "utente")) {
 
-            if (users.length === 0) return standardRes(res, 401, "Token email errata.");
+            if (users.length === 0) return standardRes(res, 500, "Token email errata.");
 
             let user = users[0];
             console.log(user);
@@ -391,18 +388,74 @@ routes.get('/get_user_info', authenticateToken, (req, res) => {
     });
 });
 
-
+/**
+ * @openapi
+ * paths:
+ *  /api/auth/get_profile_picture_by_id:
+ *      get:
+ *          summary: User info
+ *          description: Ritorna le informazioni dell'utente loggato
+ *          security:
+ *              - bearerAuth: []
+ *          parameters:
+ *              - in: query
+ *                name: id
+ *                description: Id dell'utente di cui si vuole recuperare l'immagine profilo
+ *                required: true
+ *          responses:
+ *              200:
+ *                  description: Token valido.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: string
+ *                                      description: Foto profilo dell'utente.
+ *                                      example: /9j/4QSkRXhpZgAASUkqAAgAAAANAAABBAABAAAAo...
+ *              401:
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
+ *              409:
+ *                  description: Nessun utente trovato.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
+ *              500:
+ *                  description: Errore nella ricerca dell'utente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/components/schemas/Code500"
+ */
 routes.get('/get_profile_picture_by_id', authenticateToken, (req, res) => {
-    User.find({ _id: req.query.id }, (err, users) => {
-        if (errHandler(res, err, "utente")) {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [req.query.id]
+        )
+    ) {
+        User.find({ _id: req.query.id }, (err, users) => {
+            if (errHandler(res, err, "utente")) {
 
-            if (users.length === 0) return standardRes(res, 409, "Errore nella ricerca dell'utente");
+                if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
 
-            let user = users[0];
-            console.log(user);
-            return standardRes(res, 200, user.profile_picture);
-        }
-    });
+                let user = users[0];
+                console.log(user);
+
+                return standardRes(res, 200, user.profile_picture);
+            }
+        });
+    }
 });
 
 /**
@@ -432,6 +485,8 @@ routes.get('/get_profile_picture_by_id', authenticateToken, (req, res) => {
  *                                      example: "up"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  */
 routes.get("/validate_token", authenticateToken, (req, res) => {
     return standardRes(res, 200, req.user.role);
@@ -465,13 +520,13 @@ routes.get("/validate_token", authenticateToken, (req, res) => {
  *                                      type: string
  *                                      description: messaggio.
  *                                      example: Email inviata.
- *              422:
- *                  $ref: "#/components/responses/MissingParameters"
  *              409:
- *                  description: Errore nell'invio dell'email.
+ *                  description: Non è stato possibile trovare un utente con questa email.
  *                  content:
  *                      application/json:
  *                          $ref: "#/componentes/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
@@ -506,10 +561,10 @@ routes.get("/recupera_password", (req, res) => {
 
                 sendMail(message)
                     .then((result) => {
-                        return standardRes(res, 200, "Email inviata");
+                        return standardRes(res, 200, "Email inviata.");
                     })
                     .catch((err) => {
-                        errHandler(res, err, "Errore nell'invio dell'email.", false, 409);
+                        errHandler(res, err, "Errore nell'invio dell'email.", false, 500);
                     });
             }
         });
@@ -523,7 +578,7 @@ routes.get("/recupera_password", (req, res) => {
  *      get:
  *          summary: Cambia password
  *          description: Data l'email di un account, gli ultimi 10 caratteri dell'hash della password vecchia e una nuova password il sistema cambia la password.
- *           requestBody:
+ *          requestBody:
  *              required: true
  *              content:
  *                  application/json:
@@ -556,13 +611,18 @@ routes.get("/recupera_password", (req, res) => {
  *                                      type: string
  *                                      description: messaggio.
  *                                      example: Password cambiata correttamente.
- *              422:
- *                  $ref: "#/components/responses/MissingParameters"
+ *              403:
+ *                  description: Auth errato, prova ad inviare una nuova richeista di cambio password.
+ *                  content:
+ *                      application/json:
+ *                  $ref: "#/components/schemas/Code403"
  *              409:
  *                  description: Errore nel cambio della password.
  *                  content:
  *                      application/json:
  *                          $ref: "#/componentes/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
@@ -594,7 +654,7 @@ routes.patch("/cambia_password", (req, res) => {
                         user["password"] = hash;
 
                         user.save((err) => {
-                           if (errHandler(res, err, "Errore nell'aggiornamento della password.", false, 409)) {
+                           if (errHandler(res, err, "Errore nell'aggiornamento della password.", false, 500)) {
                                return standardRes(res, 200, "Password cambiata correttamente.");
                            }
                         });

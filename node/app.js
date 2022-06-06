@@ -35,6 +35,16 @@ const options = {
                 }
             },
             responses: {
+                NothingFound: {
+                    description: "Nothing found",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                "$ref": "#/components/schemas/Code204"
+                            }
+                        }
+                    }
+                },
                 NoToken: {
                     description: "No token, unauthorized",
                     content: {
@@ -46,7 +56,7 @@ const options = {
                     }
                 },
                 ForbiddenError: {
-                    description: "Non ti è permesso effettuare questa operazione.",
+                    description: "Wrong token, forbidden.",
                     content: {
                         "application/json": {
                             schema: {
@@ -89,6 +99,23 @@ const options = {
                         message: {
                             type: "string",
                             description: "Messaggio.",
+                            // example: "No token, unauthorized."
+                        },
+                    }
+                },
+                Code204: {
+                    description: "Nothing found",
+                    type: "object",
+                    properties: {
+                        status: {
+                            type: "integer",
+                            description: "Http status.",
+                            example: 204
+                        },
+                        message: {
+                            type: "array",
+                            description: "Messaggio.",
+                            items: {}
                             // example: "No token, unauthorized."
                         },
                     }
@@ -380,6 +407,21 @@ const options = {
                             type: "string",
                             description: "Via, Numero civico, Comune, Sigla Provincia, Paese dell'evento",
                             example: "Via Sommarive 5, Povo, TN, Italy"
+                        },
+                        is_user_iscritto: {
+                            type: "boolean",
+                            description: "Se l'utente loggato è iscritto all'evento.",
+                            example: true
+                        },
+                        number_of_feedbacks: {
+                            type: "integer",
+                            description: "Numero di feedback dell'evento.",
+                            example: 100
+                        },
+                        avg_feedback: {
+                            type: "integer",
+                            description: "Media dei feedback.",
+                            example: 4.5
                         }
                     }
                 },
@@ -396,7 +438,9 @@ const options = {
                             description: "Data di caricamento"
                         },
                         user: {
-                            "$ref": "#/components/schemas/User"
+                            type: "string",
+                            description: "Id dell'utente organizzatore",
+                            example: "6288ec25fe5bb453c76a62fa"
                         }
                     }
                 },
@@ -415,10 +459,6 @@ const options = {
                         },
                         address: {
                             "$ref": "#/components/schemas/Geoposition"
-                        },
-                        poster: {
-                            type: "string",
-                            description: "Foto locandina evento (base64)"
                         },
                         start_datetime: {
                             type: "string",
@@ -445,7 +485,9 @@ const options = {
                         partecipants_list: {
                             type: "array",
                             items: {
-                                "$ref": "#/components/schemas/User"
+                                type: "string",
+                                description: "Id dell'utente iscritto all'evento",
+                                example: "6288ec25fe5bb453c76a62fa"
                             }
                         },
                         maximum_partecipants: {
@@ -458,19 +500,26 @@ const options = {
                             description: "Descrizione dell'evento",
                             example: "Descrizione"
                         },
+                        poster: {
+                            type: "string",
+                            description: "Immagine della locandina dell'evento",
+                            example: "/9j/4QSkRXhpZgAASUkqAAgAAAANAAABBAABAAAAo..."
+                        },
                         number_of_photos: {
                             type: "integer",
                             description: "Numero di foto presenti",
                             example: 10
                         },
-                        galley: {
+                        gallery: {
                             type: "array",
                             items: {
                                 "$ref": "#/components/schemas/EventPhotoSchema"
                             }
                         },
                         owner: {
-                            "$ref": "#/components/schemas/User"
+                            type: "string",
+                            description: "Id dell'utente organizzatore",
+                            example: "6288ec25fe5bb453c76a62fa"
                         }
                     }
                 },

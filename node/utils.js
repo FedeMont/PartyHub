@@ -1,11 +1,13 @@
 const mongoose = require("mongoose");
 const bcrypt = require('bcrypt');
+const multer = require("multer");
+const fs = require('fs');
 const saltRounds = 10;
 
 mongoose.connect("mongodb://federicomontagna.ddns.net:27017", {
     "dbName": "partyhub",
-    "user": "root",
-    "pass": "password",
+    "user": process.env.db_user,
+    "pass": process.env.db_password,
 });
 
 mongoose.set("debug", true);
@@ -33,9 +35,8 @@ const geopositionSchema = new mongoose.Schema({
 
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    price: { type: Number, required: true },
-    // icon: Image()
-}); // , { _id: false });
+    price: { type: Number, required: true }
+});
 
 const eventPhotoSchema = new mongoose.Schema({
     photo: { type: String, required: true },
@@ -90,7 +91,6 @@ let documents = {
     geopositionSchema: geopositionSchema,
     eventSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
-        // code: { type: String, required: true },
         name: { type: String, required: true },
         address: {
             type: geopositionSchema,
@@ -136,8 +136,7 @@ let documents = {
         total_price: { type: Number, default: 0 },
         products_list: [{
             type: productSchema
-        }],
-        // owner: ??
+        }]
     }),
     tokenBlackListSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
@@ -160,9 +159,25 @@ const standardRes = (res, status, message, token = undefined) => {
     }
 };
 
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now())
+    }
+});
+
+let upload = multer({ storage: storage });
+
+dir = "./uploads";
+if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+}
 
 exports.mongoose = mongoose;
 exports.documents = documents;
 exports.standardRes = standardRes;
 exports.bcrypt = bcrypt;
 exports.saltRounds = saltRounds;
+exports.upload = upload;

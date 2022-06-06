@@ -1,28 +1,18 @@
 const routes = require('express').Router();
-const multer = require("multer");
 const fs = require('fs');
 const path = require('path');
-const { mongoose, documents, standardRes } = require("../../utils");
-const { authenticateToken } = require("../../token");
 const axios = require('axios');
+
+const { mongoose, documents, standardRes, upload } = require("../../utils");
+const { authenticateToken } = require("../../token");
 const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
+const {createEmailMessage, sendMail} = require("../../emailer");
 
 const User = mongoose.model("User", documents.userSchema);
 const GeopositionData = mongoose.model("GeopositionData", documents.geopositionSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
 const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
 
-
-let storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads')
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.fieldname + '-' + Date.now())
-    }
-});
-
-let upload = multer({ storage: storage });
 
 /**
  * @openapi
@@ -46,7 +36,7 @@ let upload = multer({ storage: storage });
  *                              address:
  *                                  type: string
  *                                  description: Indirizzo dell'evento
- *                              poster:
+ *                              file:
  *                                  type: string
  *                                  format: binary
  *                                  description: Foto locandina evento
@@ -81,50 +71,23 @@ let upload = multer({ storage: storage });
  *                                      description: messaggio.
  *                                      example: Evento creato correttamente.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nella creazione dell'evento.
+ *                  description: La data di fine evento deve succedere quella di inizio evento.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella creazione dell'evento.
+ *                              $ref: "#/components/schema/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
     if (
@@ -138,7 +101,7 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
     ) {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile creare eventi.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(user);
@@ -146,7 +109,9 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
                 if (req.body.start_datetime >= req.body.end_datetime) return standardRes(res, 409, "La data di fine evento deve succedere quella di inizio evento.");
 
                 let age_range = req.body.age_range.split('-');
+
                 let poster = "";
+
                 if (req.file !== undefined) {
                     poster = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
                     fs.unlinkSync(path.resolve('./uploads/' + req.file.filename));
@@ -166,7 +131,6 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
 
                         const event = new Event({
                             _id: new mongoose.Types.ObjectId(),
-                            // code: { type: String, required: true },
                             name: req.body.name,
                             address: geopositionData,
                             start_datetime: req.body.start_datetime,
@@ -180,16 +144,37 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
                         });
 
                         event.save((err) => {
-                            if (errHandler(res, err, "Errore nella creazione dell'evento.", false, 409)) {
+                            if (errHandler(res, err, "Errore nella creazione dell'evento.", false)) {
 
                                 user.events_list = user.events_list || [];
                                 user.events_list.push(event._id);
                                 user.number_of_events = user.number_of_events + 1;
 
                                 user.save((err) => {
-                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
-                                        return standardRes(res, 200, "Evento creato correttamente.");
+                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false)) {
                                         // TODO: implementare invio del codice QRcode dell'evento
+
+                                        let message = createEmailMessage(
+                                            user.email,
+                                            "QR code evento",
+                                            `
+                                                <div>
+                                                    <p>Questo è il QR code dell'evento:</p>
+                                                    <p>${event.name}</p>
+                                                    <p>Stampalo e mostralo all'ingresso del tuo locale</p>
+                                                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=${event._id}&amp;size=100x100 alt='' title=''"> 
+                                                </div>
+                                            `
+                                        );
+
+                                        sendMail(message)
+                                            .then((result) => {
+                                                return standardRes(res, 200, "Evento creato correttamente.");
+                                            })
+                                            .catch((error) => {
+                                                errHandler(res, err, "Errore nell'invio dell'email.", false);
+                                            });
+
                                     }
                                 });
                             }
@@ -197,7 +182,7 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
                     })
                     .catch((error) => {
                         console.log(error);
-                        return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
+                        return standardRes(res, 500, "Errore nella richiesta a positionstack APIs.");
                     });
             }
         });
@@ -229,7 +214,7 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
  *                              address:
  *                                  type: string
  *                                  description: Indirizzo dell'evento
- *                              poster:
+ *                              file:
  *                                  type: string
  *                                  format: binary
  *                                  description: Foto locandina evento
@@ -264,65 +249,23 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
  *                                      description: messaggio.
  *                                      example: Evento modificato correttamente.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
  *              403:
- *                  description: Non è possibile modificare un evento passato.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 403
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Non è possibile modificare un evento passato.
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nella creazione dell'evento.
+ *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella creazione dell'evento.
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res) => {
     if (
@@ -336,13 +279,13 @@ routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res)
     ) {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
-                if (users.length === 0) return standardRes(res, 401, "Non è stato trovato nessun evento.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o accou type errati.");
 
                 let user = users[0];
                 console.log(user);
 
-                Event.find({ _id: req.body.id }, "", (err, events) => {
-                    if (events.length === 0) return standardRes(res, 401, "Non è stato trovato nessun evento.");
+                Event.find({ $and: [{ _id: req.body.id }, { owner: user._id }] }, "", (err, events) => {
+                    if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
 
                     let event = events[0];
                     console.log(event);
@@ -352,6 +295,7 @@ routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res)
                     if (req.body.start_datetime >= req.body.end_datetime) return standardRes(res, 409, "La data di fine evento deve succedere quella di inizio evento.");
 
                     let age_range = req.body.age_range.split('-');
+
                     let poster = event.poster;
                     if (req.file !== undefined) {
                         poster = fs.readFileSync(path.resolve('./uploads/' + req.file.filename)).toString('base64');
@@ -381,14 +325,14 @@ routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res)
                             event["description"] = req.body.description;
 
                             event.save((err) => {
-                                if (errHandler(res, err, "Errore nella modifica dell'evento.", false, 409)) {
+                                if (errHandler(res, err, "Errore nella modifica dell'evento.", false)) {
                                     return standardRes(res, 200, "Evento aggiornato correttamente.");
                                 }
                             });
                         })
                         .catch((error) => {
                             console.log(error);
-                            return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
+                            return standardRes(res, 500, "Errore nella richiesta a positionstack APIs.");
                         });
                 });
             }
@@ -432,35 +376,23 @@ routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res)
  *                                      description: messaggio.
  *                                      example: Evento eliminato correttamente.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nell'eliminazione dell'evento.
+ *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nell'eliminazione dell'evento.
+ *                              $ref: "#/components/schema/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
+ *              500:
+ *                  description: Errore nella ricerca di utente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.delete('/elimina', authenticateToken, (req, res) => {
     if (
@@ -472,22 +404,24 @@ routes.delete('/elimina', authenticateToken, (req, res) => {
 
         User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => { // organizzatore
             if (errHandler(res, err, "utente")) {
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile eliminare eventi.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(user);
 
                 Event.find({ $and: [{ _id: req.body.event_id }, { owner: user._id }] }, "", (err, events) => { // evento da eliminare
                     if (errHandler(res, err, "evento")) {
-                        if (events.length === 0) return standardRes(res, 401, "Non ti è possibile eliminare questo evento.");
+                        if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
 
                         let event = events[0];
                         console.log(event);
 
+                        if (event.end_datetime < new Date()) return standardRes(res, 403, "Non è possibile eliminare un evento passato.");
+
                         Biglietto.find({ event: req.body.event_id }, "", (err, biglietti) => { // biglietti di tutti gli utenti iscritti all'evento da eliminare
                             if (errHandler(res, err, "biglietti")) {
 
-                                lista_id_biglietti = [];
+                                let lista_id_biglietti = [];
                                 biglietti.forEach(biglietto => {
                                     lista_id_biglietti.push(biglietto._id);
                                 });
@@ -500,23 +434,26 @@ routes.delete('/elimina', authenticateToken, (req, res) => {
                                         $pull: { events_list: event._id },
                                         $pullAll: { biglietti_list: lista_id_biglietti }
                                     }
-                                ).exec()
+                                )
+                                    .exec()
                                     .then((result) => {
 
                                         Biglietto.deleteMany({
                                             event: event._id
                                         }).exec()
                                             .then((results) => {
-                                                Event.deleteOne({ _id: event._id }).exec()
+                                                Event.deleteOne({ _id: event._id })
+                                                    .exec()
                                                     .then((result) => {
                                                         return standardRes(res, 200, "Evento eliminato correttamente.");
                                                     })
                                                     .catch((err) => {
-                                                        errHandler(res, err, "Errore nella eliminazione di evento", false, 409);
+                                                        errHandler(res, err, "Errore nella eliminazione di evento.", false);
                                                     });
                                             });
-                                    }).catch((err) => {
-                                        errHandler(res, 401, "Non ti è possibile effettuare l'update");
+                                    })
+                                    .catch((err) => {
+                                        errHandler(res, err, "Errore nell'aggiornamento degli utenti.", false);
                                     });
                             }
                         });
@@ -563,50 +500,23 @@ routes.delete('/elimina', authenticateToken, (req, res) => {
  *                                      description: messaggio.
  *                                      example: Utente iscritto all'evento correttamente.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nella creazione del biglietto.
+ *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella creazione del biglietto.
+ *                              $ref: "#/components/schema/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.post('/iscrizione', authenticateToken, (req, res) => {
     if (
@@ -617,14 +527,14 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
     ) {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile iscriverti ad un evnto.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(user);
 
                 Event.find({ _id: req.body.event_id }, "", (err, events) => {
                     if (errHandler(res, err, "evento")) {
-                        if (events.length === 0) return standardRes(res, 401, "Non ti è possibile iscriverti a questo evento.");
+                        if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
 
                         let event = events[0];
                         console.log(event);
@@ -643,7 +553,7 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
                         });
 
                         biglietto.save((err) => {
-                            if (errHandler(res, err, "Errore nella creazione del biglietto.", false, 409)) {
+                            if (errHandler(res, err, "Errore nella creazione del biglietto.", false)) {
 
                                 user.events_list.push(event._id);
                                 user.number_of_events = user.number_of_events + 1;
@@ -652,7 +562,7 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
                                 user.number_of_biglietti = user.number_of_biglietti + 1;
 
                                 user.save((err) => {
-                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
+                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false)) {
 
                                         event.partecipants_list.push(user._id);
                                         event.number_of_partecipants = event.number_of_partecipants + 1;
@@ -660,7 +570,7 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
                                         console.log(event);
 
                                         event.save((err) => {
-                                            if (errHandler(res, err, "Errore nell'aggiornamento dell'evento.", false, 409)) {
+                                            if (errHandler(res, err, "Errore nell'aggiornamento dell'evento.", false)) {
                                                 return standardRes(res, 200, "Utente iscritto all'evento correttamente.");
                                             }
                                         });
@@ -711,50 +621,23 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
  *                                      description: messaggio.
  *                                      example: Disiscrizione effettuata.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nell'eliminazione del biglietto.
+ *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nell'eliminazione del biglietto.
+ *                              $ref: "#/components/schema/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.post('/disiscrizione', authenticateToken, (req, res) => {
     if (
@@ -765,7 +648,7 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
     ) {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
-                if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.")
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.")
 
                 let user = users[0];
                 console.log(user);
@@ -777,15 +660,18 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
                         let event = events[0];
                         console.log(event);
 
+                        if (!user.events_list.includes(event._id) || !event.partecipants_list.includes(user._id))
+                            return standardRes(res, 409, "L'utente non è ancora iscritto a questo evento.");
+
                         Biglietto.find({ _id: user.biglietti_list }, "", (err, biglietti) => {
                             if (errHandler(res, err, "biglietto")) {
-                                if (biglietti.length === 0) return standardRes(res, 409, "Nessun biglietto trovato.")
+                                if (biglietti.length === 0) return standardRes(res, 500, "Nessun biglietto trovato.")
 
                                 let biglietto = (biglietti.filter(biglietto => biglietto.event.equals(event._id)))[0];
                                 console.log(biglietto);
 
                                 Biglietto.deleteOne({ _id: biglietto._id }, (err) => {
-                                    if (errHandler(res, err, "Errore nell'eliminazione del biglietto.", false, 409)) {
+                                    if (errHandler(res, err, "Errore nell'eliminazione del biglietto.", false)) {
 
                                         event.number_of_partecipants = event.number_of_partecipants - 1;
                                         event.partecipants_list = event.partecipants_list.filter(partecipant_id => !partecipant_id.equals(user._id));
@@ -801,9 +687,9 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
                                         console.log(user);
 
                                         event.save((err) => {
-                                            if (errHandler(res, err, "Errore nell'aggiornamento di evento.", false, 409)) {
+                                            if (errHandler(res, err, "Errore nell'aggiornamento di evento.", false)) {
                                                 user.save((err) => {
-                                                    if (errHandler(res, err, "Errore nell'aggiornamento di utente.", false, 409)) {
+                                                    if (errHandler(res, err, "Errore nell'aggiornamento di utente.", false)) {
                                                         return standardRes(res, 200, "Disiscrizione effettuata.");
                                                     }
                                                 });
@@ -819,7 +705,6 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
         });
     }
 });
-
 
 /**
  * @openapi
@@ -860,50 +745,23 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
  *                                      description: messaggio.
  *                                      example: Feedback salvato correttamente.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nel salvataggio del feedback.
+ *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nel salvataggio del feedback.
+ *                              $ref: "#/components/schema/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
- *                  description: Errore nella ricerca.
+ *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca.
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.patch('/feedback', authenticateToken, (req, res) => {
     if (
@@ -915,12 +773,12 @@ routes.patch('/feedback', authenticateToken, (req, res) => {
         if (req.body.feedback >= 0 && req.body.feedback <= 5) {
             User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
                 if (errHandler(res, err, "utente")) {
-                    if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.")
+                    if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.")
 
                     let user = users[0];
                     console.log(user);
 
-                    Event.find({ _id: req.body.event_id }, "", (err, events) => {
+                    Event.find({ $and: [{ _id: req.body.event_id }, { _id: user.events_list }] }, "", (err, events) => {
                         if (errHandler(res, err, "evento")) {
                             if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.")
 
@@ -929,19 +787,19 @@ routes.patch('/feedback', authenticateToken, (req, res) => {
 
                             Biglietto.find({ $and: [{ _id: user.biglietti_list }, { event: event._id }] }, "", (err, biglietti) => {
                                 if (errHandler(res, err, "biglietto")) {
-                                    if (biglietti.length === 0) return standardRes(res, 409, "Nessun biglietto trovato.")
+                                    if (biglietti.length === 0) return standardRes(res, 500, "Nessun biglietto trovato.")
 
                                     let biglietto = biglietti[0];
                                     console.log(biglietto);
 
-                                    if (biglietto.exit_datetime === undefined) return standardRes(res, 401, "Il biglietto deve essere disattivato per lasciare un feedback.");
+                                    if (biglietto.exit_datetime === undefined) return standardRes(res, 403, "Il biglietto deve essere disattivato per lasciare un feedback.");
 
                                     event.feedbacks_list.push(req.body.feedback);
 
                                     event.number_of_feedbacks = event.number_of_feedbacks + 1;
 
                                     event.save((err) => {
-                                        if (errHandler(res, err, "Errore nel salvataggio del feedback.", false, 409)) {
+                                        if (errHandler(res, err, "Errore nel salvataggio del feedback.", false)) {
                                             return standardRes(res, 200, "Feedback salvato.");
                                         }
                                     });
@@ -952,7 +810,7 @@ routes.patch('/feedback', authenticateToken, (req, res) => {
                 }
             });
         } else {
-            return standardRes(res, 409, "Valore del feedback deve essere compreso tra 0 e 5.");
+            return standardRes(res, 409, "Il valore del feedback deve essere compreso tra 0 e 5.");
         }
     }
 });

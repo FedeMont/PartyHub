@@ -1,9 +1,8 @@
 const routes = require('express').Router();
-const multer = require("multer");
 const fs = require('fs');
 const path = require('path');
 
-const { mongoose, documents, standardRes } = require("../../../utils");
+const { mongoose, documents, standardRes, upload } = require("../../../utils");
 const { authenticateToken } = require("../../../token");
 const { requiredParametersErrHandler, errHandler } = require("../../../error_handlers");
 
@@ -13,21 +12,10 @@ const Event = mongoose.model("Event", documents.eventSchema);
 const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
 
 
-let storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads')
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.fieldname + '-' + Date.now())
-    }
-});
-
-let upload = multer({ storage: storage });
-
 function add_photos(req, res, user) {
-    Event.find({ _id: req.body.event_id }, "", (err, events) => {
+    Event.find({ $and: [{ _id: req.body.event_id }, { _id: user.events_list }] }, "", (err, events) => {
         if (errHandler(res, err, "evento")) {
-            if (events.length === 0) return standardRes(res, 409, "Evento non trovato");
+            if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
             let event = events[0];
             console.log(event);
 
@@ -44,15 +32,33 @@ function add_photos(req, res, user) {
             event.number_of_photos = event.gallery.length;
 
             event.save((err) => {
-                if (errHandler(res, err, "Errore nel caricamento delle foto.", false, 409)) {
-                    return standardRes(res, 200, "Foto caricate correttamente");
+                if (errHandler(res, err, "Errore nel caricamento delle foto.", false)) {
+                    return standardRes(res, 200, "Foto caricate correttamente.");
                 }
-            }
-            )
+            });
         }
-    })
+    });
 }
 
+function get_photos(event_id, only_owner_photos, res, user) {
+    Event.find({ $and: [{ _id: event_id }, { _id: user.events_list } ]}, "", (err, events) => {
+        if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
+        let event = events[0];
+        console.log("Only owner photos: " + only_owner_photos);
+        console.log(event.gallery);
+
+        let res_photos = []
+        event.gallery.forEach((photo) => {
+            if (only_owner_photos) {
+                if (photo.user.equals(event.owner)) res_photos.push(photo.photo);
+            } else {
+                res_photos.push(photo.photo);
+            }
+        });
+
+        return standardRes(res, 200, res_photos);
+    });
+}
 
 
 /**
@@ -96,63 +102,35 @@ function add_photos(req, res, user) {
  *                                      description: messaggio.
  *                                      example: Foto caricate correttamente.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nell caricamento del file.
+ *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nell caricamento delle foto.
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
     if (
         requiredParametersErrHandler(
             res,
-            [req.body.event_id]
+            [req.body.event_id, req.files]
         )
     ) {
         User.find({ email: req.user.mail }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
-                if (users.length === 0) return standardRes(res, 409, "Utente non trovato");
-
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(user);
@@ -161,14 +139,21 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
 
                 if (user.account_type === "up") {
 
-                    Biglietto.find({ $and: [{ _id: user.biglietti_list }, { event: req.body.event_id }, { entrance_datetime: { $ne: null } }, { exit_datetime: { $ne: null } }] }, "", (err, biglietti) => {
+                    Biglietto.find(
+                    { $and: [
+                            { _id: user.biglietti_list },
+                            { event: req.body.event_id },
+                            { entrance_datetime: { $ne: null } },
+                            { exit_datetime: { $ne: null } }
+                        ] },
+                    "",
+                    (err, biglietti) => {
                         if (errHandler(res, err, "biglietto")) {
-                            if (biglietti.length === 0) return standardRes(res, 409, "Non ti è possibile caricacare foto se non appartieni all'evento o non sei ancora uscito dal party ");
+                            if (biglietti.length === 0) return standardRes(res, 409, "Non ti è possibile caricacare foto se non sei iscritto all'evento o non sei ancora uscito dal party ");
 
                             add_photos(req, res, user);
                         }
-                    })
-
+                    });
                 }
 
                 if (user.account_type === "o") {
@@ -181,31 +166,10 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
     }
 });
 
-function get_photos(event_id, only_owner_photos, res) {
-    Event.find({ _id: event_id }, "", (err, events) => {
-        if (events.length === 0) return standardRes(res, 409, "Evento non trovato");
-        let event = events[0];
-        console.log("Only owner photos: " + only_owner_photos);
-        console.log(event.gallery);
-
-        let res_photos = []
-        event.gallery.forEach((photo) => {
-            if (only_owner_photos) {
-                if (photo.user.equals(event.owner)) res_photos.push(photo.photo);
-            } else {
-                res_photos.push(photo.photo);
-            }
-        });
-
-        return standardRes(res, 200, res_photos);
-    })
-}
-
 /**
  * @openapi
  * paths:
  *  /api/event/photos/get_photos:
-
  *      post:
  *          summary:  Ritorna le foto degli eventi in base ai permessi
  *          description: Restituisce la lista contenente le immagini caricate all'evento. Vengono restituite in base ai permessi e alla partecipazione all'evento da parte dell'utente
@@ -240,31 +204,25 @@ function get_photos(event_id, only_owner_photos, res) {
  *                                          properties:
  *                                              photo:
  *                                                  type: string
- *                                                  description: Foto bas46.
- * 
+ *                                                  description: Foto base64.
  *              401:
- *                   $ref: "#/components/responses/NoToken"
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Nessun utente trovato.
+ *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Nessun utente trovato.
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                               $ref: "#/components/schemas/Code500"
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.post('/get_photos', authenticateToken, (req, res) => {
     if (
@@ -275,29 +233,29 @@ routes.post('/get_photos', authenticateToken, (req, res) => {
     ) {
         User.find({ email: req.user.mail }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
-
-                if (users.length === 0) return standardRes(res, 409, "Utente non trovato");
-
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(user);
 
-                if (user.account_type === "d") return standardRes(res, 401, "Non ti è possibile visualizzare foto");
+                if (user.account_type === "d") return standardRes(res, 401, "Non ti è possibile visualizzare le foto dell'evento.");
+
                 if (user.account_type === "o") {
-                    if (!user.events_list.includes(req.body.event_id)) return standardRes(res, 401, "Non ti è possibile visualizzare foto per eventi non tuoi");
-                    get_photos(req.body.event_id, false, res);
+                    if (!user.events_list.includes(req.body.event_id)) return standardRes(res, 401, "Non ti è possibile visualizzare le foto per eventi non creati da te.");
+                    get_photos(req.body.event_id, false, res, user);
                 }
-                if (user.account_type == "up") {
+
+                if (user.account_type === "up") {
                     Biglietto.find({ $and: [{ _id: user.biglietti_list }, { event: req.body.event_id }, { entrance_datetime: { $ne: null } }, { exit_datetime: { $ne: null } }] }, "", (err, biglietti) => {
                         if (errHandler(res, err, "biglietto")) {
-                            let only_owner_photos = false;
-                            if (biglietti.length === 0) only_owner_photos = true
-                            get_photos(req.body.event_id, only_owner_photos, res);
+                            let only_owner_photos = (biglietti.length === 0);
+                            get_photos(req.body.event_id, only_owner_photos, res, user);
                         }
-                    })
+                    });
                 }
             }
         });
     }
 });
+
 module.exports = routes;

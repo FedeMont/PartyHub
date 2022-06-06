@@ -8,6 +8,7 @@ const User = mongoose.model("User", documents.userSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
 const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
 
+
 /**
  * @openapi
  * paths:
@@ -41,6 +42,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                  message:
  *                                      type: array
  *                                      items:
+ *                                          $ref: "#/components/schemas/Event"
  *                                          type: object
  *                                          properties:
  *                                              _id:
@@ -75,34 +77,33 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                                  type: string
  *                                                  description: Descrizione dell'evento.
  *                                                  example: Descrizione
+ *                                              owner:
+ *                                                  type: string
+ *                                                  description: Id dell'utente che ha creato l'evento.
+ *                                                  example: 6288ec25fe5bb453c76a62fa
+ *                                              poster:
+ *                                                  type: string
+ *                                                  description: Immagine della locandina dell'evento
+ *                                                  example: /9j/4QSkRXhpZgAASUkqAAgAAAANAAABBAABAAAAo...
  *                                              is_user_iscritto:
  *                                                  type: boolean
  *                                                  description: Se l'utente loggato è iscritto all'evento.
  *                                                  example: true
  *
+ *              204:
+ *                  $ref: "#/components/responses/NothingFound"
  *              401:
- *                   $ref: "#/components/responses/NoToken"
- *              409:
- *                  description: Nessun utente trovato.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Nessun utente trovato.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                               $ref: "#/components/schemas/Code500"
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.get('/events', authenticateToken, (req, res) => {
     if (
@@ -114,81 +115,54 @@ routes.get('/events', authenticateToken, (req, res) => {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
-                if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(user);
 
-                if (req.query.ext_api !== "false") { // TODO: remove in deploy
+                const params = {
+                    access_key: process.env.positionstack_api_key,
+                    query: req.query.latitude + "," + req.query.longitude,
+                    output: "json"
+                };
 
-                    console.log(req.query);
+                axios.get('http://api.positionstack.com/v1/reverse', { params })
+                    .then((response) => {
+                        console.log(response.data.data[0]);
+                        let data = response.data.data[0];
 
-                    const params = {
-                        access_key: process.env.positionstack_api_key,
-                        query: req.query.latitude + "," + req.query.longitude,
-                        output: "json"
-                    };
+                        Event.find({ $or: [{ "address.locality": data.locality }, { "address.region": data.region }] },
+                            "",
+                            (err, events) => {
+                                if (errHandler(res, err, "eventi")) {
 
-                    axios.get('http://api.positionstack.com/v1/reverse', { params })
-                        .then((response) => {
-                            console.log(response.data.data[0]);
-                            let data = response.data.data[0];
+                                    if (events.length === 0) return standardRes(res, 204, []);
 
-                            Event.find({ $or: [{ "address.locality": data.locality }, { "address.region": data.region }] },
-                                "",
-                                (err, events) => {
-                                    if (errHandler(res, err, "eventi")) {
+                                    let to_return = [];
 
-                                        let to_return = [];
+                                    events.forEach((event) => {
+                                        let event_info = {};
+                                        event_info["_id"] = event._id;
+                                        event_info["name"] = event.name;
+                                        event_info["address"] = event.address;
+                                        event_info["start_datetime"] = event.start_datetime;
+                                        event_info["number_of_partecipants"] = event.number_of_partecipants;
+                                        event_info["description"] = event.description;
+                                        event_info["owner"] = event.owner;
+                                        event_info["poster"] = event.poster;
+                                        event_info["is_user_iscritto"] = (event.partecipants_list.includes(user._id));
+                                        to_return.push(event_info);
+                                    });
+                                    console.log(events);
 
-                                        events.forEach((event) => {
-                                            let event_info = {};
-                                            event_info["_id"] = event._id;
-                                            event_info["name"] = event.name;
-                                            event_info["address"] = event.address;
-                                            event_info["start_datetime"] = event.start_datetime;
-                                            event_info["number_of_partecipants"] = event.number_of_partecipants;
-                                            event_info["description"] = event.description;
-                                            event_info["is_user_iscritto"] = (event.partecipants_list.includes(user._id));
-                                            event_info["owner"] = event.owner;
-                                            event_info["poster"] = event.poster;
-                                            to_return.push(event_info);
-                                        });
-                                        console.log(events);
-
-                                        return standardRes(res, 200, to_return);
-                                    }
-                                });
-
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                            return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
-                        });
-                } else { // TODO: remove in deploy
-                    Event.find({}, "", (err, events) => {
-                        let to_return = [];
-
-                        events.forEach((event) => {
-                            let event_info = {};
-                            event_info["_id"] = event._id;
-                            event_info["name"] = event.name;
-                            event_info["address"] = event.address;
-                            event_info["start_datetime"] = event.start_datetime;
-                            event_info["number_of_partecipants"] = event.number_of_partecipants;
-                            event_info["description"] = event.description;
-                            event_info["owner"] = event.owner;
-                            event_info["poster"] = event.poster;
-                            if (event.partecipants_list.includes(user._id)) {
-                                event_info["is_user_iscritto"] = true;
-                            }
-                            to_return.push(event_info);
-                        });
-
-                        console.log(events);
-                        return standardRes(res, 200, to_return);
+                                    return standardRes(res, 200, to_return);
+                                }
+                            });
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return standardRes(res, 500, "Errore nella richiesta a positionstack APIs.");
                     });
-                }
             }
         });
     }
@@ -223,6 +197,7 @@ routes.get('/events', authenticateToken, (req, res) => {
  *                                  message:
  *                                      type: array
  *                                      items:
+ *                                          $ref: "#/components/schemas/Event"
  *                                          type: object
  *                                          properties:
  *                                              _id:
@@ -257,27 +232,32 @@ routes.get('/events', authenticateToken, (req, res) => {
  *                                                  type: string
  *                                                  description: Descrizione dell'evento.
  *                                                  example: Descrizione
+ *                                              owner:
+ *                                                  type: string
+ *                                                  description: Id dell'utente che ha creato l'evento.
+ *                                                  example: 6288ec25fe5bb453c76a62fa
+ *                                              poster:
+ *                                                  type: string
+ *                                                  description: Immagine della locandina dell'evento
+ *                                                  example: /9j/4QSkRXhpZgAASUkqAAgAAAANAAABBAABAAAAo...
  *                                              is_user_iscritto:
  *                                                  type: boolean
  *                                                  description: Se l'utente loggato è iscritto all'evento.
  *                                                  example: true
- *
+ *              204:
+ *                  $ref: "#/components/responses/NothingFound"
  *              401:
- *                   $ref: "#/components/responses/NoToken"
+ *                  $ref: "#/components/responses/NoToken"
  *              403:
  *                  $ref: "#/components/responses/ForbiddenError"
- *              409:
- *                  description: Errore nella richiesta a PositionStackAPI.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
- *                  description: Errore nella ricerca di eventi.
+ *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                               $ref: "#/components/schemas/Code500"
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.get('/by_address', authenticateToken, (req, res) => {
     if (
@@ -286,37 +266,58 @@ routes.get('/by_address', authenticateToken, (req, res) => {
             [req.query.address]
         )
     ) {
-        if (req.user.role !== "up") return standardRes(res, 403, "Non ti è possibile cercare eventi.");
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
+            if (errHandler(res, err, "utente")) {
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati");
 
-        console.log(req.query);
+                console.log(req.query);
 
-        const params = {
-            access_key: process.env.positionstack_api_key,
-            query: req.query.address,
-            output: "json"
-        }
+                const params = {
+                    access_key: process.env.positionstack_api_key,
+                    query: req.query.address,
+                    output: "json"
+                }
 
-        axios.get('http://api.positionstack.com/v1/forward', { params })
-            .then((response) => {
-                console.log(response.data.data[0]);
-                let data = response.data.data[0];
+                axios.get('http://api.positionstack.com/v1/forward', { params })
+                    .then((response) => {
+                        console.log(response.data.data[0]);
+                        let data = response.data.data[0];
 
-                Event.find(
-                    // { "address.locality": data.locality },
-                    { $or: [{ "address.locality": data.locality }, { "address.reqion": data.region }] },
-                    "",
-                    (err, events) => {
-                        if (errHandler(res, err, "eventi")) {
+                        Event.find(
+                            { $or: [{ "address.locality": data.locality }, { "address.reqion": data.region }] },
+                            "",
+                            (err, events) => {
+                                if (errHandler(res, err, "eventi")) {
+                                    console.log(events);
+                                    if (events.length === 0) return standardRes(res, 204, []);
 
-                            console.log(events);
-                            return standardRes(res, 200, events);
-                        }
+                                    let to_return = [];
+
+                                    events.forEach((event) => {
+                                        let event_info = {};
+                                        event_info["_id"] = event._id;
+                                        event_info["name"] = event.name;
+                                        event_info["address"] = event.address;
+                                        event_info["start_datetime"] = event.start_datetime;
+                                        event_info["number_of_partecipants"] = event.number_of_partecipants;
+                                        event_info["description"] = event.description;
+                                        event_info["owner"] = event.owner;
+                                        event_info["poster"] = event.poster;
+                                        event_info["is_user_iscritto"] = (event.partecipants_list.includes(user._id));
+                                        to_return.push(event_info);
+                                    });
+                                    console.log(events);
+
+                                    return standardRes(res, 200, to_return);
+                                }
+                            });
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        return standardRes(res, 500, "Errore nella richiesta a positionstack APIs.");
                     });
-            })
-            .catch((error) => {
-                console.log(error);
-                return standardRes(res, 409, "Errore nella richiesta a positionstack APIs.");
-            });
+            }
+        });
     }
 });
 
@@ -347,53 +348,23 @@ routes.get('/by_address', authenticateToken, (req, res) => {
  *                                      description: http status.
  *                                      example: 200
  *                                  message:
- *                                      type: array
- *                                      items:
- *                                          type: object
- *                                          properties:
- *                                              _id:
- *                                                  type: string
- *                                                  description: Id dell'evento.
- *                                                  example: 6288ec25fe5bb453c76a62fa
- *                                              name:
- *                                                  type: string
- *                                                  description: Nome dell'evento.
- *                                                  example: AlterEgo
- *                                              address:
- *                                                  $ref: "#/components/schemas/Geoposition"
- *                                              start_datetime:
- *                                                  type: string
- *                                                  format: date
- *                                                  description: Data e ora di inizio dell'evento.
- *                                                  example: 2000-05-21T00:00:00.000Z
- *                                              end_datetime:
- *                                                  type: string
- *                                                  format: date
- *                                                  description: Data e ora di fine dell'evento.
- *                                                  example: 2000-05-21T00:00:00.000Z
- *                                              number_of_partecipants:
- *                                                  type: integer
- *                                                  description: Numero di partecipenti.
- *                                                  example: 100
- *                                              description:
- *                                                  type: string
- *                                                  description: Descrizione dell'evento.
- *                                                  example: Descrizione
- *                                              number_of_feedbacks:
- *                                                  type: integer
- *                                                  description: Numero di feedback dell'evento.
- *                                                  example: 100
- *                                              avg_feedback:
- *                                                  type: integer
- *                                                  description: Media dei feedback.
- *                                                  example: 4.5
- *                                              is_user_iscritto:
- *                                                  type: boolean
- *                                                  description: Se l'utente loggato è iscritto all'evento.
- *                                                  example: true
- *
+ *                                      $ref: "#/components/schemas/Event"
+ *                                      type: object
+ *                                      properties:
+ *                                          number_of_feedbacks:
+ *                                              type: integer
+ *                                              description: Numero di feedback dell'evento.
+ *                                              example: 100
+ *                                          avg_feedback:
+ *                                              type: integer
+ *                                              description: Media dei feedback.
+ *                                              example: 4.5
+ *                                          is_user_iscritto:
+ *                                              type: boolean
+ *                                              description: Se l'utente loggato è iscritto all'evento.
+ *                                              example: true
  *              401:
- *                   $ref: "#/components/responses/NoToken"
+ *                  $ref: "#/components/responses/NoToken"
  *              403:
  *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
@@ -402,12 +373,14 @@ routes.get('/by_address', authenticateToken, (req, res) => {
  *                      application/json:
  *                          schema:
  *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
- *                  description: Errore nella ricerca di eventi.
+ *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                               $ref: "#/components/schemas/Code500"
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.get('/by_id', authenticateToken, (req, res) => {
     if (
@@ -418,20 +391,22 @@ routes.get('/by_id', authenticateToken, (req, res) => {
     ) {
         User.find({ $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] }, "", async (err, users) => {
             if (errHandler(res, err, "utente")) {
-                if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(user);
 
-                let avg_feedbacks = await Event.aggregate([
-                    {
-                        $project: { avg_feedback: { $avg: "$feedbacks_list" } }
-                    }
-                ]);
+                let avg_feedbacks;
+                if (user.account_type === "o") {
+                    avg_feedbacks = await Event.aggregate([
+                        {
+                            $project: {avg_feedback: {$avg: "$feedbacks_list"}}
+                        }
+                    ]);
+                    console.log(avg_feedbacks);
+                }
 
-                console.log(avg_feedbacks);
-
-                Event.find({ $or: [{ _id: req.query.event_id }, { _id: user.events_list }] }, "", (err, events) => {
+                Event.find({ $and: [{ _id: req.query.event_id }, { _id: user.events_list }] }, "", (err, events) => {
                     if (errHandler(res, err, "evento")) {
 
                         if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
@@ -443,7 +418,8 @@ routes.get('/by_id', authenticateToken, (req, res) => {
                         to_return = JSON.parse(to_return);
                         delete to_return.feedbacks_list;
 
-                        to_return["avg_feedback"] = avg_feedbacks.filter(avg_feedback => avg_feedback._id.equals(event._id))[0].avg_feedback;
+                        if (user.account_type === "o")
+                            to_return["avg_feedback"] = avg_feedbacks.filter(avg_feedback => avg_feedback._id.equals(event._id))[0].avg_feedback;
 
                         console.log("to_return", to_return);
 
@@ -464,11 +440,6 @@ routes.get('/by_id', authenticateToken, (req, res) => {
  *          description: Restituisce la lista degli eventi creati dall'utente loggato
  *          security:
  *              - bearerAuth: []
- *          parameters:
- *              - name: event_id
- *                in: query
- *                required: true
- *                description: Id dell'evento da cercare
  *          responses:
  *              200:
  *                  description: Eventi.
@@ -484,6 +455,7 @@ routes.get('/by_id', authenticateToken, (req, res) => {
  *                                  message:
  *                                      type: array
  *                                      items:
+ *                                          $ref: "#/components/schemas/Event"
  *                                          type: object
  *                                          properties:
  *                                              _id:
@@ -499,25 +471,23 @@ routes.get('/by_id', authenticateToken, (req, res) => {
  *                                                  format: date
  *                                                  description: Data e ora di inizio dell'evento.
  *                                                  example: 2000-05-21T00:00:00.000Z
+ *              204:
+ *                  $ref: "#/components/responses/NothingFound"
  *              401:
- *                   $ref: "#/components/responses/NoToken"
- *              409:
- *                  description: Nessun evento trovato.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              $ref: "#/components/schemas/Code409"
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                               $ref: "#/components/schemas/Code500"
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.get('/by_user', authenticateToken, (req, res) => {
     User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
         if (errHandler(res, err, "utente")) {
-            if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
+            if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
             let user = users[0];
             console.log(user);
@@ -526,8 +496,10 @@ routes.get('/by_user', authenticateToken, (req, res) => {
             console.log(event_ids);
 
             Event.find({ _id: event_ids }, "name start_datetime", (err, events) => {
-                if (errHandler(res, err, "eventi"))
+                if (errHandler(res, err, "eventi")) {
+                    if (events.length === 0) return standardRes(res, 204, []);
                     return standardRes(res, 200, events);
+                }
             });
         }
     });
@@ -560,6 +532,7 @@ routes.get('/by_user', authenticateToken, (req, res) => {
  *                                      description: http status.
  *                                      example: 200
  *                                  message:
+ *                                      $ref: "#/components/schemas/Event"
  *                                      type: array
  *                                      items:
  *                                          type: object
@@ -585,21 +558,24 @@ routes.get('/by_user', authenticateToken, (req, res) => {
  *                                                  type: boolean
  *                                                  description: Se il biglietto è stato attivato e disattivato
  *                                                  example: true
- *
  *              401:
- *                   $ref: "#/components/responses/NoToken"
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Nessun evento trovato.
+ *                  description: Nessun biglietto trovato.
  *                  content:
  *                      application/json:
  *                          schema:
  *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                               $ref: "#/components/schemas/Code500"
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
     if (
@@ -610,13 +586,14 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
     ) {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
-                if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
+                let user = users[0];
+                console.log(user);
                 console.log(req.query);
 
-                Biglietto.find({ _id: req.query.biglietto_id }, "", (err, biglietti) => {
+                Biglietto.find({ $and: [{ _id: req.query.biglietto_id }, { _id: user.biglietti_list }] }, "", (err, biglietti) => {
                     if (errHandler(res, err, "biglietto")) {
-
                         if (biglietti.length === 0) return standardRes(res, 409, "Nessun biglietto trovato.");
 
                         let biglietto = biglietti[0];
@@ -624,8 +601,7 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
 
                         Event.find({ _id: biglietto.event }, "name start_datetime", (err, events) => {
                             if (errHandler(res, err, "evento")) {
-
-                                if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
+                                if (events.length === 0) return standardRes(res, 500, "Nessun evento trovato.");
 
                                 let event = events[0];
 
@@ -674,44 +650,37 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
  *                                      type: array
  *                                      items:
  *                                          $ref: "#/components/schemas/Event"
+ *              204:
+ *                  $ref: "#/components/responses/NothingFound"
  *              401:
- *                   $ref: "#/components/responses/NoToken"
- *              409:
- *                  description: Nessun utente trovato.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Nessun utente trovato.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                               $ref: "#/components/schemas/Code500"
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.get('/storico_eventi_futuri', authenticateToken, (req, res) => {
     User.find(
         { $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] },
         "number_of_events events_list"
-    ).populate("events_list").exec().then((users) => {
-        if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
+    )
+        .populate("events_list")
+        .exec()
+        .then((users) => {
+            if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
-        let user = users[0];
-        console.log(user);
+            let user = users[0];
+            console.log(user);
 
-        let events = user.events_list.filter(event => event.end_datetime >= new Date());
+            let events = user.events_list.filter(event => event.end_datetime >= new Date());
+            if (events.length === 0) return standardRes(res, 204, []);
 
-        return standardRes(res, 200, events);
-    })
+            return standardRes(res, 200, events);
+        })
         .catch((err) => {
             errHandler(res, err, "utente");
         })
@@ -742,44 +711,39 @@ routes.get('/storico_eventi_futuri', authenticateToken, (req, res) => {
  *                                      type: array
  *                                      items:
  *                                          $ref: "#/components/schemas/Event"
+ *              204:
+ *                  $ref: "#/components/responses/NothingFound"
  *              401:
- *                   $ref: "#/components/responses/NoToken"
- *              409:
- *                  description: Nessun utente trovato.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Nessun utente trovato.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                               $ref: "#/components/schemas/Code500"
+ *                              $ref: "#/components/schema/Code500"
  */
 routes.get('/storico_eventi_passati', authenticateToken, (req, res) => {
     User.find(
         { $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] },
         "number_of_events events_list"
-    ).populate("events_list").exec().then((users) => {
-        if (users.length === 0) return standardRes(res, 409, "Nessun utente trovato.");
+    )
+        .populate("events_list")
+        .exec()
+        .then((users) => {
+            if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
-        let user = users[0];
-        console.log(user);
+            let user = users[0];
+            console.log(user);
 
-        let events = user.events_list.filter(event => event.end_datetime < new Date());
+            let events = user.events_list.filter(event => event.end_datetime < new Date());
+            if (events.length === 0) return standardRes(res, 204, []);
 
-        return standardRes(res, 200, events);
-    })
+            return standardRes(res, 200, events);
+        })
         .catch((err) => {
             errHandler(res, err, "utente");
         })

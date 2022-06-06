@@ -2,11 +2,12 @@ const routes = require('express').Router();
 const { mongoose, documents, standardRes, bcrypt, saltRounds } = require("../../utils");
 const { authenticateToken } = require("../../token");
 const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
-const {createEmailMessage, sendMail} = require("../../emailer");
+const { createEmailMessage, sendMail } = require("../../emailer");
 
 const User = mongoose.model("User", documents.userSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
 const Service = mongoose.model("Service", documents.serviceSchema);
+
 
 /**
  * @openapi
@@ -62,36 +63,22 @@ const Service = mongoose.model("Service", documents.serviceSchema);
  *                                      example: Registrazione avvenuta con successo.
  *              401:
  *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nella registrazione del dipendente.
+ *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella registrazione del dipendente.
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
- *                  description: Errore nella generazione dell'hash della password.
+ *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella generazione dell'hash della password.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/crea', authenticateToken, (req, res) => {
     if (
@@ -105,20 +92,20 @@ routes.post('/crea', authenticateToken, (req, res) => {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile creare dipendenti");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(users);
 
                 Event.find({ $and: [{ _id: req.body.events_list }, { owner: user._id }] }, "", (err, events) => {
                     if (errHandler(res, err, "eventi")) {
-                        if (events.length === 0) return standardRes(res, 401, "Non ti è possibile creare dipendenti legati a questi eventi.");
+                        if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
 
                         console.log(events);
 
                         Service.find({ $and: [{ _id: req.body.services_list }, { owner: user._id }] }, "", (err, services) => {
                             if (errHandler(res, err, "servizi")) {
-                                if (services.length === 0) return standardRes(res, 401, "Non ti è possibile creare dipendenti legati a questi servizi.");
+                                if (services.length === 0) return standardRes(res, 409, "NEssun servizio trovato.");
 
                                 console.log(services);
 
@@ -140,14 +127,14 @@ routes.post('/crea', authenticateToken, (req, res) => {
                                         });
 
                                         dipendente.save((err) => {
-                                            if (errHandler(res, err, "Errore nella registrazione del dipendente.", false, 409)) {
+                                            if (errHandler(res, err, "Errore nella registrazione del dipendente.", false)) {
 
                                                 user.dipendenti_list = user.dipendenti_list || [];
                                                 user.dipendenti_list.push(dipendente._id);
                                                 user.number_of_dipendenti = user.number_of_dipendenti + 1;
 
                                                 user.save((err) => {
-                                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false, 409)) {
+                                                    if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false)) {
 
                                                         let link = "http://localhost:3001/recupera_password"
 
@@ -168,7 +155,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
                                                                 return standardRes(res, 200, "Dipendente creato correttamente.");
                                                             })
                                                             .catch((err) => {
-                                                                errHandler(res, err, "Errore nell'invio dell'email.", false, 409);
+                                                                errHandler(res, err, "Errore nell'invio dell'email.", false);
                                                             });
                                                     }
                                                 });
@@ -221,50 +208,23 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                                      description: messaggio.
  *                                      example: Turno attivato.
  *              401:
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
+ *              409:
  *                  description: Non ti è possibile attivare il turno per questo evento.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Non ti è possibile attivare il turno per questo evento.
- *              409:
- *                  description: Errore nell'attivazione del turno.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nell'attivazione del turno.
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nell'attivazione del turno.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nell'attivazione del turno.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/activate_turno', authenticateToken, (req, res) => {
     if (
@@ -275,23 +235,23 @@ routes.post('/activate_turno', authenticateToken, (req, res) => {
     ) {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "d" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile attivare il turno.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(user);
 
                 Event.find({ _id: req.body.event_id }, "", (err, events) => {
                     if (errHandler(res, err, "eventi")) {
-                        if (events.length === 0) return standardRes(res, 409, "Non ti è possibile attivare il turno per questo evento.");
+                        if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
 
                         let event = events[0];
                         console.log(event);
 
-                        if (!user.events_list.includes(event._id.toString())) return standardRes(res, 401, "Non ti è possibile attivare il turno per questo evento.");
+                        if (!user.events_list.includes(event._id.toString())) return standardRes(res, 409, "Non ti è possibile attivare il turno per questo evento.");
 
                         user.active_event = event._id;
                         user.save((err) => {
-                            if (errHandler(res, err, "Errore nell'attivazione del turno.", false, 409)) {
+                            if (errHandler(res, err, "Errore nell'attivazione del turno.", false)) {
                                 return standardRes(res, 200, "Turno attivato.");
                             }
                         });
@@ -360,82 +320,69 @@ routes.post('/activate_turno', authenticateToken, (req, res) => {
  *                                                      type: string
  *                                                      description: Nome dell' evento.
  *                                                      example: Evento
+ *              204:
+ *                  $ref: "#/components/responses/NothingFound"
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/component/schemas/Code500"
  */
 routes.get('/get_dipendenti', authenticateToken, (req, res) => {
     User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
         if (errHandler(res, err, "utente")) {
 
-            if (users.length === 0) return standardRes(res, 401, "Non ti è possibile cercare dipendenti.");
+            if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
             let user = users[0];
             console.log(user);
 
-            User.find({ $and: [{ _id: user.dipendenti_list }, { account_type: "d" }] }, "name surname email events_list services_list").populate("events_list").populate("services_list").exec().then(dipendenti => {
-                console.log(dipendenti);
+            User.find({ $and: [{ _id: user.dipendenti_list }, { account_type: "d" }] }, "name surname email events_list services_list")
+                .populate("events_list")
+                .populate("services_list")
+                .exec()
+                .then(dipendenti => {
+                    console.log(dipendenti);
+                    if (dipendenti.length === 0) return standardRes(res, 204, []);
 
-                let to_return = [];
+                    let to_return = [];
 
-                dipendenti.forEach(dipendente => {
-                    dipendente_info = {};
-                    dipendente_info["_id"] = dipendente._id;
-                    dipendente_info["name"] = dipendente.name;
-                    dipendente_info["surname"] = dipendente.surname;
-                    dipendente_info["email"] = dipendente.email;
+                    dipendenti.forEach(dipendente => {
+                        let dipendente_info = {};
+                        dipendente_info["_id"] = dipendente._id;
+                        dipendente_info["name"] = dipendente.name;
+                        dipendente_info["surname"] = dipendente.surname;
+                        dipendente_info["email"] = dipendente.email;
 
-                    dipendente_info["events_list"] = [];
-                    dipendente.events_list.forEach(event => {
-                        let events_list = {};
-                        events_list["name"] = event.name;
-                        events_list["start_datetime"] = event.start_datetime;
-                        events_list["address"] = event.address.label;
-                        dipendente_info["events_list"].push(events_list);
+                        dipendente_info["events_list"] = [];
+                        dipendente.events_list.forEach(event => {
+                            let events_list = {};
+                            events_list["name"] = event.name;
+                            events_list["start_datetime"] = event.start_datetime;
+                            events_list["address"] = event.address.label;
+                            dipendente_info["events_list"].push(events_list);
+                        });
+
+                        console.log(dipendente_info.events_list);
+                        dipendente_info["services_list"] = [];
+                        dipendente.services_list.forEach(service => {
+                            let services_list = {};
+                            services_list["name"] = service.name;
+                            dipendente_info["services_list"].push(services_list);
+                        });
+
+                        to_return.push(dipendente_info);
                     });
 
-                    console.log(dipendente_info.events_list);
-                    dipendente_info["services_list"] = [];
-                    dipendente.services_list.forEach(service => {
-                        let services_list = {};
-                        services_list["name"] = service.name;
-                        dipendente_info["services_list"].push(services_list);
-                    });
+                    console.log(to_return);
 
-                    to_return.push(dipendente_info);
-                });
-
-                console.log(to_return);
-
-                return standardRes(res, 200, to_return);
-            })
+                    return standardRes(res, 200, to_return);
+                })
                 .catch(err => {
                     errHandler(res, err, "dipendenti");
                 });
@@ -497,50 +444,23 @@ routes.get('/get_dipendenti', authenticateToken, (req, res) => {
  *                                      description: messaggio.
  *                                      example: Dipendente modificato.
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nell'aggiornamento del dipendente.
+ *                  description: Nessun dipendente trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 409
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nell'aggiornamento del dipendente.
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di dipendente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di dipendente.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.put('/modifica', authenticateToken, (req, res) => {
     if (
@@ -552,29 +472,41 @@ routes.put('/modifica', authenticateToken, (req, res) => {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile recuperare il dipendente.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(users);
 
                 User.find({ $and: [{ _id: req.body.id }, { _id: user.dipendenti_list }] }, "", (err, dipendenti) => {
                     if (errHandler(res, err, "dipendente")) {
-                        if (dipendenti.length === 0) return standardRes(res, 401, "Non è stato possibile recuperare il dipendente.");
+                        if (dipendenti.length === 0) return standardRes(res, 409, "Nessun dipendente trovato.");
 
                         let dipendente = dipendenti[0];
                         console.log(dipendente);
 
-                        dipendente["name"] = req.body.name;
-                        dipendente["surname"] = req.body.surname;
-                        dipendente["number_of_services"] = req.body.services_list.length;
-                        dipendente["services_list"] = req.body.services_list;
-                        dipendente["events_list"] = req.body.events_list;
-                        dipendente["number_of_events"] = req.body.events_list.length;
+                        Event.find({ _id: req.body.events_list }, "", (err, events) => {
+                           if (errHandler(res, err, "eventi")) {
+                               if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
 
-                        dipendente.save((err) => {
-                            if (errHandler(res, err, "Errore nell'aggiornamento del dipendente", false, 409)) {
-                                return standardRes(res, 200, "Dipendente modificato.");
-                            }
+                               Service.find({ _id: req.body.services_list }, "", (err, services) => {
+                                   if (errHandler(res, err, "servizi")) {
+                                       if (services.length === 0) return standardRes(res, 409, "Nessun servizio trovato.");
+
+                                       dipendente["name"] = req.body.name;
+                                       dipendente["surname"] = req.body.surname;
+                                       dipendente["number_of_services"] = req.body.services_list.length;
+                                       dipendente["services_list"] = req.body.services_list;
+                                       dipendente["events_list"] = req.body.events_list;
+                                       dipendente["number_of_events"] = req.body.events_list.length;
+
+                                       dipendente.save((err) => {
+                                           if (errHandler(res, err, "Errore nell'aggiornamento del dipendente", false)) {
+                                               return standardRes(res, 200, "Dipendente modificato.");
+                                           }
+                                       });
+                                   }
+                               });
+                           }
                         });
                     }
                 });
@@ -620,7 +552,7 @@ routes.put('/modifica', authenticateToken, (req, res) => {
  *                                              type: string
  *                                              description: Nome del dipendente.
  *                                              example: Nome dipendente
- *                                          cognome:
+ *                                          surname:
  *                                              type: string
  *                                              description: Cognome del dipendente.
  *                                              example: Cognome dipendente
@@ -649,35 +581,23 @@ routes.put('/modifica', authenticateToken, (req, res) => {
  *                                                  description: Id dell' evento.
  *                                                  example: 6288ec25fe5bb453c76a62fa
  *              401:
- *                  description: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
+ *              409:
+ *                  description: Nessun dipendente trovato.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di dipendente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di dipendente.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/get_by_id', authenticateToken, (req, res) => {
     if (
@@ -689,14 +609,14 @@ routes.get('/get_by_id', authenticateToken, (req, res) => {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile recuperare il dipendente.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log(users);
 
                 User.find({ $and: [{ _id: req.query.dipendente_id }, { _id: user.dipendenti_list }] }, "", (err, dipendenti) => {
                     if (errHandler(res, err, "dipendente")) {
-                        if (dipendenti.length === 0) return standardRes(res, 401, "Non ti è possibile recuperare il dipendente.");
+                        if (dipendenti.length === 0) return standardRes(res, 409, "Nessun dipendente trovato.");
 
                         let dipendente = dipendenti[0];
                         console.log(dipendente);
