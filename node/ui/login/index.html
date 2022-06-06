@@ -73,7 +73,7 @@
 
         let validate_token = () => {
             $.ajax({
-                url: "/api/auth/validate_token",
+                url: "/api/v2/auth/validate_token",
                 type: "GET",
                 data: {},
                 headers: {
@@ -113,7 +113,7 @@
             let password = $("#password").val();
 
             $.ajax({
-                url: "/api/auth/login",
+                url: "/api/v2/auth/login",
                 type: "POST",
                 data: {
                     username_email: username_email,

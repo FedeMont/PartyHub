@@ -55,7 +55,7 @@
             addBottomBar("up", 0);
 
             $.ajax({
-                url: "/api/auth/get_user_info",
+                url: "/api/v2/auth/get_user_info",
                 type: "GET",
                 data: {
                 },
@@ -64,27 +64,78 @@
                     let user = data.message;
 
                     $.ajax({
-                        url: "/api/auth/get_profile_picture_by_id",
+                        url: "/api/v2/auth/get_profile_picture_by_id",
                         type: "GET",
                         data: {
                             id: user._id
                         },
                         success: (data) => {
-                            console.log(data)
-                            $("#profile_picture").attr('src', `data:image/png;base64,${data.message}`);
+                            console.log(data);
+                            if (data.message !== "")
+                                $("#profile_picture").attr('src', `data:image/png;base64,${data.message}`);
+                        },
+                        error: (data) => {
+                            console.log(data);
+                            M.toast({ html: data.responseJSON.message });
                         }
-                    })
-
-
+                    });
                 },
                 error: (data) => {
                     console.log(data);
                     M.toast({ html: data.responseJSON.message });
                 }
             });
+
+            $("#party_search").submit((e) => {
+                e.preventDefault();
+                let address = $("#search").val();
+                console.log(address);
+
+                if (address != "") {
+                    $.ajax({
+                        url: "/api/v2/event/get/by_address",
+                        type: "GET",
+                        data: {
+                            address: address
+                        },
+                        success: (data) => {
+                            console.log(data.message);
+
+                            $("#events_list").html("");
+
+                            data.message.forEach((event) => {
+                                $("#events_list").append(generate_event_post(event));
+                                if (event.is_user_iscritto) {
+                                    iscriviti_click($('.iscriviti_button#' + event._id), false);
+                                } else {
+                                    disiscriviti_click($('.iscriviti_button#' + event._id), false);
+                                }
+                            });
+
+                            $("#search").change(() => {
+                                if ($("#search").val() == "") {
+                                    $("#events_list").html("");
+                                    events.forEach((event) => {
+                                        $("#events_list").append(generate_event_post(event));
+
+                                        if (event.is_user_iscritto) {
+                                            iscriviti_click($('.iscriviti_button#' + event._id), false);
+                                        } else {
+                                            disiscriviti_click($('.iscriviti_button#' + event._id), false);
+                                        }
+                                    });
+                                }
+                            });
+                        },
+                        error: (data) => {
+                            console.log(data);
+                        }
+                    });
+                }
+            });
         });
 
-        let generate_event_post = ((obj, profile_picture) => {
+        let generate_event_post = ((obj, profile_picture = "/public/images/profile.png") => {
 
             let poster_img = ""
             if (obj.poster !== "" && obj.poster !== undefined) {
@@ -114,7 +165,6 @@
                                     </div>
                                 </div>
                                 <div class="col s4 right-align">
-                                    <!-- TODO: ADD redirect to pagina iscrizione -->
                                     <a id="${obj._id}" class="iscriviti_button waves-effect waves-light btn-small white blue-text right-align blue-border">Iscriviti</a>
                                 </div>
                             </div>
@@ -166,7 +216,7 @@
                     console.log($obj.prop("id"));
 
                     $.ajax({
-                        url: "/api/event/disiscrizione",
+                        url: "/api/v2/event/disiscrizione",
                         type: "POST",
                         data: {
                             event_id: $obj.prop("id")
@@ -194,24 +244,25 @@
         let events = [];
 
         // Get geolocation
-        if (navigator.geolocation)
+        if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((location) => {
                 $.ajax({
-                    url: "/api/event/get/events",
+                    url: "/api/v2/event/get/events",
                     type: "GET",
                     data: {
                         latitude: location.coords.latitude,
                         longitude: location.coords.longitude,
                         // ENABLE TO TEST API WITHOUT USING GEOLOC API
-                        ext_api: false
+                        // ext_api: false
                     },
                     success: (data) => {
+                        console.log(data);
                         console.log(data.message);
                         events = data.message;
                         data.message.forEach((event) => {
                             let profile_picture = "/public/images/profile.png";
                             $.ajax({
-                                url: "/api/auth/get_profile_picture_by_id",
+                                url: "/api/v2/auth/get_profile_picture_by_id",
                                 type: "GET",
                                 data: {
                                     id: event.owner
@@ -238,39 +289,8 @@
                     }
                 });
             });
+        }
 
-
-        $("#party_search").submit((e) => {
-            e.preventDefault();
-            let address = $("#search").val();
-            if (address != "") {
-                $.ajax({
-                    url: "/api/event/get/by_address",
-                    type: "GET",
-                    data: {
-                        address: address
-                    },
-                    success: (data) => {
-                        console.log(data.message);
-                        $("#events_list").html("")
-                        data.message.forEach((event) => {
-                            $("#events_list").append(generate_event_post(event));
-                        })
-                        $("#search").change(() => {
-                            if ($("#search").val() == "") {
-                                $("#events_list").html("")
-                                events.forEach((event) => {
-                                    $("#events_list").append(generate_event_post(event));
-                                })
-                            }
-                        })
-                    },
-                    error: (data) => {
-                        console.log(data);
-                    }
-                });
-            }
-        });
     </script>
 </body>
 

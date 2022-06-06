@@ -104,7 +104,7 @@
                 let password = $("#password").val();
 
                 $.ajax({
-                    url: "/api/auth/cambia_password",
+                    url: "/api/v2/auth/cambia_password",
                     type: "PATCH",
                     data: {
                         email: email_url,
@@ -128,7 +128,7 @@
                 let email = $("#email").val();
 
                 $.ajax({
-                    url: "/api/auth/recupera_password",
+                    url: "/api/v2/auth/recupera_password",
                     type: "GET",
                     data: {
                         email: email

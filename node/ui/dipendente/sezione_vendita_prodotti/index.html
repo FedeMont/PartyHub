@@ -33,7 +33,7 @@
                                     <!-- <option value="" disabled>Scegli i servizi</option> -->
                                 </select>
                                 <!-- TODO sistemare -->
-                                <label for="services_list">Lista Servizi</label>
+                                <label for="services_list"></label>
                                 <!-- <h6 class="secondary-content black-text">Nome lista</h6> -->
                             </div>
                         </div>
@@ -96,7 +96,7 @@
             addBottomBar("d", 1);
 
             $.ajax({
-                url: "/api/event/get/by_id",
+                url: "/api/v2/event/get/by_id",
                 type: "GET",
                 data: {
                     event_id: event_id
@@ -149,7 +149,7 @@
             html5QrCode.stop().then((ignore) => {
                 // QR Code scanning is stopped.
                 console.log("QR Code scanning stopped.");
-
+                $("#seleziona").show();
             }).catch((err) => {
                 // Stop failed, handle it.
                 console.log(err);
@@ -160,7 +160,7 @@
             if (toggleQRcodeSuccess) {
                 toggleQRcodeSuccess = false;
                 $.ajax({
-                    url: "/api/service/sell_products",
+                    url: "/api/v2/service/sell_products",
                     type: "POST",
                     data: {
                         biglietto_id: decodedText,
@@ -169,14 +169,7 @@
                     success: (data) => {
                         console.log(data.message);
 
-                        html5QrCode.stop().then((ignore) => {
-                            // QR Code scanning is stopped.
-                            console.log("QR Code scanning stopped.");
-
-                        }).catch((err) => {
-                            // Stop failed, handle it.
-                            console.log(err);
-                        });
+                        $("#exit_button").click();
 
                     }, error: (data) => {
                         console.log(data);
@@ -189,7 +182,7 @@
         let li_click = (e) => {
             e.preventDefault();
 
-            let products_ids = [];
+            products_ids = [];
             products_ids.push($(e.currentTarget).find("input").prop("id"));
 
             toggleQRcodeSuccess = true;
@@ -198,6 +191,8 @@
                 "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
 
             const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+            $("#seleziona").hide();
 
             // If you want to prefer front camera
             html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
@@ -230,7 +225,7 @@
         };
 
         $.ajax({
-            url: "/api/service/get_servizi",
+            url: "/api/v2/service/get_servizi",
             type: "GET",
             data: {
             },
@@ -254,10 +249,9 @@
                         $("#products_list").append(generate_list_item(product));
                     });
 
-                    // annulla_click();
-                    $("li.collection-item").click(li_click);
-                    $("#seleziona").click(seleziona_click);
-
+                    annulla_click();
+                    // $("li.collection-item").click(li_click);
+                    // $("#seleziona").click(seleziona_click);
                 });
 
                 $("#services_list").change();
@@ -273,7 +267,7 @@
 
         $("#products_form").submit((e) => {
             e.preventDefault();
-            let products_ids = [];
+            products_ids = [];
 
             $("input:checked").each(function () {
                 products_ids.push($(this).prop("id"));
@@ -285,6 +279,8 @@
             html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
 
             const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+            $("#seleziona").hide();
 
             // If you want to prefer front camera
             html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);

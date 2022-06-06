@@ -115,7 +115,7 @@
             if (service_id) {
                 $("#create_button").text("Modifica");
                 $.ajax({
-                    url: "/api/service/get_by_id",
+                    url: "/api/v2/service/get_by_id",
                     type: "GET",
                     data: {
                         service_id: service_id
@@ -184,7 +184,7 @@
             if (service_id) {
                 console.log("Modifica", name, products);
                 $.ajax({
-                    url: "/api/service/modifica",
+                    url: "/api/v2/service/modifica",
                     type: "PUT",
                     data: {
                         id: service_id,
@@ -203,7 +203,7 @@
             } else {
                 console.log("Crea", name, products);
                 $.ajax({
-                    url: "/api/service/crea",
+                    url: "/api/v2/service/crea",
                     type: "POST",
                     data: {
                         name: name,

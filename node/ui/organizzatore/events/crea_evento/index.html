@@ -173,7 +173,7 @@
                         console.log("You pressed OK ", event_id);
 
                         $.ajax({
-                            url: "/api/event/elimina",
+                            url: "/api/v2/event/elimina",
                             type: "DELETE",
                             data: {
                                 event_id: event_id
@@ -193,7 +193,7 @@
                 $("#create_button").text("Modifica");
 
                 $.ajax({
-                    url: "/api/event/get/by_id",
+                    url: "/api/v2/event/get/by_id",
                     type: "GET",
                     data: {
                         event_id: event_id
@@ -240,7 +240,7 @@
 
             if (event_id) {
                 $.ajax({
-                    url: "/api/event/modifica",
+                    url: "/api/v2/event/modifica",
                     type: "PATCH",
                     enctype: 'multipart/form-data',
                     data: formData,
@@ -258,7 +258,7 @@
                 });
             } else {
                 $.ajax({
-                    url: "/api/event/crea",
+                    url: "/api/v2/event/crea",
                     type: "POST",
                     enctype: 'multipart/form-data',
                     data: formData,
@@ -267,7 +267,7 @@
                     cache: false,
                     success: (data) => {
                         console.log(data);
-                        // window.location.replace("/organizzatore/storico_eventi");
+                        window.location.replace("/organizzatore/storico_eventi");
                     },
                     error: (data) => {
                         console.log(data);

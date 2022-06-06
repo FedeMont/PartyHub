@@ -37,7 +37,6 @@ function eraseCookie(name) {
 }
 
 let topBar = (title, rightContent = undefined, shouldShearch = false, topContent = undefined) => {
-    console.log(topContent);
     return `
     <div class="col s12 grey lighten-4 top_tab" style="padding-bottom: 20px">
         <div class="container" style="margin-top: 1.4rem">
@@ -97,12 +96,12 @@ let utentePartecipanteBottomBar = () => {
                         Biglietti
                     </a>
                 </li>
-                <li class="tab col s3">
-                    <a target="_self" href="../../TODO" id="2">
-                        <i class="material-icons">group</i>
-                        Friends
-                    </a>
-                </li>
+<!--                <li class="tab col s3"> -->
+<!--                    <a target="_self" href="../../TODO" id="2"> -->
+<!--                        <i class="material-icons">group</i> -->
+<!--                        Friends -->
+<!--                    </a> -->
+<!--                </li> -->
                 <li class="tab col s3">
                     <a target="_self" href="/utente/storico_eventi" id="3">
                         <i class="material-icons">bookmark</i>
@@ -192,7 +191,7 @@ function addTopBar(title, rightContent = undefined, shouldShearch = false, topCo
 $(window).on("load", () => {
     if (window.location.pathname !== "/login/" && window.location.pathname !== "/signin/" && window.location.pathname !== "/recupera_password/") {
         $.ajax({
-            url: "/api/auth/validate_token",
+            url: "/api/v2/auth/validate_token",
             type: "GET",
             data: {},
             success: (data) => {
@@ -226,7 +225,7 @@ $("#logout_btn").click(() => {
     console.log("Logout");
     if (confirm("Sei sicuro di voler uscire?")) {
         $.ajax({
-            url: "/api/auth/logout",
+            url: "/api/v2/auth/logout",
             type: "POST",
             data: {},
             success: (data) => {

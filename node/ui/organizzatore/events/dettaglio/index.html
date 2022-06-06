@@ -149,7 +149,7 @@
             })
 
             $.ajax({
-                url: "/api/event/photos/get_photos",
+                url: "/api/v2/event/photos/get_photos",
                 type: "POST",
                 data: {
                     event_id: event_id
@@ -166,7 +166,7 @@
             });
 
             $.ajax({
-                url: "/api/event/get/by_id",
+                url: "/api/v2/event/get/by_id",
                 type: "GET",
                 data: {
                     event_id: event_id

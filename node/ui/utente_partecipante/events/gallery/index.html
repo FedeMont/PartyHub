@@ -54,10 +54,10 @@
                         <div class="file-path-wrapper">
                             <input class="file-path validate" type="text" style="width:0px !important; height: 0px !important">
                         </div>
-                        <input name="event_id" id="event_id" type="hidden" value="ciao">
+                        <input name="event_id" id="event_id" type="hidden">
                         </div>
                     </form>`,
-                    false,
+                false,
                 `<a class="blue-text left valign-wrapper" href="/utente/dettaglio_evento?id=${event_id}">
                 <i class="material-icons">chevron_left</i>
                 <span>Dettaglio evento</span>
@@ -69,27 +69,29 @@
 
 
             $("#files_path").change((e) => {
-                let formData = new FormData($("#files_form")[0])
+                let formData = new FormData($("#files_form")[0]);
+
                 $.ajax({
-                    url: "/api/event/photos/add/",
+                    url: "/api/v2/event/photos/add/",
                     type: "post",
                     enctype: 'multipart/form-data',
                     data: formData,
                     contentType: false,
                     processData: false,
                     cache: false,
-                    success: function (result) {
-                        location.reload()
+                    success: (data) => {
+                        window.location.reload();
                     },
-                    error: function (request, status, error) {
-                        alert(error);
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
                     }
                 });
-            })
+            });
 
 
             $.ajax({
-                url: "/api/event/photos/get_photos",
+                url: "/api/v2/event/photos/get_photos",
                 type: "POST",
                 data: {
                     event_id: event_id
@@ -100,7 +102,7 @@
                         <div class="col s4" style="padding: 0 0.2rem; padding-bottom: 0.2rem">
                            <img class="materialboxed responsive-img" style="height:110px !important; width:100% ; object-fit: cover; border-radius: 20px" src="data:image/png;base64,${photo}"/>
                         </div>
-                        `)
+                        `);
                     });
 
                     $('.materialboxed').materialbox();
@@ -109,8 +111,7 @@
                     M.toast({ html: data.responseJSON.message });
                 }
             });
-
-        })
+        });
 
 
     </script>

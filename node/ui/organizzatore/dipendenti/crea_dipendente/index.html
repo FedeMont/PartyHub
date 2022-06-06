@@ -103,7 +103,7 @@
     console.log(dipendente_id);
 
     $.ajax({
-        url: "/api/service/get_servizi",
+        url: "/api/v2/service/get_servizi",
         type: "GET",
         data: {},
         success: (data) => {
@@ -121,7 +121,7 @@
     });
 
     $.ajax({
-        url: "/api/event/get/by_user",
+        url: "/api/v2/event/get/by_user",
         type: "GET",
         data: {},
         success: (data) => {
@@ -146,7 +146,7 @@
         if (dipendente_id) {
             $("#create_button").text("Modifica");
             $.ajax({
-                url: "/api/dipendente/get_by_id",
+                url: "/api/v2/dipendente/get_by_id",
                 type: "GET",
                 data: {
                     dipendente_id: dipendente_id
@@ -202,7 +202,7 @@
         if (dipendente_id) {
             console.log("Modifica");
             $.ajax({
-                url: "/api/dipendente/modifica",
+                url: "/api/v2/dipendente/modifica",
                 type: "PUT",
                 data: {
                     id: dipendente_id,
@@ -223,7 +223,7 @@
             });
         } else {
             $.ajax({
-                url: "/api/dipendente/crea",
+                url: "/api/v2/dipendente/crea",
                 type: "POST",
                 data: {
                     name: name,

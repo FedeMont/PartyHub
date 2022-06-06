@@ -141,7 +141,7 @@
 
         let validate_token = () => {
             $.ajax({
-                url: "/api/auth/validate_token",
+                url: "/api/v2/auth/validate_token",
                 type: "GET",
                 data: {},
                 success: (data) => {
@@ -183,7 +183,7 @@
             if ($("#terms_cond").prop('checked')) {
 
                 $.ajax({
-                    url: "/api/auth/check_availability",
+                    url: "/api/v2/auth/check_availability",
                     type: "GET",
                     data: {
                         username: username,
@@ -208,7 +208,7 @@
                             // let description = $("#description").val();
                             let formData = new FormData($("#form-data2")[0])
                             $.ajax({
-                                url: "/api/auth/signin",
+                                url: "/api/v2/auth/signin",
                                 type: "POST",
                                 enctype: 'multipart/form-data',
                                 data: formData,
