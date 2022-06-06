@@ -11,7 +11,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
 /**
  * @openapi
  * paths:
- *  /api/biglietto/get_biglietti_futuri_by_user:
+ *  /api/v2/biglietto/get_biglietti_futuri_by_user:
  *      get:
  *          summary: Ritorna i biglietti per gli eventi futuri
  *          description: Restituisce la lista dei biglietti per gli eventi futuri dell'utente loggato
@@ -112,7 +112,7 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/biglietto/get_biglietti_scaduti_by_user:
+ *  /api/v2/biglietto/get_biglietti_scaduti_by_user:
  *      get:
  *          summary: Ritorna i biglietti per gli eventi scaduti
  *          description: Restituisce la lista dei biglietti per gli eventi scaduti dell'utente loggato
@@ -214,7 +214,7 @@ routes.get('/get_biglietti_scaduti_by_user', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/biglietto/activate:
+ *  /api/v2/biglietto/activate:
  *      post:
  *          summary: Attiva il biglietto
  *          description: Dato l'id del biglietto e dell'evento associato al biglietto, viene attivato il biglietto
@@ -387,7 +387,7 @@ routes.post('/activate', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/biglietto/deactivate:
+ *  /api/v2/biglietto/deactivate:
  *      post:
  *          summary: Disattiva il biglietto
  *          description: Dato l'id del biglietto e dell'evento associato al biglietto, viene disattivato il biglietto
@@ -558,7 +558,7 @@ routes.post('/deactivate', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/biglietto/get_products:
+ *  /api/v2/biglietto/get_products:
  *      get:
  *          summary: Prodotti acquistati durante l'evento
  *          description: Dato l'id del biglietto ritorna la lista dei prodotti acquistati durante l'evento

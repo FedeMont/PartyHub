@@ -12,7 +12,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
 /**
  * @openapi
  * paths:
- *  /api/event/get/events:
+ *  /api/v2/event/get/events:
  *      get:
  *          summary: Ritorna gli eventi vicini
  *          description: Restituisce la lista degli eventi nella stessa località dell'utente loggato
@@ -168,7 +168,7 @@ routes.get('/events', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/event/get/by_address:
+ *  /api/v2/event/get/by_address:
  *      get:
  *          summary: Ritorna gli eventi vicini all'inidirizzo indicato
  *          description: Restituisce la lista degli eventi nella stessa località dell'indirizzo indicato dall'utente
@@ -322,7 +322,7 @@ routes.get('/by_address', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/event/get/by_id:
+ *  /api/v2/event/get/by_id:
  *      get:
  *          summary: Ritorna le informazioni di un evento
  *          description: Restituisce le informazioni dell'evento con id indicato
@@ -432,7 +432,7 @@ routes.get('/by_id', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/event/get/by_user:
+ *  /api/v2/event/get/by_user:
  *      get:
  *          summary: Ritorna gli eventi dell'utente loggato
  *          description: Restituisce la lista degli eventi creati dall'utente loggato
@@ -504,7 +504,7 @@ routes.get('/by_user', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/event/get/by_biglietto_id:
+ *  /api/v2/event/get/by_biglietto_id:
  *      get:
  *          summary: Ritorna le informazioni dell'evento collegato al biglietto
  *          description: Restituisce le informazioni dell'evento collegato al biglietto indicato
@@ -625,7 +625,7 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/event/get/storico_eventi_futuri:
+ *  /api/v2/event/get/storico_eventi_futuri:
  *      get:
  *          summary: Ritorna lo storico degli eventi futuri
  *          description: Restituisce la lista degli eventi futuri dell'utente loggato
@@ -684,7 +684,7 @@ routes.get('/storico_eventi_futuri', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/event/get/storico_eventi_passati:
+ *  /api/v2/event/get/storico_eventi_passati:
  *      get:
  *          summary: Ritorna lo storico degli eventi passati
  *          description: Restituisce la lista degli eventi passati dell'utente loggato

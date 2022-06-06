@@ -14,7 +14,7 @@ const TokenBlackList = mongoose.model("TokenBlackList", documents.tokenBlackList
 /**
  * @openapi
  * paths:
- *  /api/auth/check_availability:
+ *  /api/v2/auth/check_availability:
  *      get:
  *          summary: Ritorna la disponibilità di username & email
  *          parameters:
@@ -72,7 +72,7 @@ routes.get("/check_availability", (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/auth/signin:
+ *  /api/v2/auth/signin:
  *      post:
  *          summary: Creazione account
  *          description: Dati i dati dell'utente, il sistema inserisce il nuovo utente
@@ -185,7 +185,7 @@ routes.post("/signin", upload.single('profile_picture'), (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/auth/login:
+ *  /api/v2/auth/login:
  *      post:
  *          summary: Login
  *          produces:
@@ -275,7 +275,7 @@ routes.post('/login', (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/auth/logout:
+ *  /api/v2/auth/logout:
  *      post:
  *          summary: Logout
  *          description: Dati username e password il sistema verifica la corrispondenza della password salvata sul database e genera il token in caso di match
@@ -326,7 +326,7 @@ routes.post("/logout", authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/auth/get_user_info:
+ *  /api/v2/auth/get_user_info:
  *      get:
  *          summary: User info
  *          description: Ritorna le informazioni dell'utente loggato
@@ -402,7 +402,7 @@ routes.get('/get_user_info', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/auth/get_profile_picture_by_id:
+ *  /api/v2/auth/get_profile_picture_by_id:
  *      get:
  *          summary: User info
  *          description: Ritorna le informazioni dell'utente loggato
@@ -472,7 +472,7 @@ routes.get('/get_profile_picture_by_id', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/auth/validate_token:
+ *  /api/v2/auth/validate_token:
  *      get:
  *          summary: Validate token
  *          description: Ritorna le informazioni dell'utente loggato
@@ -506,7 +506,7 @@ routes.get("/validate_token", authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/auth/recupera_password:
+ *  /api/v2/auth/recupera_password:
  *      get:
  *          summary: Email per recupero password
  *          description: Invia una email all'email specificata per il recupero della password dell'account collegato a quella email.
@@ -585,8 +585,8 @@ routes.get("/recupera_password", (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/auth/cambia_password:
- *      get:
+ *  /api/v2/auth/cambia_password:
+ *      patch:
  *          summary: Cambia password
  *          description: Data l'email di un account, gli ultimi 10 caratteri dell'hash della password vecchia e una nuova password il sistema cambia la password.
  *          requestBody:
