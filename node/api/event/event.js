@@ -36,7 +36,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                              address:
  *                                  type: string
  *                                  description: Indirizzo dell'evento
- *                              file:
+ *                              poster:
  *                                  type: string
  *                                  format: binary
  *                                  description: Foto locandina evento
@@ -152,18 +152,25 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
 
                                 user.save((err) => {
                                     if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false)) {
-                                        // TODO: implementare invio del codice QRcode dell'evento
-
                                         let message = createEmailMessage(
                                             user.email,
                                             "QR code evento",
                                             `
-                                                <div>
-                                                    <p>Questo è il QR code dell'evento:</p>
-                                                    <p>${event.name}</p>
-                                                    <p>Stampalo e mostralo all'ingresso del tuo locale</p>
-                                                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=${event._id}&amp;size=100x100 alt='' title=''"> 
-                                                </div>
+                                                <!DOCTYPE html>
+                                                <html>
+                                                    <head>
+                                                        <title></title>
+                                                    </head>
+                                                    
+                                                    <body>
+                                                        <div>
+                                                            <p>Questo è il QR code dell'evento:</p>
+                                                            <p>${event.name}</p>
+                                                            <p>Stampalo e mostralo all'ingresso del tuo locale</p>
+                                                            <img src="https://api.qrserver.com/v1/create-qr-code/?data=${event._id}&amp;size=100x100 alt='' title=''"> 
+                                                        </div>
+                                                    </body>
+                                                </html>
                                             `
                                         );
 
@@ -174,7 +181,6 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
                                             .catch((error) => {
                                                 errHandler(res, err, "Errore nell'invio dell'email.", false);
                                             });
-
                                     }
                                 });
                             }

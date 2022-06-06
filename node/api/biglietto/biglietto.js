@@ -49,8 +49,6 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                              format: date
  *                                              description: Data e ora di inizio dell'evento.
  *                                              example: 2000-05-21T00:00:00.000Z
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -75,7 +73,7 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
             Biglietto.find({ _id: biglietti_ids }, "", (err, biglietti) => {
                 if (errHandler(res, err, "biglietti")) {
 
-                    if (biglietti.length === 0) return standardRes(res, 204, []);
+                    if (biglietti.length === 0) return standardRes(res, 200, []);
 
                     console.log("Biglietti: ", biglietti);
 
@@ -88,18 +86,16 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
                         if (errHandler(res, err, "eventi")) {
 
                             console.log("Eventi:", events);
-                            if (events.length === 0) return standardRes(res, 204, []);
+                            if (events.length === 0) return standardRes(res, 200, []);
 
                             let biglietti_list = [];
 
-                            for (let event in events) {
-                                // console.log(event);
-
+                            for (let i in events) {
                                 let biglietto = {};
-                                biglietto["biglietto_id"] = biglietti[event]._id;
-                                biglietto["evento_id"] = events[event]._id;
-                                biglietto["event_name"] = events[event].name;
-                                biglietto["event_start_datetime"] = events[event].start_datetime;
+                                biglietto["biglietto_id"] = biglietti.filter(biglietto => biglietto.event.equals(events[i]._id))[0]._id;
+                                biglietto["evento_id"] = events[i]._id;
+                                biglietto["event_name"] = events[i].name;
+                                biglietto["event_start_datetime"] = events[i].start_datetime;
 
                                 biglietti_list.push(biglietto);
                             }
@@ -154,8 +150,6 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
  *                                              format: date
  *                                              description: Data e ora di inizio dell'evento.
  *                                              example: 2000-05-21T00:00:00.000Z
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -181,7 +175,7 @@ routes.get('/get_biglietti_scaduti_by_user', authenticateToken, (req, res) => {
                 if (errHandler(res, err, "biglietti")) {
 
                     console.log("Biglietti: ", biglietti);
-                    if (biglietti.length === 0) return standardRes(res, 204, []);
+                    if (biglietti.length === 0) return standardRes(res, 200, []);
 
                     let event_ids = [];
                     biglietti.forEach((biglietto) => {
@@ -192,7 +186,7 @@ routes.get('/get_biglietti_scaduti_by_user', authenticateToken, (req, res) => {
                         if (errHandler(res, err, "eventi")) {
 
                             console.log("Eventi:", events);
-                            if (events.length === 0) return standardRes(res, 500, "Nessun evento trovato per i tuoi biglietti.");
+                            if (events.length === 0) return standardRes(res, 200, []);
 
                             let biglietti_list = [];
 
@@ -368,6 +362,8 @@ routes.post('/activate', authenticateToken, (req, res) => {
 
                                 let event = events[0];
                                 console.log("User: ", event);
+
+                                if (event.start_datetime > new Date()) return standardRes(res, 409, "Non ti è possibile attivare il biglietto per un evento che deve ancora iniziare.");
 
                                 if (!biglietto.event.equals(event._id)) return standardRes(res, 409, "Non ti è possibile attivare il biglietto per questo evento.");
 

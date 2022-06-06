@@ -35,16 +35,6 @@ const options = {
                 }
             },
             responses: {
-                NothingFound: {
-                    description: "Nothing found",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                "$ref": "#/components/schemas/Code204"
-                            }
-                        }
-                    }
-                },
                 NoToken: {
                     description: "No token, unauthorized",
                     content: {
@@ -99,23 +89,6 @@ const options = {
                         message: {
                             type: "string",
                             description: "Messaggio.",
-                            // example: "No token, unauthorized."
-                        },
-                    }
-                },
-                Code204: {
-                    description: "Nothing found",
-                    type: "object",
-                    properties: {
-                        status: {
-                            type: "integer",
-                            description: "Http status.",
-                            example: 204
-                        },
-                        message: {
-                            type: "array",
-                            description: "Messaggio.",
-                            items: {}
                             // example: "No token, unauthorized."
                         },
                     }
@@ -644,11 +617,11 @@ const service = require("./api/service/service");
 const dipendente = require("./api/dipendente/dipendente");
 const biglietto = require("./api/biglietto/biglietto");
 
-app.use("/api/auth", auth);
-app.use("/api/event", event);
-app.use("/api/service", service);
-app.use("/api/dipendente", dipendente);
-app.use("/api/biglietto", biglietto);
+app.use("/api/v2/auth", auth);
+app.use("/api/v2/event", event);
+app.use("/api/v2/service", service);
+app.use("/api/v2/dipendente", dipendente);
+app.use("/api/v2/biglietto", biglietto);
 // end routes
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

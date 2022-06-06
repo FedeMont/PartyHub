@@ -96,7 +96,7 @@ routes.get("/check_availability", (req, res) => {
  *                                  type: string
  *                                  format: email
  *                                  description: E-mail dell'utente
- *                              file:
+ *                              profile_picture:
  *                                  type: string
  *                                  format: binary
  *                                  description: Foto profile dell'utente
@@ -142,7 +142,7 @@ routes.post("/signin", upload.single('profile_picture'), (req, res) => {
             ]
         )
     ) {
-        User.find({ $or: [{ username: req.query.username }, { email: req.query.email }] }, "", (err, users) => {
+        User.find({ $or: [{ username: req.body.username }, { email: req.body.email }] }, "", (err, users) => {
             if (errHandler(res, err, "username e email")) {
                 if (users.length === 0) {
 
@@ -559,7 +559,7 @@ routes.get("/recupera_password", (req, res) => {
                 let user = users[0];
                 console.log(user);
 
-                let link = "http://localhost:3001/recupero_password?email=" + user.email + "&auth=" + user.password.slice(user.password.length - 10);
+                let link = "http://localhost:3000/recupera_password?email=" + user.email + "&auth=" + user.password.slice(user.password.length - 10);
 
                 let message = createEmailMessage(
                     user.email,

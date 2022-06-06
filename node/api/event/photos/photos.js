@@ -149,7 +149,7 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
                     "",
                     (err, biglietti) => {
                         if (errHandler(res, err, "biglietto")) {
-                            if (biglietti.length === 0) return standardRes(res, 409, "Non ti è possibile caricacare foto se non sei iscritto all'evento o non sei ancora uscito dal party ");
+                            if (biglietti.length === 0) return standardRes(res, 409, "Non ti è possibile caricare foto se non sei iscritto all'evento o non sei ancora uscito dal party.");
 
                             add_photos(req, res, user);
                         }
@@ -157,7 +157,7 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
                 }
 
                 if (user.account_type === "o") {
-                    if (!user.events_list.includes(req.body.event_id)) return standardRes(res, 401, "Non ti è possibile caricare foto per eventi non tuoi");
+                    if (!user.events_list.includes(req.body.event_id)) return standardRes(res, 401, "Non ti è possibile caricare foto per eventi non tuoi.");
 
                     add_photos(req, res, user);
                 }

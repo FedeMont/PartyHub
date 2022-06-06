@@ -89,9 +89,6 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                                  type: boolean
  *                                                  description: Se l'utente loggato è iscritto all'evento.
  *                                                  example: true
- *
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -136,7 +133,7 @@ routes.get('/events', authenticateToken, (req, res) => {
                             (err, events) => {
                                 if (errHandler(res, err, "eventi")) {
 
-                                    if (events.length === 0) return standardRes(res, 204, []);
+                                    if (events.length === 0) return standardRes(res, 200, []);
 
                                     let to_return = [];
 
@@ -244,8 +241,6 @@ routes.get('/events', authenticateToken, (req, res) => {
  *                                                  type: boolean
  *                                                  description: Se l'utente loggato è iscritto all'evento.
  *                                                  example: true
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -270,6 +265,9 @@ routes.get('/by_address', authenticateToken, (req, res) => {
             if (errHandler(res, err, "utente")) {
                 if (users.length === 0) return standardRes(res, 500, "Token email o account type errati");
 
+                let user = users[0];
+                console.log(user);
+
                 console.log(req.query);
 
                 const params = {
@@ -289,7 +287,7 @@ routes.get('/by_address', authenticateToken, (req, res) => {
                             (err, events) => {
                                 if (errHandler(res, err, "eventi")) {
                                     console.log(events);
-                                    if (events.length === 0) return standardRes(res, 204, []);
+                                    if (events.length === 0) return standardRes(res, 200, []);
 
                                     let to_return = [];
 
@@ -471,8 +469,6 @@ routes.get('/by_id', authenticateToken, (req, res) => {
  *                                                  format: date
  *                                                  description: Data e ora di inizio dell'evento.
  *                                                  example: 2000-05-21T00:00:00.000Z
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -497,7 +493,7 @@ routes.get('/by_user', authenticateToken, (req, res) => {
 
             Event.find({ _id: event_ids }, "name start_datetime", (err, events) => {
                 if (errHandler(res, err, "eventi")) {
-                    if (events.length === 0) return standardRes(res, 204, []);
+                    if (events.length === 0) return standardRes(res, 200, []);
                     return standardRes(res, 200, events);
                 }
             });
@@ -651,8 +647,6 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
  *                                      type: array
  *                                      items:
  *                                          $ref: "#/components/schemas/Event"
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -678,7 +672,7 @@ routes.get('/storico_eventi_futuri', authenticateToken, (req, res) => {
             console.log(user);
 
             let events = user.events_list.filter(event => event.end_datetime >= new Date());
-            if (events.length === 0) return standardRes(res, 204, []);
+            if (events.length === 0) return standardRes(res, 200, []);
 
             return standardRes(res, 200, events);
         })
@@ -712,8 +706,6 @@ routes.get('/storico_eventi_futuri', authenticateToken, (req, res) => {
  *                                      type: array
  *                                      items:
  *                                          $ref: "#/components/schemas/Event"
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -741,7 +733,7 @@ routes.get('/storico_eventi_passati', authenticateToken, (req, res) => {
             console.log(user);
 
             let events = user.events_list.filter(event => event.end_datetime < new Date());
-            if (events.length === 0) return standardRes(res, 204, []);
+            if (events.length === 0) return standardRes(res, 200, []);
 
             return standardRes(res, 200, events);
         })

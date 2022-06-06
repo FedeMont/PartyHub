@@ -170,8 +170,6 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                                                              type: integer
  *                                                              description: Prezzo del prodotto
  *                                                              example: 7.0
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -199,7 +197,7 @@ routes.get('/get_servizi', authenticateToken, (req, res) => {
             let service_ids = user.services_list;
             Service.find({_id: service_ids}, projection, (err, services) => {
                 if (errHandler(res, err, "servizi")) {
-                    if (services.length === 0) return standardRes(res, 204, []);
+                    if (services.length === 0) return standardRes(res, 200, []);
                     return standardRes(res, 200, services);
                 }
             });

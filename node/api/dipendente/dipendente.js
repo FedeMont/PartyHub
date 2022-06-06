@@ -136,7 +136,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
                                                 user.save((err) => {
                                                     if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false)) {
 
-                                                        let link = "http://localhost:3001/recupera_password"
+                                                        let link = "http://localhost:3000/recupera_password"
 
                                                         let message = createEmailMessage(
                                                             dipendente.email,
@@ -320,8 +320,6 @@ routes.post('/activate_turno', authenticateToken, (req, res) => {
  *                                                      type: string
  *                                                      description: Nome dell' evento.
  *                                                      example: Evento
- *              204:
- *                  $ref: "#/components/responses/NothingFound"
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -348,7 +346,7 @@ routes.get('/get_dipendenti', authenticateToken, (req, res) => {
                 .exec()
                 .then(dipendenti => {
                     console.log(dipendenti);
-                    if (dipendenti.length === 0) return standardRes(res, 204, []);
+                    if (dipendenti.length === 0) return standardRes(res, 200, []);
 
                     let to_return = [];
 
