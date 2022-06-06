@@ -1,11 +1,13 @@
 const mongoose = require("mongoose");
 const bcrypt = require('bcrypt');
+const multer = require("multer");
+const fs = require('fs');
 const saltRounds = 10;
 
 mongoose.connect("mongodb://federicomontagna.ddns.net:27017", {
     "dbName": "partyhub",
-    "user": "root",
-    "pass": "password",
+    "user": process.env.db_user,
+    "pass": process.env.db_password,
 });
 
 mongoose.set("debug", true);
@@ -33,8 +35,13 @@ const geopositionSchema = new mongoose.Schema({
 
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    price: { type: Number, required: true },
-    // icon: Image()
+    price: { type: Number, required: true }
+});
+
+const eventPhotoSchema = new mongoose.Schema({
+    photo: { type: String, required: true },
+    datetime: { type: Date, required: true, default: Date.now },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
 }, { _id: false });
 
 let documents = {
@@ -48,7 +55,7 @@ let documents = {
         account_type: { type: String, required: true, default: "up" },
         birthday: { type: Date },
         description: { type: String },
-        // profile_picture: Image(),
+        profile_picture: { type: String },
         number_of_followers: { type: Number, default: 0 },
         followers_list: [{
             type: mongoose.Schema.Types.ObjectId,
@@ -80,16 +87,10 @@ let documents = {
         active_event: { type: mongoose.Schema.Types.ObjectId, ref: "Event" },
         last_login: { type: Date, default: Date.now },
     }),
-    gallery_photo: new mongoose.Schema({
-        // photo: Image(),
-        datetime: { type: Date, required: true, default: Date.now },
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-        event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true }
-    }),
+    eventPhotoSchema: eventPhotoSchema,
     geopositionSchema: geopositionSchema,
     eventSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
-        // code: { type: String, required: true },
         name: { type: String, required: true },
         address: {
             type: geopositionSchema,
@@ -97,7 +98,7 @@ let documents = {
         },
         start_datetime: { type: Date, required: true },
         end_datetime: { type: Date, required: true, },
-        // poster: Image(),
+        poster: { type: String },
         age_range_min: { type: Number, required: true },
         age_range_max: { type: Number, required: true },
         number_of_partecipants: { type: Number, default: 0 },
@@ -109,10 +110,11 @@ let documents = {
         description: { type: String },
         number_of_photos: { type: Number, default: 0 },
         gallery: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "GalleryPhoto"
+            type: eventPhotoSchema
         }],
-        owner: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" }
+        owner: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
+        number_of_feedbacks: { type: Number, default: 0 },
+        feedbacks_list: [{ type: Number }]
     }),
     productSchema: productSchema,
     serviceSchema: new mongoose.Schema({
@@ -128,14 +130,17 @@ let documents = {
     bigliettoSchema: new mongoose.Schema({
         _id: mongoose.Schema.Types.ObjectId,
         event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
-        entrance_datetime: {type: Date},
-        exit_datetime: {type: Date},
+        entrance_datetime: { type: Date },
+        exit_datetime: { type: Date },
         number_of_products: { type: Number, default: 0 },
         total_price: { type: Number, default: 0 },
         products_list: [{
             type: productSchema
-        }],
-        // owner: ??
+        }]
+    }),
+    tokenBlackListSchema: new mongoose.Schema({
+        _id: mongoose.Schema.Types.ObjectId,
+        token: { type: String }
     })
 };
 
@@ -154,9 +159,25 @@ const standardRes = (res, status, message, token = undefined) => {
     }
 };
 
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now())
+    }
+});
+
+let upload = multer({ storage: storage });
+
+dir = "./uploads";
+if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+}
 
 exports.mongoose = mongoose;
 exports.documents = documents;
 exports.standardRes = standardRes;
 exports.bcrypt = bcrypt;
 exports.saltRounds = saltRounds;
+exports.upload = upload;

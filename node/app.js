@@ -21,17 +21,19 @@ const options = {
         },
         servers: [
             {
-                url: "http://federicomontagna.ddns.net:3000"
+                url: "http://federicomontagna.ddns.net:3000",
+                url: "http://localhost:3000",
             }
         ],
         components: {
             securitySchemes: {
                 bearerAuth: {
-                    type: "apiKey",
+                    // type: "apiKey",
+                    type: "http",
                     scheme: "bearer",
                     bearerFormat: "JWT",
-                    name: "authorization",
-                    in: "header"
+                    // name: "authorization",
+                    // in: "header"
                 }
             },
             responses: {
@@ -46,7 +48,7 @@ const options = {
                     }
                 },
                 ForbiddenError: {
-                    description: "Non ti è permesso effettuare questa operazione.",
+                    description: "Wrong token, forbidden.",
                     content: {
                         "application/json": {
                             schema: {
@@ -224,6 +226,68 @@ const options = {
                             description: "La descrizione dell'utente",
                             example: "descrizione"
                         },
+                        profile_picture: {
+                            type: "string",
+                            description: "Foto profilo utente (base64)"
+                        }
+                    }
+                },
+                Dipendente: {
+                    type: "object",
+                    properties: {
+                        _id: {
+                            type: "string",
+                            description: "Id del dipendente",
+                            example: "6288ec25fe5bb453c76a62fa"
+                        },
+                        name: {
+                            type: "string",
+                            description: "Il nome del dipendente",
+                            example: "Nome"
+                        },
+                        surname: {
+                            type: "string",
+                            description: "Il cognome del dipendente",
+                            example: "Cognome"
+                        },
+                        username: {
+                            type: "string",
+                            description: "Il nome utente del dipendente",
+                            example: "username"
+                        },
+                        email: {
+                            type: "string",
+                            format: "email",
+                            description: "La e-mail del dipendente",
+                            example: "nome.cognome@mail.com"
+                        },
+                        account_type: {
+                            type: "string",
+                            description: "Il tipo di account del dipendente",
+                            example: "d"
+                        },
+                        number_of_services: {
+                            type: "integer",
+                            description: "Numero di servizi associati al dipendente",
+                            example: 3
+                        },
+                        services_list: {
+                            type: "array",
+                            items: {
+                                "$ref": "#/components/schemas/Service"
+                            }
+                        },
+                        number_of_events: {
+                            type: "integer",
+                            description: "Numero di eventi associati al dipendente",
+                            example: 3
+                        },
+                        events_list: {
+                            type: "array",
+                            items: {
+                                "$ref": "#/components/schemas/Event"
+                            }
+                        }
                     }
                 },
                 Geoposition: {
@@ -318,6 +382,55 @@ const options = {
                             type: "string",
                             description: "Via, Numero civico, Comune, Sigla Provincia, Paese dell'evento",
                             example: "Via Sommarive 5, Povo, TN, Italy"
+                        },
+                        is_user_iscritto: {
+                            type: "boolean",
+                            description: "Se l'utente loggato è iscritto all'evento.",
+                            example: true
+                        },
+                        number_of_feedbacks: {
+                            type: "integer",
+                            description: "Numero di feedback dell'evento.",
+                            example: 100
+                        },
+                        avg_feedback: {
+                            type: "integer",
+                            description: "Media dei feedback.",
+                            example: 4.5
+                        },
+                        biglietto_active: {
+                            type: "boolean",
+                            description: "Se il biglietto è attivo.",
+                            example: true
+                        },
+                        biglietto_used: {
+                            type: "boolean",
+                            description: "Se il biglietto è stato attivato e disattivato.",
+                            example: true
+                        },
+                        biglietto_scaduto: {
+                            type: "boolean",
+                            description: "Se il biglietto è riferito ad un evento passato.",
+                            example: true
+                        }
+                    }
+                },
+                EventPhotoSchema: {
+                    type: "object",
+                    properties: {
+                        photo: {
+                            type: "string",
+                            description: "Foto evento (base64)"
+                        },
+                        datetime: {
+                            type: "string",
+                            format: "date",
+                            description: "Data di caricamento"
+                        },
+                        user: {
+                            type: "string",
+                            description: "Id dell'utente organizzatore",
+                            example: "6288ec25fe5bb453c76a62fa"
                         }
                     }
                 },
@@ -333,7 +446,7 @@ const options = {
                             type: "string",
                             description: "Il nome dell'evento",
                             example: "Nome"
-                        }, 
+                        },
                         address: {
                             "$ref": "#/components/schemas/Geoposition"
                         },
@@ -346,42 +459,57 @@ const options = {
                         end_datetime: {
                             type: "string",
                             format: "date",
-                            description: "Data e ora di fine evento", 
-                            example: "2022-05-29T23:30:00.000Z" 
+                            description: "Data e ora di fine evento",
+                            example: "2022-05-29T23:30:00.000Z"
                         },
                         age_range_min: {
                             type: "integer",
-                            description: "Età minima", 
+                            description: "Età minima",
                             example: 18
                         },
                         age_range_max: {
                             type: "integer",
-                            description: "Età massima", 
+                            description: "Età massima",
                             example: 38
                         },
                         partecipants_list: {
                             type: "array",
                             items: {
-                                "$ref": "#/components/schemas/User"
+                                type: "string",
+                                description: "Id dell'utente iscritto all'evento",
+                                example: "6288ec25fe5bb453c76a62fa"
                             }
                         },
                         maximum_partecipants: {
                             type: "integer",
-                            description: "Numero massimo di partecipanti", 
+                            description: "Numero massimo di partecipanti",
                             example: 1000
                         },
                         description: {
                             type: "string",
                             description: "Descrizione dell'evento",
                             example: "Descrizione"
-                        }, 
+                        },
+                        poster: {
+                            type: "string",
+                            description: "Immagine della locandina dell'evento",
+                            example: "/9j/4QSkRXhpZgAASUkqAAgAAAANAAABBAABAAAAo..."
+                        },
                         number_of_photos: {
                             type: "integer",
-                            description: "Numero di foto presenti", 
+                            description: "Numero di foto presenti",
                             example: 10
                         },
-                        owner:{
-                            "$ref": "#/components/schemas/User"
+                        gallery: {
+                            type: "array",
+                            items: {
+                                "$ref": "#/components/schemas/EventPhotoSchema"
+                            }
+                        },
+                        owner: {
+                            type: "string",
+                            description: "Id dell'utente organizzatore",
+                            example: "6288ec25fe5bb453c76a62fa"
                         }
                     }
                 },
@@ -395,7 +523,7 @@ const options = {
                         },
                         price: {
                             type: "integer",
-                            description: "Prezzo prodotto", 
+                            description: "Prezzo prodotto",
                             example: 5
                         }
                     }
@@ -408,7 +536,7 @@ const options = {
                             description: "Id del servizio",
                             example: "6288ec25fe5bb453c76a62fa"
                         },
-                        owner:{
+                        owner: {
                             "$ref": "#/components/schemas/User"
                         },
                         name: {
@@ -418,7 +546,7 @@ const options = {
                         },
                         number_of_products: {
                             type: "integer",
-                            description: "Numero di prodotti presenti", 
+                            description: "Numero di prodotti presenti",
                             example: 10
                         },
                         products_list: {
@@ -449,8 +577,8 @@ const options = {
                         exit_datetime: {
                             type: "string",
                             format: "date",
-                            description: "Data e ora di uscita dall'evento", 
-                            example: "2022-05-29T23:30:00.000Z" 
+                            description: "Data e ora di uscita dall'evento",
+                            example: "2022-05-29T23:30:00.000Z"
                         },
                         number_of_products: {
                             type: "integer",
@@ -531,13 +659,12 @@ const event = require("./api/event/event");
 const service = require("./api/service/service");
 const dipendente = require("./api/dipendente/dipendente");
 const biglietto = require("./api/biglietto/biglietto");
-const { fstat } = require('fs');
 
-app.use("/api/auth", auth);
-app.use("/api/event", event);
-app.use("/api/service", service);
-app.use("/api/dipendente", dipendente);
-app.use("/api/biglietto", biglietto);
+app.use("/api/v2/auth", auth);
+app.use("/api/v2/event", event);
+app.use("/api/v2/service", service);
+app.use("/api/v2/dipendente", dipendente);
+app.use("/api/v2/biglietto", biglietto);
 // end routes
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

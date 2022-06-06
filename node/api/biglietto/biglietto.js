@@ -1,11 +1,12 @@
 const routes = require('express').Router();
 const { mongoose, documents, standardRes } = require("../../utils");
 const { authenticateToken } = require("../../token");
-const {requiredParametersErrHandler, errHandler} = require("../../error_handlers");
+const { requiredParametersErrHandler, errHandler } = require("../../error_handlers");
 
 const User = mongoose.model("User", documents.userSchema);
 const Event = mongoose.model("Event", documents.eventSchema);
 const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
+
 
 /**
  * @openapi
@@ -49,50 +50,30 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                              description: Data e ora di inizio dell'evento.
  *                                              example: 2000-05-21T00:00:00.000Z
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
     User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
         if (errHandler(res, err, "utente")) {
 
-            if (users.length === 0)  return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
+            if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
             let user = users[0];
             console.log("User: ", user);
 
             let biglietti_ids = user.biglietti_list;
-            Biglietto.find({_id: biglietti_ids}, "", (err, biglietti) => {
+            Biglietto.find({ _id: biglietti_ids }, "", (err, biglietti) => {
                 if (errHandler(res, err, "biglietti")) {
 
-                    if (biglietti.length === 0)  return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
+                    if (biglietti.length === 0) return standardRes(res, 200, []);
 
                     console.log("Biglietti: ", biglietti);
 
@@ -101,23 +82,20 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
                         event_ids.push(biglietto.event);
                     });
 
-                    Event.find({$and: [{ _id: event_ids }, { start_datetime: { $gte: new Date() } }] }, "", (err, events) => {
+                    Event.find({ $and: [{ _id: event_ids }, { $or: [{ start_datetime: { $gte: new Date() } }, { end_datetime: { $gte: new Date() } }] }] }, "", (err, events) => {
                         if (errHandler(res, err, "eventi")) {
 
                             console.log("Eventi:", events);
-                            if (events.length === 0)  return standardRes(res, 401, "Non ti è possibile cercare biglietti.");
-
+                            if (events.length === 0) return standardRes(res, 200, []);
 
                             let biglietti_list = [];
 
-                            for (let event in events) {
-                                // console.log(event);
-
+                            for (let i in events) {
                                 let biglietto = {};
-                                biglietto["biglietto_id"] = biglietti[event]._id;
-                                biglietto["evento_id"] = events[event]._id;
-                                biglietto["event_name"] = events[event].name;
-                                biglietto["event_start_datetime"] = events[event].start_datetime;
+                                biglietto["biglietto_id"] = biglietti.filter(biglietto => biglietto.event.equals(events[i]._id))[0]._id;
+                                biglietto["evento_id"] = events[i]._id;
+                                biglietto["event_name"] = events[i].name;
+                                biglietto["event_start_datetime"] = events[i].start_datetime;
 
                                 biglietti_list.push(biglietto);
                             }
@@ -173,41 +151,21 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
  *                                              description: Data e ora di inizio dell'evento.
  *                                              example: 2000-05-21T00:00:00.000Z
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/get_biglietti_scaduti_by_user', authenticateToken, (req, res) => {
     User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
         if (errHandler(res, err, "utente")) {
 
-            if (users.length === 0) return standardRes(res, 401, "Non ti è possibile cercare biglietti");
+            if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
             let user = users[0];
             console.log("User: ", user);
@@ -217,7 +175,7 @@ routes.get('/get_biglietti_scaduti_by_user', authenticateToken, (req, res) => {
                 if (errHandler(res, err, "biglietti")) {
 
                     console.log("Biglietti: ", biglietti);
-                    if (biglietti.length === 0) return standardRes(res, 401, "Non ti è possibile cercare biglietti");
+                    if (biglietti.length === 0) return standardRes(res, 200, []);
 
                     let event_ids = [];
                     biglietti.forEach((biglietto) => {
@@ -228,7 +186,7 @@ routes.get('/get_biglietti_scaduti_by_user', authenticateToken, (req, res) => {
                         if (errHandler(res, err, "eventi")) {
 
                             console.log("Eventi:", events);
-                            if (events.length === 0) return standardRes(res, 401, "Non ti è possibile cercare biglietti");
+                            if (events.length === 0) return standardRes(res, 200, []);
 
                             let biglietti_list = [];
 
@@ -356,50 +314,23 @@ routes.get('/get_biglietti_scaduti_by_user', authenticateToken, (req, res) => {
  *                                                          description: Prezzo del prodotto
  *                                                          example: 0
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
  *              409:
- *                  description: Errore nell'attivazione del biglietto.
+ *                  description: Non ti è possibile attivare il biglietto per questo evento.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nell'attivazione del biglietto.
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/activate', authenticateToken, (req, res) => {
     if (
@@ -408,10 +339,10 @@ routes.post('/activate', authenticateToken, (req, res) => {
             [req.body.biglietto_id, req.body.event_id]
         )
     ) {
-        User.find({$and: [{email: req.user.mail}, {account_type: "up"}]}, "", (err, users) => {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile attivare il biglietto.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log("User: ", user);
@@ -419,7 +350,7 @@ routes.post('/activate', authenticateToken, (req, res) => {
                 Biglietto.find({ _id: req.body.biglietto_id }, "", (err, biglietto) => {
                     if (errHandler(res, err, "biglietto")) {
 
-                        if (biglietto.length === 0) return standardRes(res, 401, "Non ti è possibile attivare il biglietto.");
+                        if (biglietto.length === 0) return standardRes(res, 409, "Nessun biglietto trovato.");
 
                         biglietto = biglietto[0];
                         console.log("Biglietti: ", biglietto);
@@ -427,16 +358,189 @@ routes.post('/activate', authenticateToken, (req, res) => {
                         Event.find({ _id: req.body.event_id }, "name address.label adress.name address.locality address.region start_datetime end_datetime description", (err, events) => {
                             if (errHandler(res, err, "evento")) {
 
-                                if (events.length === 0) return standardRes(res, 401, "Non ti è possibile attivare il biglietto.");
+                                if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
 
                                 let event = events[0];
                                 console.log("User: ", event);
 
-                                if (!biglietto.event.equals(event._id)) return standardRes(res, 401, "Non ti è possibile attivare il biglietto per questo evento.");
+                                if (event.start_datetime > new Date()) return standardRes(res, 409, "Non ti è possibile attivare il biglietto per un evento che deve ancora iniziare.");
+
+                                if (!biglietto.event.equals(event._id)) return standardRes(res, 409, "Non ti è possibile attivare il biglietto per questo evento.");
 
                                 biglietto.entrance_datetime = new Date();
                                 biglietto.save((err) => {
-                                    if (errHandler(res, err, "Errore nell'attivazione del biglietto.", false, 409)) {
+                                    if (errHandler(res, err, "Errore nell'attivazione del biglietto.", false)) {
+
+                                        biglietto.event = event;
+                                        return standardRes(res, 200, biglietto);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+
+/**
+ * @openapi
+ * paths:
+ *  /api/biglietto/deactivate:
+ *      post:
+ *          summary: Disattiva il biglietto
+ *          description: Dato l'id del biglietto e dell'evento associato al biglietto, viene disattivato il biglietto
+ *          security:
+ *              - bearerAuth: []
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              biglietto_id:
+ *                                  type: string
+ *                                  description: Id del biglietto da disattivare
+ *                              event_id:
+ *                                  type: string
+ *                                  description: Id dell'evento cllegato al biglietto da disattivare
+ *          responses:
+ *              200:
+ *                  description: Biglietto disattivato.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              type: object
+ *                              properties:
+ *                                  status:
+ *                                      type: integer
+ *                                      description: http status.
+ *                                      example: 200
+ *                                  message:
+ *                                      type: object
+ *                                      properties:
+ *                                          _id:
+ *                                              type: string
+ *                                              description: Id del biglietto.
+ *                                              example: 6288ec25fe5bb453c76a62fa
+ *                                          event:
+ *                                              type: object
+ *                                              properties:
+ *                                                  _id:
+ *                                                      type: string
+ *                                                      description: Id dell'evento.
+ *                                                      example: 6288ec25fe5bb453c76a62fa
+ *                                                  name:
+ *                                                      type: string
+ *                                                      description: Nome dell'evento
+ *                                                      example: AlterEgo
+ *                                                  address:
+ *                                                      type: object
+ *                                                      properties:
+ *                                                          label:
+ *                                                              type: string
+ *                                                              description: Nome completo dell'indirizzo
+ *                                                              example: Via Sommarive 5, Povo, TN, Italia
+ *                                                          locality:
+ *                                                              type: string
+ *                                                              description: Nome completo del comune
+ *                                                              example: Povo
+ *                                                          region:
+ *                                                              type: string
+ *                                                              description: Nome completo della provincia
+ *                                                              example: Trento
+ *                                                  start_datetime:
+ *                                                      type: string
+ *                                                      format: date
+ *                                                      description: Data e ora di inizio all'evento.
+ *                                                      example: 2000-05-21T00:00:00.000Z
+ *                                                  end_datetime:
+ *                                                      type: string
+ *                                                      format: date
+ *                                                      description: Data e ora di fine dall'evento.
+ *                                                      example: 2000-05-21T00:00:00.000Z
+ *                                                  description:
+ *                                                      type: string
+ *                                                      description: Descrizione dell'evento
+ *                                                      example: Descrizione
+ *                                          number_of_products:
+ *                                              type: integer
+ *                                              description: Numero di prodotti acquistati durante l'evento.
+ *                                              example: 0
+ *                                          total_price:
+ *                                              type: integer
+ *                                              description: Prezzo totale dei prodotti acquistati
+ *                                              example: 0.00
+ *                                          products_list:
+ *                                              type: array
+ *                                              items:
+ *                                                  type: object
+ *                                                  properties:
+ *                                                      name:
+ *                                                          type: string
+ *                                                          description: Nome del prodotto
+ *                                                          example: ""
+ *                                                      price:
+ *                                                          type: integer
+ *                                                          description: Prezzo del prodotto
+ *                                                          example: 0
+ *              401:
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
+ *              409:
+ *                  description: Non ti è possibile disattivare il biglietto per questo evento.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/components/schemas/Code409"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
+ *              500:
+ *                  description: Errore nella ricerca di utente.
+ *                  content:
+ *                      application/json:
+ *                          schema:
+ *                              $ref: "#/compenents/schemas/Code500"
+ */
+routes.post('/deactivate', authenticateToken, (req, res) => {
+    if (
+        requiredParametersErrHandler(
+            res,
+            [req.body.biglietto_id, req.body.event_id]
+        )
+    ) {
+        User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
+            if (errHandler(res, err, "utente")) {
+
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
+
+                let user = users[0];
+                console.log("User: ", user);
+
+                Biglietto.find({ _id: req.body.biglietto_id }, "", (err, biglietto) => {
+                    if (errHandler(res, err, "biglietto")) {
+
+                        if (biglietto.length === 0) return standardRes(res, 409, "Nessun biglietto trovato.");
+
+                        biglietto = biglietto[0];
+                        console.log("Biglietto: ", biglietto);
+
+                        Event.find({ _id: req.body.event_id }, "name address.label adress.name address.locality address.region start_datetime end_datetime description", (err, events) => {
+                            if (errHandler(res, err, "evento")) {
+
+                                if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
+
+                                let event = events[0];
+                                console.log("User: ", event);
+
+                                if (!biglietto.event.equals(event._id)) return standardRes(res, 409, "Non ti è possibile disattivare il biglietto per questo evento.");
+
+                                biglietto.exit_datetime = new Date();
+                                biglietto.save((err) => {
+                                    if (errHandler(res, err, "Errore nella disattivazione del biglietto.", false)) {
 
                                         biglietto.event = event;
                                         return standardRes(res, 200, biglietto);
@@ -478,7 +582,6 @@ routes.post('/activate', authenticateToken, (req, res) => {
  *                                      description: http status.
  *                                      example: 200
  *                                  message:
- *                                      $ref: "#/components/schemas/Biglietto"
  *                                      type: object
  *                                      properties:
  *                                          _id:
@@ -552,35 +655,17 @@ routes.post('/activate', authenticateToken, (req, res) => {
  *                                              description: Data e ora di ingresso all'evento
  *                                              example: 2000-05-21T00:00:00.000Z
  *              401:
- *                  description: Token email errata.
- *                  content:
- *                      application/json:
- *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 401
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Token email errata.
+ *                  $ref: "#/components/responses/NoToken"
+ *              403:
+ *                  $ref: "#/components/responses/ForbiddenError"
+ *              422:
+ *                  $ref: "#/components/responses/MissingParameters"
  *              500:
  *                  description: Errore nella ricerca di utente.
  *                  content:
  *                      application/json:
  *                          schema:
- *                              type: object
- *                              properties:
- *                                  status:
- *                                      type: integer
- *                                      description: http status.
- *                                      example: 500
- *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Errore nella ricerca di utente.
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/get_products', authenticateToken, (req, res) => {
     if (
@@ -592,7 +677,7 @@ routes.get('/get_products', authenticateToken, (req, res) => {
         User.find({ $and: [{ email: req.user.mail }, { account_type: "up" }] }, "", (err, users) => {
             if (errHandler(res, err, "utente")) {
 
-                if (users.length === 0) return standardRes(res, 401, "Non ti è possibile cercare prodotti acquistati.");
+                if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
                 let user = users[0];
                 console.log("User: ", user);
@@ -600,7 +685,7 @@ routes.get('/get_products', authenticateToken, (req, res) => {
                 Biglietto.find({ _id: req.query.biglietto_id }, "", (err, biglietti) => {
                     if (errHandler(res, err, "biglietto")) {
 
-                        if (biglietti.length === 0) return standardRes(res, 401, "Non ti è possibile cercare prodotti acquistati.");
+                        if (biglietti.length === 0) return standardRes(res, 409, "Nessun biglietto trovato.");
 
                         let biglietto = biglietti[0];
                         console.log("Biglietti: ", biglietto.entrance_datetime);
@@ -610,7 +695,7 @@ routes.get('/get_products', authenticateToken, (req, res) => {
                         Event.find({ _id: biglietto.event }, "name address.label adress.name address.locality address.region start_datetime end_datetime description", (err, events) => {
                             if (errHandler(res, err, "evento")) {
 
-                                if (events.length === 0) return standardRes(res, 401, "Non ti è possibile cercare prodotti acquistati.");
+                                if (events.length === 0) return standardRes(res, 500, "Nessun evento trovato per il tuo biglietto.");
 
                                 let event = events[0];
                                 console.log("User: ", event);
