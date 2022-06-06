@@ -617,6 +617,7 @@ app.use(cors());
 app.use('/public', express.static(path.join(__dirname, '/ui/public')));
 
 // auth
+app.use('/', express.static(path.join(__dirname, '/ui/login')));
 app.use('/login', express.static(path.join(__dirname, '/ui/login')));
 app.use('/signin', express.static(path.join(__dirname, '/ui/signin')));
 app.use('/recupera_password', express.static(path.join(__dirname, '/ui/recupera_password')));
