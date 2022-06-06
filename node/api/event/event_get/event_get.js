@@ -389,7 +389,7 @@ routes.get('/by_id', authenticateToken, (req, res) => {
             [req.query.event_id]
         )
     ) {
-        User.find({ $and: [{ email: req.user.mail }, { $or: [{ account_type: "o" }, { account_type: "up" }] }] }, "", async (err, users) => {
+        User.find({ email: req.user.mail }, "", async (err, users) => {
             if (errHandler(res, err, "utente")) {
                 if (users.length === 0) return standardRes(res, 500, "Token email o account type errati.");
 
@@ -406,7 +406,7 @@ routes.get('/by_id', authenticateToken, (req, res) => {
                     console.log(avg_feedbacks);
                 }
 
-                Event.find({ $and: [{ _id: req.query.event_id }, { _id: user.events_list }] }, "", (err, events) => {
+                Event.find({ _id: req.query.event_id }, "", (err, events) => {
                     if (errHandler(res, err, "evento")) {
 
                         if (events.length === 0) return standardRes(res, 409, "Nessun evento trovato.");
@@ -599,7 +599,7 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
                         let biglietto = biglietti[0];
                         console.log("Biglietti: ", biglietto);
 
-                        Event.find({ _id: biglietto.event }, "name start_datetime", (err, events) => {
+                        Event.find({ _id: biglietto.event }, "name start_datetime end_datetime", (err, events) => {
                             if (errHandler(res, err, "evento")) {
                                 if (events.length === 0) return standardRes(res, 500, "Nessun evento trovato.");
 
@@ -607,8 +607,9 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
 
                                 let to_return = {}
                                 if (biglietto.entrance_datetime !== null) {
-                                    to_return["biglietto_active"] = (biglietto.entrance_datetime !== undefined);
+                                    to_return["biglietto_active"] = (biglietto.entrance_datetime !== undefined) &&  (biglietto.exit_datetime === undefined);
                                     to_return["biglietto_used"] = (biglietto.exit_datetime !== undefined);
+                                    to_return["biglietto_scaduto"] = (event.end_datetime < new Date());
                                     to_return["name"] = event.name;
                                     to_return["start_datetime"] = event.start_datetime;
                                     to_return["_id"] = event._id;

@@ -364,6 +364,10 @@ routes.post("/logout", authenticateToken, (req, res) => {
  *                                              format: date
  *                                              description: Data di nascita dell'utente
  *                                              example: 2000-05-21T00:00:00.000Z
+ *                                          active_event:
+ *                                              type: string
+ *                                              description: Id evento attivo del turno dipendente.
+ *                                              example: 6288ec25fe5bb453c76a62fa
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -376,14 +380,21 @@ routes.post("/logout", authenticateToken, (req, res) => {
  *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/get_user_info', authenticateToken, (req, res) => {
-    User.find({ email: req.user.mail }, "name surname birthday", (err, users) => {
+    User.find({ email: req.user.mail }, "name account_type surname birthday active_event", (err, users) => {
         if (errHandler(res, err, "utente")) {
-
             if (users.length === 0) return standardRes(res, 500, "Token email errata.");
 
             let user = users[0];
             console.log(user);
-            return standardRes(res, 200, user);
+
+            let to_return = JSON.stringify(user);
+            to_return = JSON.parse(to_return);
+            delete to_return.account_type;
+
+            if (user.account_type !== "d")
+                delete to_return.active_event;
+
+            return standardRes(res, 200, to_return);
         }
     });
 });

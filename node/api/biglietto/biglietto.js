@@ -88,7 +88,7 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
                         if (errHandler(res, err, "eventi")) {
 
                             console.log("Eventi:", events);
-                            if (events.length === 0) return standardRes(res, 500, "Nessun evento trovato per i tuoi biglietti.");
+                            if (events.length === 0) return standardRes(res, 204, []);
 
                             let biglietti_list = [];
 

@@ -422,6 +422,21 @@ const options = {
                             type: "integer",
                             description: "Media dei feedback.",
                             example: 4.5
+                        },
+                        biglietto_active: {
+                            type: "boolean",
+                            description: "Se il biglietto è attivo.",
+                            example: true
+                        },
+                        biglietto_used: {
+                            type: "boolean",
+                            description: "Se il biglietto è stato attivato e disattivato.",
+                            example: true
+                        },
+                        biglietto_scaduto: {
+                            type: "boolean",
+                            description: "Se il biglietto è riferito ad un evento passato.",
+                            example: true
                         }
                     }
                 },

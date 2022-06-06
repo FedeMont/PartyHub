@@ -275,7 +275,7 @@ routes.get('/get_by_id', authenticateToken, (req, res) => {
                         let service = services[0];
                         console.log(service);
 
-                        if (service.owner !== user._id) return standardRes(res, 403, "Non ti è possibile recuperare questo servizio.");
+                        if (!service.owner.equals(user._id)) return standardRes(res, 403, "Non ti è possibile recuperare questo servizio.");
 
                         return standardRes(res, 200, service);
                     }
@@ -372,7 +372,7 @@ routes.put('/modifica', authenticateToken, (req, res) => {
                         let service = services[0];
                         console.log(service);
 
-                        if (service.owner !== user._id) return standardRes(res, 403, "Non ti è possibile recuperare questo servizio.");
+                        if (!service.owner.equals(user._id)) return standardRes(res, 403, "Non ti è possibile recuperare questo servizio.");
 
                         service["name"] = req.body.name;
                         service["products_list"] = req.body.products;
