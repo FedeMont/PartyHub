@@ -4,8 +4,8 @@ const multer = require("multer");
 const fs = require('fs');
 const saltRounds = 10;
 
-mongoose.connect("mongodb://federicomontagna.ddns.net:27017", {
-    "dbName": "partyhub",
+mongoose.connect(process.env.db_url, {
+    "dbName": process.env.db_name,
     "user": process.env.db_user,
     "pass": process.env.db_password,
 });
