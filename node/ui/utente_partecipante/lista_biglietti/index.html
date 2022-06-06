@@ -59,14 +59,9 @@
         let biglietti_item = (obj, biglietto_state) => {
             console.log(obj);
             return `
-            <li id="${obj.biglietto_id}" class="collection-item ${biglietto_state}">
-                <div class="col s10"><p><h6>${obj.event_name}</h6></p></div>
-                <div class="col s1 pr-0">
-                    <p class="secondary-content grey-text">${new Date(obj.event_start_datetime).toLocaleDateString().slice(0,10).replace(/-/g, "/")}</p>
-                </div>
-                <div class="col s1 pl-0">
-                    <p class="secondary-content grey-text">></p>
-                </div>
+            <li id="${obj.biglietto_id}" class="collection-item ${biglietto_state} valign-wrapper" style="justify-content: space-between">
+                <h6>${obj.event_name}</h6>
+                <p class="secondary-content grey-text valign-wrapper right">${new Date(obj.event_start_datetime).toLocaleDateString().slice(0,10).replace(/-/g, "/")} ></p>
             </li>
             `;
         };
@@ -84,11 +79,10 @@
             },
             success: (data) => {
                 console.log(data.message);
-                biglietti = data.message;
+                let biglietti = data.message;
                 biglietti.forEach((biglietto) => {
                     $("#biglietti_futuri_list").append(biglietti_item(biglietto, "futuro"));
                 });
-
 
                 $("li.futuro").click(function () {
                     bigliettoItemClick($(this));
@@ -107,7 +101,7 @@
             },
             success: (data) => {
                 console.log(data.message);
-                biglietti = data.message;
+                let biglietti = data.message;
                 biglietti.forEach((biglietto) => {
                     $("#biglietti_scaduti_list").append(biglietti_item(biglietto, "scaduto"));
                 });

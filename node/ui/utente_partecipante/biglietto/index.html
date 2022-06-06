@@ -75,7 +75,7 @@
                     currentEvent = data.message;
                     $("#event_info").append(event_disable_item(currentEvent));
 
-                    if (currentEvent.biglietto_active && !currentEvent.biglietto_used) {
+                    if (currentEvent.biglietto_active && !currentEvent.biglietto_used) { // biglietto attivo, utente ancora all'interno dell'evento
                         addTopBar(
                             "Biglietto",
                             `<div class="row m-0">
@@ -87,13 +87,14 @@
                                 <span>Biglietti</span>
                             </a>`
                         );
+
                         get_products(getQRCodeImageSrc(biglietto_id), currentEvent.biglietto_used);
 
                         $("#esci_button").click(() => {
                             $("#esci_button_hidden")[0].click();
                         });
 
-                    } else if (currentEvent.biglietto_active && currentEvent.biglietto_used) {
+                    } else if (!currentEvent.biglietto_active && currentEvent.biglietto_used) { // biglietto non attivo, utente uscito dell'evento
                         addTopBar(
                             "Biglietto",
                             ``,
@@ -105,30 +106,45 @@
                         );
 
                         get_products(getQRCodeImageSrc(biglietto_id), currentEvent.biglietto_used);
+                    } else {
+                        if (currentEvent.biglietto_scaduto) { // utente non ha mai partecipato all'evento
+                            addTopBar(
+                                "Biglietto",
+                                ``,
+                                false,
+                                `<a class="blue-text left valign-wrapper" href="/utente/lista_biglietti">
+                                    <i class="material-icons">chevron_left</i>
+                                    <span>Biglietti</span>
+                                </a>`
+                            );
+
+                            $("#event_info").empty();
+                            $("#event_info").append(event_scaduto_item(currentEvent));
+
+                        } else { // utente può deve ancora partecipare all'evento
+                            addTopBar(
+                                "Biglietto",
+                                ``,
+                                false,
+                                `<a class="blue-text left valign-wrapper" href="/utente/lista_biglietti">
+                                    <i class="material-icons">chevron_left</i>
+                                    <span>Biglietti</span>
+                                </a>`
+                            );
+
+                            $("#entra_button").click(() => {
+                                toggleQRcodeEnter = true;
+
+                                html5QrCodeEnter = new Html5Qrcode(
+                                    "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+
+                                const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
+
+                                // If you want to prefer front camera
+                                html5QrCodeEnter.start({ facingMode: "user" }, config, qrCodeEnterCallback);
+                            });
+                        }
                     }
-                    else {
-                        addTopBar(
-                            "Biglietto",
-                            ``,
-                            false,
-                            `<a class="blue-text left valign-wrapper" href="/utente/lista_biglietti">
-                                <i class="material-icons">chevron_left</i>
-                                <span>Biglietti</span>
-                            </a>`
-                        );
-                        $("#entra_button").click(() => {
-                            toggleQRcodeEnter = true;
-
-                            html5QrCodeEnter = new Html5Qrcode(
-                                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
-
-                            const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
-
-                            // If you want to prefer front camera
-                            html5QrCodeEnter.start({ facingMode: "user" }, config, qrCodeEnterCallback);
-                        });
-                    }
-
                 }, error: (data) => {
                     console.log(data);
                     M.toast({ html: data.responseJSON.message });
@@ -163,6 +179,22 @@
                     </div>
                     <div class="row m-0">
                         <a class="activator" id="entra_button">Entra e genera QR code</a>
+                    </div>
+                </div>
+            </div>
+            `;
+        };
+
+        let event_scaduto_item = (obj) => {
+            return event_info(obj) + `
+            <div class="row m-0 center-align">
+                <div class="col s12 center-align">
+                    <div class="row m-0">
+                        <h6 class="grey-text">${obj.name}</h6>
+                    </div>
+
+                    <div class="row m-0">
+                        <i class="xl material-icons grey-text">confirmation_number</i>
                     </div>
                 </div>
             </div>

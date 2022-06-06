@@ -125,7 +125,7 @@ let dipendenteBottomBar = () => {
                     </a>
                 </li>
                 <li class="tab col s3">
-                    <a target="_self" href="/dipendente/attivazione_turno" id="1">
+                    <a target="_self" href="/dipendente/" id="1">
                         <i class="material-icons">list</i>
                         Prodotti
                     </a>

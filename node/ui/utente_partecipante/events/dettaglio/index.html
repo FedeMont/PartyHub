@@ -105,7 +105,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row m-0 center-align">
+            <div class="row m-0 center-align" id="cancella_btn">
                 <button class="waves-effect waves-light btn red-border red-text white">
                     Cancella prenotazione
                 </button>
@@ -186,11 +186,17 @@
                 $("#end-datetime").html(new Date(data.message.end_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/"));
                 $("#age-range").html(data.message.age_range_min + " - " + data.message.age_range_max);
                 $("#partecipants").html(data.message.number_of_partecipants + " / " + data.message.maximum_partecipants);
+
                 if (data.message.poster !== "") {
-                        let poster_src = `data:image/png;base64,${data.message.poster}`;
-                        $("#poster_picture").attr('src', poster_src);
-                    }
+                    let poster_src = `data:image/png;base64,${data.message.poster}`;
+                    $("#poster_picture").attr('src', poster_src);
+                }
+
                 $("#nr-photos").html(data.message.number_of_photos);
+
+                if (new Date(data.message.end_datetime) < new Date()) {
+                    $("#cancella_btn").remove();
+                }
             },
             error: (data) => {
                 console.log(data);

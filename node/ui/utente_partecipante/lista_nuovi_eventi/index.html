@@ -144,13 +144,13 @@
         });
 
         let iscriviti_click = ($obj, should_api_request = true) => {
+            if (should_api_request) window.location.replace("/utente/iscrizione_evento?id=" + $obj.prop("id"));
+
             console.log('Hai cliccato iscriviti', $obj);
             $obj.text("Iscritto");
             $obj.removeClass("white");
             $obj.removeClass("blue-text");
             $obj.addClass("blue");
-
-            if (should_api_request) window.location.replace("/utente/iscrizione_evento?id=" + $obj.prop("id"));
 
             $obj.off("click");
             $obj.click(function () { disiscriviti_click($(this)); });

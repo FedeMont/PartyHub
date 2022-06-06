@@ -26,9 +26,15 @@
             <div class="card-reveal">
                 <div class="valign-wrapper">
                     <div class="container center-align">
-                        <span class="card-title black-text text-darken-4">
-                            <i class="material-icons right" id="close">close</i></textarea>
-                            <input disabled id="event_name" type="text">
+                        <span class="card-title">
+                            <div class="row valign-wrapper">
+                                <div class="col s6 left">
+                                    <h5 class="left" id="event_name"></h5>
+                                </div>
+                                <div class="col s6 right">
+                                    <i class="material-icons right" id="close">close</i></textarea>
+                                </div>
+                            </div>
                         </span>
 
                         <div id="iscrizione-evento-form">
@@ -52,14 +58,6 @@
                                         <input disabled id="age" type="text">
                                         <label for="age">Età</label>
                                     </div>
-
-                                    <div class="input-field col s12">
-                                        <select id="tipo_ingresso">
-                                            <option value="" disabled selected>Scegli un opzione</option>
-                                        </select>
-                                        <label>Tipo di ingresso</label>
-                                    </div>
-
                                 </div>
 
                                 <div class="row m-0">
@@ -114,7 +112,7 @@
             success: (data) => {
                 console.log(data);
                 let event = data.message;
-                $('#event_name').val(event.name);
+                $('#event_name').html(event.name);
 
                 $.ajax({
                     url: "/api/auth/get_user_info",
@@ -149,14 +147,7 @@
         $('#tipo_ingresso').append($('<option>').val("1").text("test1"));
 
         $('#form-data').submit((e) => {
-
             e.preventDefault();
-
-            let event_name = $("#event_name").val();
-            let name = $("#name").val();
-            let surname = $("#surname").val();
-            let age = $("#age").val();
-
             console.log(event_name);
 
             $.ajax({

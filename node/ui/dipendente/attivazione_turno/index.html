@@ -59,6 +59,22 @@
         $(document).ready(function () {
             addTopBar("Prodotti", ``);
             addBottomBar("d", 1);
+
+            $.ajax({
+                url: "/api/auth/get_user_info",
+                type: "GET",
+                data: {
+                },
+                success: (data) => {
+                    console.log(data.message);
+                    if (data.message.active_event) {
+                        window.location.replace("/dipendente/sezione_vendita_prodotti?id="+data.message.active_event);
+                    }
+                }, error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
         });
 
         let html5QrCode;

@@ -80,7 +80,7 @@
             return `
                 <h5>${event.name}</h5>
                 <div class="row m-0">
-                    <h6 class="grey-text"> ${new Date(event.entrance_datetime).toTimeString().slice(0, 5)}</h6>
+                    <h6 class="grey-text"> ${new Date(event.start_datetime).toLocaleDateString().slice(0, 10)}</h6>
                 </div>
             `;
         };
@@ -115,7 +115,8 @@
         let annulla_click = () => {
             console.log('Hai cliccato annulla');
 
-            $("li").click(li_click);
+            $("li.collection-item").off("click");
+            $("li.collection-item").click(li_click);
 
             $(".product_checkbox").css("display", "none");
             $("input[type='checkbox']").prop("checked", false);
@@ -143,6 +144,17 @@
         let toggleQRcodeSuccess;
 
         let products_ids;
+
+        $("#exit_button").click(function () {
+            html5QrCode.stop().then((ignore) => {
+                // QR Code scanning is stopped.
+                console.log("QR Code scanning stopped.");
+
+            }).catch((err) => {
+                // Stop failed, handle it.
+                console.log(err);
+            });
+        });
 
         const qrCodeSuccessCallback = (decodedText, decodedResult) => {
             if (toggleQRcodeSuccess) {
@@ -177,7 +189,7 @@
         let li_click = (e) => {
             e.preventDefault();
 
-            products_ids = [];
+            let products_ids = [];
             products_ids.push($(e.currentTarget).find("input").prop("id"));
 
             toggleQRcodeSuccess = true;
@@ -190,8 +202,6 @@
             // If you want to prefer front camera
             html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback);
         };
-
-        $('#seleziona').click(seleziona_click);
 
         let confirm_button = () => {
             return `
@@ -226,7 +236,7 @@
             },
             success: (data) => {
                 console.log(data.message);
-                serivizi = data.message;
+                let serivizi = data.message;
 
                 let services_json = {};
                 serivizi.forEach((servizio) => {
@@ -244,7 +254,10 @@
                         $("#products_list").append(generate_list_item(product));
                     });
 
-                    annulla_click();
+                    // annulla_click();
+                    $("li.collection-item").click(li_click);
+                    $("#seleziona").click(seleziona_click);
+
                 });
 
                 $("#services_list").change();
@@ -260,7 +273,7 @@
 
         $("#products_form").submit((e) => {
             e.preventDefault();
-            products_ids = [];
+            let products_ids = [];
 
             $("input:checked").each(function () {
                 products_ids.push($(this).prop("id"));
@@ -269,8 +282,7 @@
 
             toggleQRcodeSuccess = true;
 
-            html5QrCode = new Html5Qrcode(
-                "reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+            html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
 
             const config = { fps: 10, qrbox: { width: 250, height: 250, position: "absolute" } };
 
