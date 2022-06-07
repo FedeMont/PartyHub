@@ -21,8 +21,9 @@ const options = {
         },
         servers: [
             {
-                url: "http://federicomontagna.ddns.net:3000",
-                url: "http://localhost:3000",
+                url: "http://federicomontagna.ddns.net:3000/api/v2/",
+                url: "http://localhost:3000/api/v2/",
+                url: "https://partyhub.herokuapp.com/api/v2/"
             }
         ],
         components: {

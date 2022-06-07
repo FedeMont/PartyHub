@@ -17,7 +17,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
 /**
  * @openapi
  * paths:
- *  /api/v2/event/crea:
+ *  /event/crea:
  *      post:
  *          summary: Creazione evento
  *          description: Dati i dati dell'evento inseriti dall'utente, il sistema inserisce il nuovo evento
@@ -198,7 +198,7 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/event/modifica:
+ *  /event/modifica:
  *      patch:
  *          summary: Modifica evento
  *          description: Dati i dati dell'evento il sistema aggiorna i nuovi dati
@@ -349,7 +349,7 @@ routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res)
 /**
  * @openapi
  * paths:
- *  /api/v2/event/elimina:
+ *  /event/elimina:
  *      delete:
  *          summary: Elimina un evento
  *          description: Elimina l'evento con id indicato
@@ -473,7 +473,7 @@ routes.delete('/elimina', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/event/iscrizione:
+ *  /event/iscrizione:
  *      post:
  *          summary: Iscrizione evento
  *          description: Dato l'id dell'evento desiderato, il sistema iscrive l'utente loggato all'evento
@@ -594,7 +594,7 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/event/disiscrizione:
+ *  /event/disiscrizione:
  *      post:
  *          summary: Disiscrizione evento
  *          description: Dato l'id dell'evento desiderato, il sistema annulla l'iscrizione dell'utente loggato all'evento
@@ -715,7 +715,7 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/event/feedback:
+ *  /event/feedback:
  *      patch:
  *          summary: Feedback evento
  *          description: Dato l'id dell'evento desiderato e il feedback, il sistema salva il feedback dell'utente loggato all'evento

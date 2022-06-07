@@ -12,7 +12,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
 /**
  * @openapi
  * paths:
- *  /api/v2/service/crea:
+ *  /service/crea:
  *      post:
  *          summary: Crea servizio
  *          description: Dati i dati del servizio e dei prodotti il sistema crea il nuovo servizio
@@ -131,7 +131,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/service/get_servizi:
+ *  /service/get_servizi:
  *      get:
  *          summary: Ritorna i servizi
  *          description: Restituisce i servizi dell'utente loggato
@@ -221,7 +221,7 @@ routes.get('/get_servizi', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/service/get_by_id:
+ *  /service/get_by_id:
  *      get:
  *          summary: Informazioni del servizio
  *          description: Dato l'id di un servizio ritorna le informazioni di quel servizio
@@ -299,7 +299,7 @@ routes.get('/get_by_id', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/service/modifica:
+ *  /service/modifica:
  *      put:
  *          summary: Modifica il servizio
  *          description: Dato l'id di un servizio modifica le sue informazioni
@@ -403,7 +403,7 @@ routes.put('/modifica', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/service/sell_products:
+ *  /service/sell_products:
  *      post:
  *          summary: Vendita prodotti
  *          description: Dati l'id di un biglietto e la lista degli id dei prodotti il sistema accredita i prodotti al biglietto
