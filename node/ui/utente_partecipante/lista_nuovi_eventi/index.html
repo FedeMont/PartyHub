@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- TOP BAR -->
+    <div id="top_bar"></div>
+
+    <!-- Main content -->
+    <main>
+        <div class="container">
+            <div class="section" style="height: 10px; padding-bottom: 0.1rem;"></div>
+            <div id="events_list">
+                <!-- CONTEXT OF PAGE -->
+            </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+
+        let event_click = ($this) => {
+            console.log($this.prop("id"));
+            window.location.replace("/utente/dettaglio_evento?id="+$this.prop("id").split('_')[1]+"&lista=true");
+        };
+
+        $(document).ready(function () {
+            addTopBar("Home", `
+                    <i class="small material-icons blue-text left m-0" id="settings_button">settings</i>
+                    <img src="/public/images/profile.png"
+                        class="responsive-img circle right" style="width: 35px; height: 35px; object-fit: cover;" id="profile_picture">
+            `, true);
+
+            $("#settings_button").click(() => {
+                window.location.replace("/utente/settings");
+            });
+
+            addBottomBar("up", 0);
+
+            $.ajax({
+                url: "/api/v2/auth/get_user_info",
+                type: "GET",
+                data: {
+                },
+                success: (data) => {
+                    console.log(data);
+                    let user = data.message;
+
+                    $.ajax({
+                        url: "/api/v2/auth/get_profile_picture_by_id",
+                        type: "GET",
+                        data: {
+                            id: user._id
+                        },
+                        success: (data) => {
+                            console.log(data);
+                            if (data.message !== "")
+                                $("#profile_picture").attr('src', `data:image/png;base64,${data.message}`);
+                        },
+                        error: (data) => {
+                            console.log(data);
+                            M.toast({ html: data.responseJSON.message });
+                        }
+                    });
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+
+            $("#party_search").submit((e) => {
+                e.preventDefault();
+                let address = $("#search").val();
+                console.log(address);
+
+                if (address !== "") {
+                    $.ajax({
+                        url: "/api/v2/event/get/by_address",
+                        type: "GET",
+                        data: {
+                            address: address
+                        },
+                        success: (data) => {
+                            console.log(data.message);
+
+                            $("#events_list").html("");
+
+                            data.message.forEach((event) => {
+                                $("#events_list").append(generate_event_post(event));
+
+                                $(".event").click(function() {
+                                    event_click($(this));
+                                });
+
+                                if (event.is_user_iscritto) {
+                                    iscriviti_click($('.iscriviti_button#' + event._id), false);
+                                } else {
+                                    disiscriviti_click($('.iscriviti_button#' + event._id), false);
+                                }
+                            });
+
+                            $("#search").change(() => {
+                                if ($("#search").val() == "") {
+                                    $("#events_list").html("");
+                                    events.forEach((event) => {
+                                        $("#events_list").append(generate_event_post(event));
+
+                                        $(".event").click(function() {
+                                            event_click($(this));
+                                        });
+
+                                        if (event.is_user_iscritto) {
+                                            iscriviti_click($('.iscriviti_button#' + event._id), false);
+                                        } else {
+                                            disiscriviti_click($('.iscriviti_button#' + event._id), false);
+                                        }
+                                    });
+                                }
+                            });
+                        },
+                        error: (data) => {
+                            console.log(data);
+                        }
+                    });
+                }
+            });
+        });
+
+        let generate_event_post = ((obj, profile_picture = "/public/images/profile.png") => {
+
+            let poster_img = ""
+            if (obj.poster !== "" && obj.poster !== undefined) {
+                poster_img = `
+                <div class="col s12">
+                    <img style="width:100%; border-radius: 10px" class="materialboxed responsive-img"
+                        src="data:image/png;base64,${obj.poster}">
+                </div>
+                `
+            }
+            return `
+            <div class="row m-0">
+                <div class="col s12">
+                    <div class="card event_post grey lighten-5 event" id="event_${obj._id}">
+                        <div class="card-content black-text" style="padding: 10px;">
+                            <div class="row m-0 valign-wrapper">
+                                <div class="col s2 left-align">
+                                    <img src="${profile_picture}"
+                                        alt="" class="circle " style="width: 40px; height: 40px; object-fit: cover">
+                                </div>
+                                <div class="col s6">
+                                    <div class="row m-0">
+                                        <b class="truncate">${obj.name}</b>
+                                    </div>
+                                    <div class="row m-0 grey-text">
+                                        <span>${new Date(obj.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")}</span>
+                                    </div>
+                                </div>
+                                <div class="col s4 right-align">
+                                    <a id="${obj._id}" class="iscriviti_button waves-effect waves-light btn-small white blue-text right-align blue-border">Iscriviti</a>
+                                </div>
+                            </div>
+                            <div class="row m-0 valign-wrapper">
+                                <div class="col s12 grey-text right-align">
+                                    <p class="right-align">${obj.address.name}, ${obj.address.region_code}</p>
+                                </div>
+                            </div>
+                            <div class="row m-0 valign-wrapper" style="padding-bottom: 10px ;">
+                                <div class="col s12">
+                                    <p>${obj.description}</p>
+                                </div>
+                            </div>
+                            <div class="row m-0 valign-wrapper">
+                                ${poster_img}
+                            </div>
+                            <div class="row m-0 valign-wrapper">
+                                <div class="col s12">
+                                    <span class="grey-text">Partecipanti: ${obj.number_of_partecipants}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `
+        });
+
+        let iscriviti_click = ($obj, should_api_request = true) => {
+            if (should_api_request) window.location.replace("/utente/iscrizione_evento?id=" + $obj.prop("id"));
+
+            console.log('Hai cliccato iscriviti', $obj);
+            $obj.text("Iscritto");
+            $obj.removeClass("white");
+            $obj.removeClass("blue-text");
+            $obj.addClass("blue");
+
+            $obj.off("click");
+            $obj.click(function () { disiscriviti_click($(this)); });
+        };
+
+        let disiscriviti_click = ($obj, should_api_request = true) => {
+            if (should_api_request) {
+                console.log('Hai cliccato disiscriviti', $obj.prop("id"));
+                let text = "Vuoi disiscriverti da questo evento?\n";
+
+                if (confirm(text) == true) {
+                    console.log("You pressed OK!");
+                    console.log($obj.prop("id"));
+
+                    $.ajax({
+                        url: "/api/v2/event/disiscrizione",
+                        type: "POST",
+                        data: {
+                            event_id: $obj.prop("id")
+                        },
+                        success: (data) => {
+                            console.log(data.message);
+                            window.location.replace("/utente/");
+                        },
+                        error: (data) => {
+                            console.log(data);
+                        }
+                    });
+                }
+            }
+
+            $obj.text("Iscriviti");
+            $obj.addClass("white");
+            $obj.addClass("blue-text");
+            $obj.removeClass("blue");
+            $obj.off("click");
+
+            $obj.click(function () { iscriviti_click($(this)); });
+        };
+
+        let events = [];
+
+        // Get geolocation
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((location) => {
+                $.ajax({
+                    url: "/api/v2/event/get/events",
+                    type: "GET",
+                    data: {
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude,
+                        // ENABLE TO TEST API WITHOUT USING GEOLOC API
+                        // ext_api: false
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        console.log(data.message);
+                        events = data.message;
+                        data.message.forEach((event) => {
+                            let profile_picture = "/public/images/profile.png";
+                            $.ajax({
+                                url: "/api/v2/auth/get_profile_picture_by_id",
+                                type: "GET",
+                                data: {
+                                    id: event.owner
+                                },
+                                success: (data) => {
+                                    profile_picture = data.message;
+                                }
+                            })
+
+                            $("#events_list").append(generate_event_post(event, profile_picture));
+
+                            $(".event").click(function() {
+                                event_click($(this));
+                            });
+
+                            if (event.is_user_iscritto) {
+                                // $('.iscriviti_button#'+event._id).click(function () { disiscriviti_click($(this)); });
+                                iscriviti_click($('.iscriviti_button#' + event._id), false);
+                            } else {
+                                // $('.iscriviti_button#'+event._id).click(function () { iscriviti_click($(this)); });
+                                disiscriviti_click($('.iscriviti_button#' + event._id), false);
+                            }
+                        });
+                        $('.materialboxed').materialbox();
+                    },
+                    error: (data) => {
+                        console.log(data);
+                    }
+                });
+            });
+        }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- TOP BAR -->
+    <div id="top_bar"></div>
+
+    <!-- Main content -->
+    <main>
+        <div id="container_biglietti" class="container">
+            <div class="row m-0">
+                <h6>Prossimi biglietti</h6>
+                <div class="row m-0">
+                    <ul id="biglietti_futuri_list" class="collection with-header">
+                        <!-- BIGLIETTI FUTURI -->
+                    </ul>
+                </div>
+                <div class="row m-0">
+                    <h6>Biglietti scaduti</h6>
+                    <ul id="biglietti_scaduti_list" class="collection">
+                        <!-- BIGLIETTI SCADUTI -->
+                    </ul>
+                </div>
+            </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+
+    <script>
+        $(document).ready(()=> {
+            addTopBar("Biglietti", ``);
+            addBottomBar("up", 1);
+        });
+
+        let biglietti_item = (obj, biglietto_state) => {
+            console.log(obj);
+            return `
+            <li id="${obj.biglietto_id}" class="collection-item ${biglietto_state} valign-wrapper" style="justify-content: space-between">
+                <h6>${obj.event_name}</h6>
+                <p class="secondary-content grey-text valign-wrapper right">${new Date(obj.event_start_datetime).toLocaleDateString().slice(0,10).replace(/-/g, "/")} ></p>
+            </li>
+            `;
+        };
+
+        let bigliettoItemClick = ($obj) => {
+            console.log($obj.prop("id"));
+
+            window.location.replace("/utente/biglietto?id="+$obj.prop("id"));
+        };
+
+        $.ajax({
+            url: "/api/v2/biglietto/get_biglietti_futuri_by_user",
+            type: "GET",
+            data: {
+            },
+            success: (data) => {
+                console.log(data.message);
+                let biglietti = data.message;
+                biglietti.forEach((biglietto) => {
+                    $("#biglietti_futuri_list").append(biglietti_item(biglietto, "futuro"));
+                });
+
+                $("li.futuro").click(function () {
+                    bigliettoItemClick($(this));
+                });
+
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+        $.ajax({
+            url: "/api/v2/biglietto/get_biglietti_scaduti_by_user",
+            type: "GET",
+            data: {
+            },
+            success: (data) => {
+                console.log(data.message);
+                let biglietti = data.message;
+                biglietti.forEach((biglietto) => {
+                    $("#biglietti_scaduti_list").append(biglietti_item(biglietto, "scaduto"));
+                });
+
+                $("li.scaduto").click(function () {
+                    bigliettoItemClick($(this));
+                });
+
+            }, error: (data) => {
+                console.log(data);
+                M.toast({ html: data.responseJSON.message });
+            }
+        });
+
+    </script>
+</body>
+
+</html>

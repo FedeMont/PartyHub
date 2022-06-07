@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title></title>
+</head>
+
+<body>
+
+<!-- Main content -->
+<main>
+    <div class="card m-0" style="height: 100%;">
+        <div class="card-content">
+                <span class="card-title activator grey-text text-darken-4">
+                    <i class="material-icons right">more_vert</i>
+                </span>
+        </div>
+        <div class="card-reveal">
+            <div class="valign-wrapper">
+                <div class="container center-align">
+                    <span class="card-title grey-text text-darken-4">
+                        Informazioni dipendente
+                        <i id="close_button" class="material-icons right">close</i>
+                    </span>
+                    <div id="crea-evento-form">
+                        <form id="form-data">
+                            <div class="row m-0">
+                                <div class="input-field col s12">
+                                    <input id="name" type="text" required="true">
+                                    <label for="name">Nome dipendente</label>
+                                </div>
+                            </div>
+                            <div class="row m-0">
+                                <div class="input-field col s12">
+                                    <input id="surname" type="text" required="true">
+                                    <label for="surname">Cognome dipendente</label>
+                                </div>
+                            </div>
+                            <div class="row m-0">
+                                <div class="input-field col s12">
+                                    <input id="email" type="email" required="true">
+                                    <label for="email">E-mail dipendente</label>
+                                </div>
+                            </div>
+
+                            <div class="row m-0">
+                                <div class="input-field col s12">
+                                    <select multiple id="services_list">
+                                        <option value="" disabled>Scegli i servizi</option>
+                                    </select>
+                                    <label for="services_list">Lista Servizi</label>
+                                </div>
+                            </div>
+
+                            <div class="row m-0">
+                                <div class="input-field col s12">
+                                    <select multiple id="events_list">
+                                        <option value="" disabled>Scegli gli eventi</option>
+                                    </select>
+                                    <label for="events_list">Lista Event</label>
+                                </div>
+                            </div>
+
+                            <div class="row m-0">
+                                <button class="btn-large waves-effect waves-light" type="submit" id="create_button">Crea
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section" style="height: 70px;"></div>
+        <div class="section"></div>
+    </div>
+</main>
+
+<!-- NAVIGATION TABS-BAR -->
+<div id="bottom_bar"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="/public/script/utils.js"></script>
+
+<script>
+
+    let url_params = (new URLSearchParams(window.location.search));
+
+    let dipendente_id = (url_params.has("id")) ? url_params.get("id") : undefined;
+    console.log(dipendente_id);
+
+    $.ajax({
+        url: "/api/v2/service/get_servizi",
+        type: "GET",
+        data: {},
+        success: (data) => {
+            console.log(data);
+            data.message.forEach((service) => {
+                $('#services_list').append($('<option>').val(service._id).text(service.name));
+            });
+
+            $('select').formSelect();
+        },
+        error: (data) => {
+            console.log(data);
+            M.toast({html: data.responseJSON.message});
+        }
+    });
+
+    $.ajax({
+        url: "/api/v2/event/get/by_user",
+        type: "GET",
+        data: {},
+        success: (data) => {
+            console.log(data);
+            data.message.forEach((event) => {
+                $('#events_list').append($('<option>').val(event._id).text(event.name + " del " + new Date(event.start_datetime).toLocaleDateString().slice(0, 10).replace(/-/g, "/")));
+            });
+
+            $('select').formSelect();
+        },
+        error: (data) => {
+            console.log(data);
+            M.toast({html: data.responseJSON.message});
+        }
+    });
+
+    $(document).ready(function () {
+        addBottomBar("o", 2);
+
+        $(".card-reveal").css({"display": "block", "transform": "translateY(-100%)"});
+
+        if (dipendente_id) {
+            $("#create_button").text("Modifica");
+            $.ajax({
+                url: "/api/v2/dipendente/get_by_id",
+                type: "GET",
+                data: {
+                    dipendente_id: dipendente_id
+                },
+                success: (data) => {
+                    console.log(data.message);
+
+                    let dipendente = data.message;
+
+                    $("#name").val(dipendente.name);
+                    $("#surname").val(dipendente.surname);
+                    $("#email")
+                        .val(dipendente.email)
+                        .prop("disabled", true);
+
+                    dipendente.services_list.forEach((service) => {
+                        console.log(service, "#services_list option[value='"+service+"']", $("#services_list option[value='"+service+"']"));
+                        $("#services_list option[value='"+service+"']").prop("selected", true);
+                    });
+
+                    dipendente.events_list.forEach((event) => {
+                        console.log(event, "#events_list option[value='"+event+"']", $("#events_list option[value='"+event+"']"));
+                        $("#events_list option[value='"+event+"']").prop("selected", true);
+                    });
+
+                    M.updateTextFields();
+                    $('select').formSelect();
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({ html: data.responseJSON.message });
+                }
+            });
+        }
+    });
+
+    $("#close_button").on("click", (e) => {
+        window.location.replace("/organizzatore/lista_dipendenti/");
+    });
+
+    $('#form-data').submit((e) => {
+        e.preventDefault();
+        let name = $("#name").val();
+        let surname = $("#surname").val();
+        let email = $("#email").val();
+
+        let services_list = $('#services_list').val();
+        let events_list = $('#events_list').val();
+
+        console.log(services_list);
+        console.log(events_list);
+
+        if (dipendente_id) {
+            console.log("Modifica");
+            $.ajax({
+                url: "/api/v2/dipendente/modifica",
+                type: "PUT",
+                data: {
+                    id: dipendente_id,
+                    name: name,
+                    surname: surname,
+                    // email: email,
+                    services_list: services_list,
+                    events_list: events_list
+                },
+                success: (data) => {
+                    console.log(data);
+                    window.location.replace("/organizzatore/lista_dipendenti");
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({html: data.responseJSON.message});
+                }
+            });
+        } else {
+            $.ajax({
+                url: "/api/v2/dipendente/crea",
+                type: "POST",
+                data: {
+                    name: name,
+                    surname: surname,
+                    email: email,
+                    services_list: services_list,
+                    events_list: events_list
+                },
+                success: (data) => {
+                    console.log(data);
+                    window.location.replace("/organizzatore/lista_dipendenti");
+                },
+                error: (data) => {
+                    console.log(data);
+                    M.toast({html: data.responseJSON.message});
+                }
+            });
+        }
+    });
+
+
+</script>
+
+</body>
+
+</html>

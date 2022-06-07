@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <link rel="stylesheet" href="/public/css/style.css">
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+</head>
+
+<body>
+    <!-- Main content -->
+    <main>
+        <div class="card m-0" style="height: 100%;">
+            <div class="card-content">
+                <span class="card-title activator grey-text text-darken-4"><i
+                        class="material-icons right">more_vert</i></span>
+            </div>
+            <div class="card-reveal">
+                <div class="container center-align">
+                    <span class="card-title grey-text text-darken-4">
+                        Informazioni evento
+                        <i class="material-icons right" id="close_btn">close</i>
+                    </span>
+                    <div class="valign-wrapper">
+                        <div id="crea-evento-form">
+                            <div class="section"></div>
+                            <form id="form-data">
+                                <div class="row m-0 valign-wrapper">
+                                    <div class="col s7">
+                                        <div class="row m-0">
+                                            <div class="input-field">
+                                                <input disabled value="Locandina" type="text">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col s5 ">
+                                        <div class="file-field input-field m-0" style="margin-left: 20.8% !important">
+                                            <div class="btn white lighten-4 center-align" style="box-shadow:none !important">
+                                                <i class="large material-icons black-text"
+                                                    style=" font-size:5rem !important">add_a_photo</i>
+                                                <input type="file" id="files_path" name="poster">
+                                            </div>
+                                            <div class="file-path-wrapper">
+                                                <input class="file-path validate" type="text"
+                                                    style="width:0px !important; height: 2rem !important">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row m-0">
+                                    <div class="input-field col s12">
+                                        <input id="name" type="text" name="name" required="true">
+                                        <label for="name">Nome evento</label>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <span class="grey-text" style="float: left;">Data inizio evento</span>
+                                        <input id="start_datetime" type="datetime-local" name="start_datetime" required="true">
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <span class="grey-text" style="float: left;">Data fine evento</span>
+                                        <input id="end_datetime" type="datetime-local" name="end_datetime" required="true">
+                                    </div>
+
+                                    <div class="row m-0">
+                                        <div class="input-field col s9">
+                                            <input id="via" type="text" name="via" required="true">
+                                            <label for="via">Indirizzo</label>
+                                        </div>
+
+                                        <div class="input-field col s3">
+                                            <input id="n_civico" type="text" name="n_civico" required="true">
+                                            <label for="n_civico">Numero</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="row m-0">
+                                        <div class="input-field col s6">
+                                            <input id="comune" type="text" name="comune" required="true">
+                                            <label for="comune">Comune</label>
+                                        </div>
+
+                                        <div class="input-field col s6">
+                                            <input id="provincia" type="text" name="provincia" required="true">
+                                            <label for="provincia">Provincia</label>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" id="address" name="address" value="">
+                                    <input type="hidden" id="event_id" name="id" value="">
+
+
+                                    <div class="input-field col s12">
+                                        <input id="age_range" name="age_range" type="text">
+                                        <label for="age_range">Range di età (età-età)</label>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input id="maximum_partecipants" type="number" name="maximum_partecipants" required="true">
+                                        <label for="maximum_partecipants">Numero massimo di partecipanti</label>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input id="description" name="description" type="text">
+                                        <label for="description">Descrizione</label>
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+                                    <button class="btn-large waves-effect waves-light" type="submit" id="create_button">Crea</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section" style="height: 70px;"></div>
+            <div class="section"></div>
+        </div>
+        <div class="section" style="height: 70px;"></div>
+        </div>
+    </main>
+
+    <!-- NAVIGATION TABS-BAR -->
+    <div id="bottom_bar"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="/public/script/utils.js"></script>
+    <script>
+
+        let url_params = (new URLSearchParams(window.location.search));
+
+        let event_id = (url_params.has("id")) ? url_params.get("id") : undefined;
+        console.log(event_id);
+        $("#event_id").val(event_id)
+
+        $(document).ready(function () {
+            M.updateTextFields();
+            addBottomBar("o", 3);
+
+            $(".card-reveal").css({ "display": "block", "transform": "translateY(-100%)" });
+
+            if (event_id) {
+                $("#close_btn").click(() => {
+                    window.location.replace("/organizzatore/dettaglio_evento?id=" + event_id);
+                });
+
+                $(`
+                    <button class="btn-large waves-effect waves-light red-text white red-border" type="submit" id="elimina_button">
+                        Elimina
+                    </button>
+                `).insertAfter("form");
+
+                $("#elimina_button").click(function () {
+
+                    if (confirm("Sei sicuro di voler eliminare questo evento?")) {
+                        console.log("You pressed OK ", event_id);
+
+                        $.ajax({
+                            url: "/api/v2/event/elimina",
+                            type: "DELETE",
+                            data: {
+                                event_id: event_id
+                            },
+                            success: (data) => {
+                                console.log(data);
+                                window.location.replace("/organizzatore/storico_eventi");
+                            },
+                            error: (data) => {
+                                console.log(data);
+                                M.toast({ html: data.responseJSON.message });
+                            }
+                        });
+                    }
+                });
+
+                $("#create_button").text("Modifica");
+
+                $.ajax({
+                    url: "/api/v2/event/get/by_id",
+                    type: "GET",
+                    data: {
+                        event_id: event_id
+                    },
+                    success: (data) => {
+                        console.log(data);
+                        let event = data.message;
+
+                        $("#name").val(event.name);
+                        $("#start_datetime").val(event.start_datetime.split('.')[0]);
+                        $("#end_datetime").val(event.end_datetime.split('.')[0]);
+                        $("#via").val(event.address.street);
+                        $("#n_civico").val(event.address.number);
+                        $("#comune").val(event.address.locality);
+                        $("#provincia").val(event.address.region_code);
+                        $("#age_range").val(event.age_range_min + "-" + event.age_range_max);
+                        $("#maximum_partecipants").val(event.maximum_partecipants);
+                        $("#description").val(event.description);
+
+                        M.updateTextFields();
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }else{
+                $("#close_btn").click(() => {
+                    window.location.replace("/organizzatore/storico_eventi");
+                });
+            }
+        });
+
+        $('#form-data').submit((e) => {
+
+            e.preventDefault();
+            // let poster = $("#poster").val();
+            // TODO: ADD THIS VALUE IN FORM DATA
+            let address = $("#via").val() + " " + $("#n_civico").val() + ", " + $("#comune").val() + ", " + $("#provincia").val();
+            $('#address').val(address)
+
+            console.log(address);
+            let formData = new FormData($("#form-data")[0])
+
+            if (event_id) {
+                $.ajax({
+                    url: "/api/v2/event/modifica",
+                    type: "PATCH",
+                    enctype: 'multipart/form-data',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    success: (data) => {
+                        console.log(data);
+                        window.location.replace("/organizzatore/dettaglio_evento?id=" + event_id);
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: "/api/v2/event/crea",
+                    type: "POST",
+                    enctype: 'multipart/form-data',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    success: (data) => {
+                        console.log(data);
+                        window.location.replace("/organizzatore/storico_eventi");
+                    },
+                    error: (data) => {
+                        console.log(data);
+                        M.toast({ html: data.responseJSON.message });
+                    }
+                });
+            }
+        });
+
+
+    </script>
+
+</body>
+
+</html>
