@@ -560,7 +560,7 @@ routes.get("/recupera_password", (req, res) => {
                 let user = users[0];
                 console.log(user);
 
-                let link = "http://localhost:3000/recupera_password?email=" + user.email + "&auth=" + user.password.slice(user.password.length - 10);
+                let link = "https://partyhub.herokuapp.com/recupera_password?email=" + user.email + "&auth=" + user.password.slice(user.password.length - 10);
 
                 let message = createEmailMessage(
                     user.email,

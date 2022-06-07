@@ -136,7 +136,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
                                                 user.save((err) => {
                                                     if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false)) {
 
-                                                        let link = "http://localhost:3000/recupera_password"
+                                                        let link = "https://partyhub.herokuapp.com/recupera_password"
 
                                                         let message = createEmailMessage(
                                                             dipendente.email,
