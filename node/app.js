@@ -674,6 +674,8 @@ let server = app.listen(port, () => {
     console.log(`Api app listening at http://localhost:${port}`)
 });
 
-server.close();
+if (process.env.NODE_ENV !== "production") {
+    server.close();
+}
 
 module.exports = { app, server };

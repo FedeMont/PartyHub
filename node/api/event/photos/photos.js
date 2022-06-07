@@ -213,7 +213,7 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
  *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
- *                          schema:S
+ *                          schema:
  *                              $ref: "#/components/schemas/Code409"
  *              422:
  *                  $ref: "#/components/responses/MissingParameters"
