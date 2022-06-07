@@ -44,82 +44,97 @@ describe('POST /api/v2/event/crea', () => {
     test('POST /api/v2/event/crea con parametri corretti', async () => {
 
         return await request(app)
-            .post('/api/v2/auth/login')
+            .post('/api/v2/auth/signin')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_o",
-                password: "test_o"
+                "name": "EventTestName",
+                "surname": "EventTestSurname",
+                "username": "event_test_up",
+                "email": "event_test_up@gmail.com",
+                "birthday": "2000-01-01T00:00:00.000Z",
+                "description": "Ciao Questo è un profilo di test",
+                "password": "event_test_up"
             })
-            .expect(200)
-            .then(
-                async (res) => {
-                    let token = res.body.token;
-                    return await request(app)
-                        .post('/api/v2/event/crea')
-                        .set('Accept', 'application/json')
-                        .set('Authorization', `Bearer ${token}`)
-                        .send({
-                            name: "Party_test",
-                            address: "Via Giuseppe Verdi, 77, 38122 Trento TN",
-                            // poster: "",
-                            start_datetime: "2022/07/09 21:30",
-                            end_datetime: "2022/07/10 5:00",
-                            age_range: "20-30",
-                            maximum_partecipants: "1"
-                        })
-                        .expect(200)
-                        .then(async (res) => {
-                            await save_event_id(res.body.message, "evento");
-
+            .expect('Content-Type', /json/)
+            .then(async () => {
+                return await request(app)
+                    .post('/api/v2/auth/login')
+                    .set('Accept', 'application/json')
+                    .send({
+                        username_email: "test_o",
+                        password: "test_o"
+                    })
+                    .expect(200)
+                    .then(
+                        async (res) => {
+                            let token = res.body.token;
                             return await request(app)
                                 .post('/api/v2/event/crea')
                                 .set('Accept', 'application/json')
                                 .set('Authorization', `Bearer ${token}`)
                                 .send({
-                                    name: "Party_test_passato",
+                                    name: "Party_test",
                                     address: "Via Giuseppe Verdi, 77, 38122 Trento TN",
                                     // poster: "",
-                                    start_datetime: "2022/03/09 21:30",
-                                    end_datetime: "2022/03/10 5:00",
+                                    start_datetime: "2022/07/09 21:30",
+                                    end_datetime: "2022/07/10 5:00",
                                     age_range: "20-30",
                                     maximum_partecipants: "1"
                                 })
                                 .expect(200)
                                 .then(async (res) => {
-                                    await save_event_id(res.body.message, "passato");
-
-                                    console.log("\x1b[41m\x1b[36m#######################\x1b[0m");
-
-                                    let start_datetime = new Date((new Date().setHours(new Date().getHours() - 3))).toLocaleString("en-US", {hour12: false}).replace(',', '');
-                                    start_datetime = start_datetime.substring(0, start_datetime.length - 3);
-                                    let end_datetime = new Date((new Date().setHours(new Date().getHours() + 3))).toLocaleString("en-US", {hour12: false}).replace(',', '');
-                                    end_datetime = end_datetime.substring(0, end_datetime.length - 3);
-
-                                    console.log(start_datetime, end_datetime);
-
-                                    console.log("\x1b[41m\x1b[36m#######################\x1b[0m");
-
+                                    await save_event_id(res.body.message, "evento");
+        
                                     return await request(app)
                                         .post('/api/v2/event/crea')
                                         .set('Accept', 'application/json')
                                         .set('Authorization', `Bearer ${token}`)
                                         .send({
-                                            name: "Party_test_2",
+                                            name: "Party_test_passato",
                                             address: "Via Giuseppe Verdi, 77, 38122 Trento TN",
                                             // poster: "",
-                                            start_datetime: start_datetime,
-                                            end_datetime: end_datetime,
+                                            start_datetime: "2022/03/09 21:30",
+                                            end_datetime: "2022/03/10 5:00",
                                             age_range: "20-30",
-                                            maximum_partecipants: "100"
+                                            maximum_partecipants: "1"
                                         })
                                         .expect(200)
                                         .then(async (res) => {
-                                            await save_event_id(res.body.message, "evento2");
+                                            await save_event_id(res.body.message, "passato");
+        
+                                            console.log("\x1b[41m\x1b[36m#######################\x1b[0m");
+        
+                                            let start_datetime = new Date((new Date().setHours(new Date().getHours() - 3))).toLocaleString("en-US", {hour12: false}).replace(',', '');
+                                            start_datetime = start_datetime.substring(0, start_datetime.length - 3);
+                                            let end_datetime = new Date((new Date().setHours(new Date().getHours() + 3))).toLocaleString("en-US", {hour12: false}).replace(',', '');
+                                            end_datetime = end_datetime.substring(0, end_datetime.length - 3);
+        
+                                            console.log(start_datetime, end_datetime);
+        
+                                            console.log("\x1b[41m\x1b[36m#######################\x1b[0m");
+        
+                                            return await request(app)
+                                                .post('/api/v2/event/crea')
+                                                .set('Accept', 'application/json')
+                                                .set('Authorization', `Bearer ${token}`)
+                                                .send({
+                                                    name: "Party_test_2",
+                                                    address: "Via Giuseppe Verdi, 77, 38122 Trento TN",
+                                                    // poster: "",
+                                                    start_datetime: start_datetime,
+                                                    end_datetime: end_datetime,
+                                                    age_range: "20-30",
+                                                    maximum_partecipants: "100"
+                                                })
+                                                .expect(200)
+                                                .then(async (res) => {
+                                                    await save_event_id(res.body.message, "evento2");
+                                                });
                                         });
                                 });
-                        });
-                }
-            );
+                        }
+                    );
+            });
     });
 
     // TEST SPRINT-1 14.1
@@ -234,14 +249,15 @@ describe('POST /api/v2/event/crea', () => {
 
 // TEST ISCRIZIONE EVENTO
 describe('POST /api/v2/event/iscrizione', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-1 15
     test('POST /api/v2/event/iscrizione con parametri corretti', () => {
         return request(app)
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -365,8 +381,8 @@ describe('POST /api/v2/event/iscrizione', () => {
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -393,8 +409,8 @@ describe('POST /api/v2/event/iscrizione', () => {
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -421,8 +437,8 @@ describe('POST /api/v2/event/iscrizione', () => {
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -445,14 +461,15 @@ describe('POST /api/v2/event/iscrizione', () => {
 
 // TEST DISISCRIZIONE EVENTO
 describe('POST /api/v2/event/disiscrizione', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-1 16
     test('POST /api/v2/event/disiscrizione con parametri corretti', () => {
         return request(app)
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -537,8 +554,8 @@ describe('POST /api/v2/event/disiscrizione', () => {
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -565,8 +582,8 @@ describe('POST /api/v2/event/disiscrizione', () => {
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -589,6 +606,7 @@ describe('POST /api/v2/event/disiscrizione', () => {
 
 // TEST MODIFICA EVENTO
 describe('PATCH /api/v2/event/modifica', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-2 11
     test('PATCH /api/v2/event/modifica con parametri corretti', () => {
         return request(app)
@@ -809,6 +827,7 @@ describe('PATCH /api/v2/event/modifica', () => {
 
 // TEST ELIMINA EVENTO
 describe('DELETE /api/v2/event/elimina', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-2 12
     test('DELETE /api/v2/event/elimina con parametri corretti', () => {
         return request(app)
@@ -953,14 +972,15 @@ describe('DELETE /api/v2/event/elimina', () => {
 
 // TEST FEEDBACK EVENTO
 describe('PATCH /api/v2/event/feedback', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-2 13
     test('PATCH /api/v2/event/feedback con parametri corretti', () => {
         return request(app)
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -1137,8 +1157,8 @@ describe('PATCH /api/v2/event/feedback', () => {
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
@@ -1166,8 +1186,8 @@ describe('PATCH /api/v2/event/feedback', () => {
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                username_email: "test_up",
-                password: "test_up"
+                username_email: "event_test_up",
+                password: "event_test_up"
             })
             .expect(200)
             .then(
