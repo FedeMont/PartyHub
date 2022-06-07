@@ -33,6 +33,7 @@ const save_service = (id, type = "") => {
 
 // TEST CREA SERVIZI
 describe('POST /api/v2/service/crea', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 12
     test('POST /api/v2/service/crea con token e nome, liste dei prodotti corretti', async () => {
         return await request(app)
@@ -226,46 +227,31 @@ describe('POST /api/v2/service/sell_products', () => {
             .then(
                 (res) => {
                     let token = res.body.token;
-
                     return request(app)
-                        .post('/api/v2/auth/login')
-                        .set('Accept', 'application/json')
+                        .post('/api/v2/dipendente/activate_turno')
+                        .set('Authorization', `Bearer ${token}`)
                         .send({
-                            "username_email": "dipendenteTest@gmail.com",
-                            "password": "dipendenteTest@gmail.com"
+                            "event_id": "629dfdc4002f39011b92bc0f"
                         })
-                        .expect('Content-Type', /json/)
-                        .expect(200)
-                        .then(
-                            (res) => {
-                                let token = res.body.token;
-                                return request(app)
-                                    .post('/api/v2/dipendente/activate_turno')
-                                    .set('Authorization', `Bearer ${token}`)
-                                    .send({
-                                        "event_id": "629dfdc4002f39011b92bc0f"
-                                    })
-                                    .expect({
-                                        status: 200,
-                                        message: 'Turno attivato.'
-                                    })
-                                    .then((res) => {
-                                        return request(app)
-                                        .post('/api/v2/service/sell_products')
-                                        .set('Authorization', `Bearer ${token}`)
-                                        .send({
-                                            "biglietto_id": "629e090c21af11d285d001a5",
-                                            "products_list": [
-                                                service.products_ids[0]
-                                            ]
-                                        })
-                                        .expect({
-                                            status: 200,
-                                            message: 'Prodotti accreditati.'
-                                        });
-                                    });
-                            }
-                        );
+                        .expect({
+                            status: 200,
+                            message: 'Turno attivato.'
+                        })
+                        .then((res) => {
+                            return request(app)
+                            .post('/api/v2/service/sell_products')
+                            .set('Authorization', `Bearer ${token}`)
+                            .send({
+                                "biglietto_id": "629e090c21af11d285d001a5",
+                                "products_list": [
+                                    service.products_ids[0]
+                                ]
+                            })
+                            .expect({
+                                status: 200,
+                                message: 'Prodotti accreditati.'
+                            });
+                        });
                 }
             );
     });
@@ -353,8 +339,8 @@ describe('POST /api/v2/service/sell_products', () => {
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
             .send({
-                "username_email": "dipendenteTest@gmail.com",
-                "password": "dipendenteTest@gmail.com"
+                "username_email": "alice.fasoli@studenti.unitn.it",
+                "password": "alice.fasoli@studenti.unitn.it"
             })
             .expect('Content-Type', /json/)
             .expect(200)
@@ -503,6 +489,7 @@ describe('POST /api/v2/service/sell_products', () => {
 
 // TEST GET SERVIZI
 describe('GET /api/v2/service/get_servizi', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-2 8
     test('GET /api/v2/service/get_servizi con token corretto', () => {
         return request(app)
@@ -611,6 +598,7 @@ describe('GET /api/v2/service/get_servizi', () => {
 
 // TEST GET SERVIZIO BY ID
 describe('GET /api/v2/service/get_by_id', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-2 9
     test('GET /api/v2/service/get_by_id con token e service id corretti', () => {
         return request(app)
@@ -760,6 +748,7 @@ describe('GET /api/v2/service/get_by_id', () => {
 
 // TEST MODIFICA SERVIZIO
 describe('PUT /api/v2/service/modifica', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-2 10
     test('PUT /api/v2/service/modifica con token e nome, lista dei prodotti corretti', () => {
         return request(app)

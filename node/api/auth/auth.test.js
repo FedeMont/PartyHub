@@ -18,6 +18,7 @@ afterAll(async () => {
 
 // TEST CHECK AVAIABILITY
 describe('GET /api/v2/auth/check_avaiability', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 1
     test('GET /api/v2/auth/check_avaiability con username e email disponibili', () => {
         let attribute = {
@@ -59,6 +60,7 @@ describe('GET /api/v2/auth/check_avaiability', () => {
 
 // TEST SIGNIN
 describe('GET /api/v2/auth/signin', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 2
     test('POST /api/v2/auth/signin con username e email disponibili', () => {
         return request(app)
@@ -113,6 +115,7 @@ describe('GET /api/v2/auth/signin', () => {
 
 // TEST LOGIN
 describe('GET /api/v2/auth/login', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 3
     test('POST /api/v2/auth/login con utente registrato', () => {
         return request(app)
@@ -181,6 +184,7 @@ describe('GET /api/v2/auth/login', () => {
 
 // TEST GET_USER_INFO
 describe('GET /api/v2/auth/get_user_info', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 4
     test('GET /api/v2/auth/get_user_info con token corretto', () => {
         return request(app)
@@ -236,6 +240,7 @@ describe('GET /api/v2/auth/get_user_info', () => {
 })
 
 describe('GET /api/v2/auth/validate_token', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 5
     test('GET /api/v2/auth/validate_token con token corretto', () => {
         return request(app)
@@ -280,6 +285,7 @@ describe('GET /api/v2/auth/validate_token', () => {
 
 // TEST LOGOUT
 describe('GET /api/v2/auth/logout', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-2 1
     test('POST /api/v2/auth/logout con token corretto', () => {
         return request(app)
@@ -327,6 +333,7 @@ describe('GET /api/v2/auth/logout', () => {
 
 // TEST RECUPERA_PASSWORD
 describe('GET /api/v2/auth/recupera_password', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-2 2
     test('GET /api/v2/auth/recupera_password con email registrata', () => {
         let attribute = {
@@ -363,6 +370,7 @@ describe('GET /api/v2/auth/recupera_password', () => {
 
 // TEST CAMBIA_PASSWORD
 describe('PATCH /api/v2/auth/cambia_password', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-2 3
     // QUESTO TEST NON È REALIZZABILE POICHÈ AUTH È PRESENTE SOLAMENTE NELLA MAIL INOLTRATA
     test('PATCH /api/v2/auth/cambia_password con email registrata', () => {

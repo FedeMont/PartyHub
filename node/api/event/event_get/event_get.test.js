@@ -287,6 +287,7 @@ describe('GET /api/v2/event/get/by_address', () => {
 
 // TEST GET EVENTS BY USER
 describe('GET /api/v2/event/get/by_user', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 19
     test('GET /api/v2/event/get/by_user con token corretto', () => {
         return request(app)
@@ -376,6 +377,7 @@ describe('GET /api/v2/event/get/by_user', () => {
 
 // TEST GET EVENTS BY ID
 describe('GET /api/v2/event/get/by_id', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-2 14
     test('GET /api/v2/event/get/by_id con token corretto', () => {
         return request(app)
@@ -497,6 +499,7 @@ describe('GET /api/v2/event/get/by_id', () => {
 
 // TEST GET EVENTS BY BIGLIETTO ID
 describe('GET /api/v2/event/get/by_biglietto_id', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-2 15
     test('GET /api/v2/event/get/by_biglietto_id con token corretto', () => {
         return request(app)
@@ -621,6 +624,7 @@ describe('GET /api/v2/event/get/by_biglietto_id', () => {
 
 // TEST GET STORICO EVENTI FUTURI
 describe('GET /api/v2/event/get/storico_eventi_futuri', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 16
     test('GET /api/v2/event/get/storico_eventi_futuri con token corretto', () => {
         return request(app)
@@ -710,9 +714,9 @@ describe('GET /api/v2/event/get/storico_eventi_futuri', () => {
     });
 });
 
-
 // TEST GET STORICO EVENTI PASSATI
 describe('GET /api/v2/event/get/storico_eventi_passati', () => {
+    jest.setTimeout(30000);
     // TEST SPRINT-1 17
     test('GET /api/v2/event/get/storico_eventi_passati con token corretto', () => {
         return request(app)
