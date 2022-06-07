@@ -6,6 +6,11 @@ test('app module should be defined', () => {
     expect(app).toBeDefined();
 });
 
+beforeAll(async () => {
+    jest.setTimeout(8000);
+});
+
+
 afterAll(async () => {
     await mongoose.connection.close();
     await server.close();
@@ -28,6 +33,7 @@ describe('GET /api/v2/biglietto/get_biglietti_futuri_by_user', () => {
                     let token = res.body.token;
                     return request(app)
                         .get('/api/v2/biglietto/get_biglietti_futuri_by_user')
+                        .set('Accept', 'application/json')
                         .set('Authorization', `Bearer ${token}`)
                         .expect('Content-Type', /json/)
                         .then(

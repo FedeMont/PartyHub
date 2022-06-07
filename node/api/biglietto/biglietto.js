@@ -30,25 +30,27 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                      description: http status.
  *                                      example: 200
  *                                  message:
- *                                      type: object
- *                                      properties:
- *                                          biglietto_id:
- *                                              type: string
- *                                              description: Id del biglietto.
- *                                              example: 6288ec25fe5bb453c76a62fa
- *                                          evento_id:
- *                                              type: string
- *                                              description: Id dell'evento.
- *                                              example: 6288ec25fe5bb453c76a62fa
- *                                          event_name:
- *                                              type: string
- *                                              description: Nome dell'evento.
- *                                              example: AlterEgo
- *                                          event_start_datetime:
- *                                              type: string
- *                                              format: date
- *                                              description: Data e ora di inizio dell'evento.
- *                                              example: 2000-05-21T00:00:00.000Z
+ *                                      type: array
+ *                                      items:
+ *                                          type: object
+ *                                          properties:
+ *                                              biglietto_id:
+ *                                                  type: string
+ *                                                  description: Id del biglietto.
+ *                                                  example: 6288ec25fe5bb453c76a62fa
+ *                                              evento_id:
+ *                                                  type: string
+ *                                                  description: Id dell'evento.
+ *                                                  example: 6288ec25fe5bb453c76a62fa
+ *                                              event_name:
+ *                                                  type: string
+ *                                                  description: Nome dell'evento.
+ *                                                  example: AlterEgo
+ *                                              event_start_datetime:
+ *                                                  type: string
+ *                                                  format: date
+ *                                                  description: Data e ora di inizio dell'evento.
+ *                                                  example: 2000-05-21T00:00:00.000Z
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -131,25 +133,27 @@ routes.get('/get_biglietti_futuri_by_user', authenticateToken, (req, res) => {
  *                                      description: http status.
  *                                      example: 200
  *                                  message:
- *                                      type: object
- *                                      properties:
- *                                          biglietto_id:
- *                                              type: string
- *                                              description: Id del biglietto.
- *                                              example: 6288ec25fe5bb453c76a62fa
- *                                          evento_id:
- *                                              type: string
- *                                              description: Id dell'evento.
- *                                              example: 6288ec25fe5bb453c76a62fa
- *                                          event_name:
- *                                              type: string
- *                                              description: Nome dell'evento.
- *                                              example: AlterEgo
- *                                          event_start_datetime:
- *                                              type: string
- *                                              format: date
- *                                              description: Data e ora di inizio dell'evento.
- *                                              example: 2000-05-21T00:00:00.000Z
+ *                                      type: array
+ *                                      items:
+ *                                          type: object
+ *                                          properties:
+ *                                              biglietto_id:
+ *                                                  type: string
+ *                                                  description: Id del biglietto.
+ *                                                  example: 6288ec25fe5bb453c76a62fa
+ *                                              evento_id:
+ *                                                  type: string
+ *                                                  description: Id dell'evento.
+ *                                                  example: 6288ec25fe5bb453c76a62fa
+ *                                              event_name:
+ *                                                  type: string
+ *                                                  description: Nome dell'evento.
+ *                                                  example: AlterEgo
+ *                                              event_start_datetime:
+ *                                                  type: string
+ *                                                  format: date
+ *                                                  description: Data e ora di inizio dell'evento.
+ *                                                  example: 2000-05-21T00:00:00.000Z
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:

@@ -6,6 +6,11 @@ test('app module should be defined', () => {
     expect(app).toBeDefined();
 });
 
+beforeAll(async () => {
+    jest.setTimeout(8000);
+});
+
+
 afterAll(async () => {
     await mongoose.connection.close();
     await server.close();
@@ -124,7 +129,7 @@ describe('GET /api/v2/auth/login', () => {
                     let error = true;
                     if (res.body.status === 200 &&
                         res.body.message === "Login avvenuto con successo" &&
-                        res.token !== "") {
+                        res.body.token !== "") {
                         error = false;
                     }
                     return !error;

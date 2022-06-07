@@ -118,7 +118,7 @@ function get_photos(event_id, only_owner_photos, res, user) {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
     if (
@@ -222,7 +222,7 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/get_photos', authenticateToken, (req, res) => {
     if (

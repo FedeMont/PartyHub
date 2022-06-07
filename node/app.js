@@ -56,7 +56,7 @@ const options = {
                     }
                 },
                 MissingParameters: {
-                    description: "Parametri richiesti mancanti.",
+                    description: "Parametri mancanti.",
                     content: {
                         "application/json": {
                             schema: {

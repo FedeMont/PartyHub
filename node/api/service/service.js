@@ -64,7 +64,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/crea', authenticateToken, (req, res) => {
     if (
@@ -179,7 +179,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/get_servizi', authenticateToken, (req, res) => {
     User.find({ email: req.user.mail }, "", (err, users) => {

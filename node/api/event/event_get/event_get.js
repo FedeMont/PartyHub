@@ -100,7 +100,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/events', authenticateToken, (req, res) => {
     if (
@@ -252,7 +252,7 @@ routes.get('/events', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/by_address', authenticateToken, (req, res) => {
     if (
@@ -378,7 +378,7 @@ routes.get('/by_address', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/by_id', authenticateToken, (req, res) => {
     if (
@@ -478,7 +478,7 @@ routes.get('/by_id', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/by_user', authenticateToken, (req, res) => {
     User.find({ $and: [{ email: req.user.mail }, { account_type: "o" }] }, "", (err, users) => {
@@ -571,7 +571,7 @@ routes.get('/by_user', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
     if (
@@ -656,7 +656,7 @@ routes.get('/by_biglietto_id', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/storico_eventi_futuri', authenticateToken, (req, res) => {
     User.find(
@@ -717,7 +717,7 @@ routes.get('/storico_eventi_futuri', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/storico_eventi_passati', authenticateToken, (req, res) => {
     User.find(
