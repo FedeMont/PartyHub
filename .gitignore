@@ -1,7 +1,6 @@
 database/*
 *.DS_Store
 *.idea
-node/package-lock.json
 
 # Logs
 logs
