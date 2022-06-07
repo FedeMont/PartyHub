@@ -41,6 +41,12 @@
     <script src="/public/script/utils.js"></script>
 
     <script>
+
+        let event_click = ($this) => {
+            console.log($this.prop("id"));
+            window.location.replace("/utente/dettaglio_evento?id="+$this.prop("id").split('_')[1]+"&lista=true");
+        };
+
         $(document).ready(function () {
             addTopBar("Home", `
                     <i class="small material-icons blue-text left m-0" id="settings_button">settings</i>
@@ -91,7 +97,7 @@
                 let address = $("#search").val();
                 console.log(address);
 
-                if (address != "") {
+                if (address !== "") {
                     $.ajax({
                         url: "/api/v2/event/get/by_address",
                         type: "GET",
@@ -105,6 +111,11 @@
 
                             data.message.forEach((event) => {
                                 $("#events_list").append(generate_event_post(event));
+
+                                $(".event").click(function() {
+                                    event_click($(this));
+                                });
+
                                 if (event.is_user_iscritto) {
                                     iscriviti_click($('.iscriviti_button#' + event._id), false);
                                 } else {
@@ -117,6 +128,10 @@
                                     $("#events_list").html("");
                                     events.forEach((event) => {
                                         $("#events_list").append(generate_event_post(event));
+
+                                        $(".event").click(function() {
+                                            event_click($(this));
+                                        });
 
                                         if (event.is_user_iscritto) {
                                             iscriviti_click($('.iscriviti_button#' + event._id), false);
@@ -148,8 +163,8 @@
             }
             return `
             <div class="row m-0">
-                <div class="col s12 ">
-                    <div class="card event_post grey lighten-5">
+                <div class="col s12">
+                    <div class="card event_post grey lighten-5 event" id="event_${obj._id}">
                         <div class="card-content black-text" style="padding: 10px;">
                             <div class="row m-0 valign-wrapper">
                                 <div class="col s2 left-align">
@@ -273,6 +288,10 @@
                             })
 
                             $("#events_list").append(generate_event_post(event, profile_picture));
+
+                            $(".event").click(function() {
+                                event_click($(this));
+                            });
 
                             if (event.is_user_iscritto) {
                                 // $('.iscriviti_button#'+event._id).click(function () { disiscriviti_click($(this)); });

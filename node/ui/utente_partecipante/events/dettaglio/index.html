@@ -128,13 +128,14 @@
     <script>
         let url_params = (new URLSearchParams(window.location.search));
         let event_id = (url_params.has("id")) ? url_params.get("id") : undefined;
+        let lista = (url_params.has("lista")) ? url_params.get("lista") : undefined;
 
         $(document).ready(function () {
             addTopBar(
                 "",
                 ``,
                 false,
-                `<a class="blue-text left valign-wrapper" href="/utente/storico_eventi">
+                `<a class="blue-text left valign-wrapper" href="/utente/${lista? '' : 'storico_eventi'}">
                 <i class="material-icons">chevron_left</i>
                 <span>Events</span>
             </a>`
