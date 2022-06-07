@@ -383,7 +383,7 @@ routes.get('/by_address', authenticateToken, (req, res) => {
 routes.get('/by_id', authenticateToken, (req, res) => {
     if (
         requiredParametersErrHandler(
-            req,
+            res,
             [req.query.event_id]
         )
     ) {

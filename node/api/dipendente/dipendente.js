@@ -488,20 +488,23 @@ routes.put('/modifica', authenticateToken, (req, res) => {
 
                                Service.find({ _id: req.body.services_list }, "", (err, services) => {
                                    if (errHandler(res, err, "servizi")) {
-                                       if (services.length === 0) return standardRes(res, 409, "Nessun servizio trovato.");
+                                        if (services.length === 0) return standardRes(res, 409, "Nessun servizio trovato.");
 
-                                       dipendente["name"] = req.body.name;
-                                       dipendente["surname"] = req.body.surname;
-                                       dipendente["number_of_services"] = req.body.services_list.length;
-                                       dipendente["services_list"] = req.body.services_list;
-                                       dipendente["events_list"] = req.body.events_list;
-                                       dipendente["number_of_events"] = req.body.events_list.length;
+                                        dipendente["name"] = req.body.name;
+                                        dipendente["surname"] = req.body.surname;
+                                        dipendente["number_of_services"] = req.body.services_list.length;
+                                        dipendente["services_list"] = req.body.services_list;
+                                        dipendente["events_list"] = req.body.events_list;
+                                        dipendente["number_of_events"] = req.body.events_list.length;
 
-                                       dipendente.save((err) => {
-                                           if (errHandler(res, err, "Errore nell'aggiornamento del dipendente", false)) {
-                                               return standardRes(res, 200, "Dipendente modificato.");
-                                           }
-                                       });
+                                        if (!req.body.active_event)
+                                            dipendente["active_event"] = undefined;
+
+                                        dipendente.save((err) => {
+                                            if (errHandler(res, err, "Errore nell'aggiornamento del dipendente", false)) {
+                                                return standardRes(res, 200, "Dipendente modificato.");
+                                            }
+                                        });
                                    }
                                });
                            }
