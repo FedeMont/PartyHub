@@ -626,8 +626,10 @@ app.use("/api/v2/biglietto", biglietto);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.listen(port, () => {
+let server = app.listen(port, () => {
     console.log(`Api app listening at http://localhost:${port}`)
 });
 
-module.exports = app
+server.close();
+
+module.exports = { app, server };

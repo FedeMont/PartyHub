@@ -363,9 +363,9 @@ routes.post('/activate', authenticateToken, (req, res) => {
                                 let event = events[0];
                                 console.log("User: ", event);
 
-                                if (event.start_datetime > new Date()) return standardRes(res, 409, "Non ti è possibile attivare il biglietto per un evento che deve ancora iniziare.");
-
                                 if (!biglietto.event.equals(event._id)) return standardRes(res, 409, "Non ti è possibile attivare il biglietto per questo evento.");
+
+                                if (event.start_datetime > new Date()) return standardRes(res, 409, "Non ti è possibile attivare il biglietto per un evento che deve ancora iniziare.");
 
                                 biglietto.entrance_datetime = new Date();
                                 biglietto.save((err) => {
