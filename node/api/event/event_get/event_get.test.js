@@ -18,7 +18,7 @@ afterAll(async () => {
 
 // TEST GET EVENTS
 describe('GET /api/v2/event/get/events', () => {
-    jest.setTimeout(10000);
+    jest.setTimeout(30000);
     // TEST SPRINT-1 17
     test('GET /api/v2/event/get/events con token corretto', () => {
         return request(app)
@@ -56,6 +56,7 @@ describe('GET /api/v2/event/get/events', () => {
 
     // TEST SPRINT-1 17.1
     test('GET /api/v2/event/get/events con token corretto', () => {
+        jest.setTimeout(30000);
         return request(app)
             .post('/api/v2/auth/login')
             .set('Accept', 'application/json')
@@ -155,7 +156,7 @@ describe('GET /api/v2/event/get/events', () => {
 
 // TEST GET EVENTS BY ADDRESS
 describe('GET /api/v2/event/get/by_address', () => {
-    jest.setTimeout(10000);
+    jest.setTimeout(30000);
     // TEST SPRINT-1 18
     test('GET /api/v2/event/get/by_address con token corretto', () => {
         return request(app)

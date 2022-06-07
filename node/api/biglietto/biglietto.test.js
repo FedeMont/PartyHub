@@ -6,10 +6,9 @@ test('app module should be defined', () => {
     expect(app).toBeDefined();
 });
 
-beforeAll(async () => {
+beforeAll(async ()=>{
     jest.setTimeout(8000);
-});
-
+})
 
 afterAll(async () => {
     await mongoose.connection.close();
@@ -18,6 +17,7 @@ afterAll(async () => {
 
 // TEST GET BIGLIETTI FUTURI BY USER
 describe('GET /api/v2/biglietto/get_biglietti_futuri_by_user', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-1 6
     test('GET /api/v2/biglietto/get_biglietti_futuri_by_user con token corretto', () => {
         return request(app)
@@ -107,6 +107,7 @@ describe('GET /api/v2/biglietto/get_biglietti_futuri_by_user', () => {
 
 // TEST GET BIGLIETTI SCADUTI BY USER
 describe('GET /api/v2/biglietto/get_biglietti_scaduti_by_user', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-1 7
     test('GET /api/v2/biglietto/get_biglietti_scaduti_by_user con token corretto', () => {
         return request(app)
@@ -195,6 +196,7 @@ describe('GET /api/v2/biglietto/get_biglietti_scaduti_by_user', () => {
 
 // TEST ATTIVA BIGLIETTO
 describe('POST /api/v2/biglietto/activate', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-1 8
     test('POST /api/v2/biglietto/activate con token corretto', () => {
         return request(app)
@@ -404,6 +406,7 @@ describe('POST /api/v2/biglietto/activate', () => {
 
 // TEST LISTA PRODOTTI
 describe('GET /api/v2/biglietto/get_products', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-1 9
     test('GET /api/v2/biglietto/get_products con token e biglietto id corretti', () => {
         return request(app)
@@ -520,6 +523,7 @@ describe('GET /api/v2/biglietto/get_products', () => {
 
 // TEST DISATTIVA BIGLIETTO
 describe('POST /api/v2/biglietto/deactivate', () => {
+    jest.setTimeout(8000);
     // TEST SPRINT-2 4
     test('POST /api/v2/biglietto/deactivate con token corretto, biglietto id e evento id presenti nel database', () => {
         return request(app)

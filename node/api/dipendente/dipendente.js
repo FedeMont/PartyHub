@@ -105,7 +105,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
 
                         Service.find({ $and: [{ _id: req.body.services_list }, { owner: user._id }] }, "", (err, services) => {
                             if (errHandler(res, err, "servizi")) {
-                                if (services.length === 0) return standardRes(res, 409, "NEssun servizio trovato.");
+                                if (services.length === 0) return standardRes(res, 409, "Nessun servizio trovato.");
 
                                 console.log(services);
 

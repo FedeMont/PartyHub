@@ -5,6 +5,9 @@ const { app, server } = require("../../app");
 test('app module should be defined', () => {
     expect(app).toBeDefined();
 });
+beforeAll(async ()=>{
+    jest.setTimeout(8000);
+})
 
 beforeAll(async () => {
     jest.setTimeout(8000);
@@ -60,23 +63,23 @@ describe('GET /api/v2/auth/check_avaiability', () => {
 // TEST SIGNIN
 describe('GET /api/v2/auth/signin', () => {
     // TEST SPRINT-1 2
-    // test('POST /api/v2/auth/signin con username e email disponibili', () => {
-    //     return request(app)
-    //         .post('/api/v2/auth/signin')
-    //         .set('Accept', 'application/json')
-    //         .send({
-    //             "name": "TestName",
-    //             "surname": "TestSurname",
-    //             "username": "TestAccount",
-    //             "email": "test@gmail.com",
-    //             "birthday": "2000-01-01T00:00:00.000Z",
-    //             "description": "Ciao Questo è un profilo di test",
-    //             "password": "TestPassword"
-    //         })
-    //         .expect({
-    //             status: 200, message: 'Registrazione avvenuta con successo.'
-    //         });
-    // });
+    test('POST /api/v2/auth/signin con username e email disponibili', () => {
+        return request(app)
+            .post('/api/v2/auth/signin')
+            .set('Accept', 'application/json')
+            .send({
+                "name": "TestName",
+                "surname": "TestSurname",
+                "username": "TestAccount",
+                "email": "testtest@gmail.com",
+                "birthday": "2000-01-01T00:00:00.000Z",
+                "description": "Ciao Questo è un profilo di test",
+                "password": "TestPassword"
+            })
+            .expect({
+                status: 200, message: 'Registrazione avvenuta con successo.'
+            });
+    });
 
     // TEST SPRINT-1 2.1
     test('POST /api/v2/auth/signin con username o email già presenti', () => {
@@ -328,16 +331,16 @@ describe('GET /api/v2/auth/logout', () => {
 // TEST RECUPERA_PASSWORD
 describe('GET /api/v2/auth/recupera_password', () => {
     // TEST SPRINT-2 2
-    // test('GET /api/v2/auth/recupera_password con email registrata', () => {
-    //     let attribute = {
-    //         "email": "alicefasoli@gmail.com"
-    //     };
-    //     return request(app)
-    //         .get(generate_url_with_attr('/api/v2/auth/recupera_password', attribute))
-    //         .expect({
-    //             status: 200, message: 'Email inviata.'
-    //         });
-    // });
+    test('GET /api/v2/auth/recupera_password con email registrata', () => {
+        let attribute = {
+            "email": "alicefasoli@gmail.com"
+        };
+        return request(app)
+            .get(generate_url_with_attr('/api/v2/auth/recupera_password', attribute))
+            .expect({
+                status: 200, message: 'Email inviata.'
+            });
+    });
 
     // TEST SPRINT-2 2.1
     test('GET /api/v2/auth/recupera_password con email non registrata', () => {

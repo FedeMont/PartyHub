@@ -38,7 +38,7 @@ const save_event_id = (id, type) => {
 
 // TEST CREA EVENTO
 describe('POST /api/v2/event/crea', () => {
-    jest.setTimeout(10000);
+    jest.setTimeout(30000);
 
     // TEST SPRINT-1 14
     test('POST /api/v2/event/crea con parametri corretti', async () => {

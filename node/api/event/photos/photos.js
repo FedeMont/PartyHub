@@ -170,7 +170,7 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
  * @openapi
  * paths:
  *  /api/v2/event/photos/get_photos:
- *      post:
+ *      get:
  *          summary:  Ritorna le foto degli eventi in base ai permessi
  *          description: Restituisce la lista contenente le immagini caricate all'evento. Vengono restituite in base ai permessi e alla partecipazione all'evento da parte dell'utente
  *          security:
@@ -213,7 +213,7 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
  *                  description: Nessun evento trovato.
  *                  content:
  *                      application/json:
- *                          schema:
+ *                          schema:S
  *                              $ref: "#/components/schemas/Code409"
  *              422:
  *                  $ref: "#/components/responses/MissingParameters"
@@ -224,11 +224,11 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
  *                          schema:
  *                              $ref: "#/components/schemas/Code500"
  */
-routes.post('/get_photos', authenticateToken, (req, res) => {
+routes.get('/get_photos', authenticateToken, (req, res) => {
     if (
         requiredParametersErrHandler(
             res,
-            [req.body.event_id]
+            [req.query.event_id]
         )
     ) {
         User.find({ email: req.user.mail }, "", (err, users) => {
@@ -241,15 +241,15 @@ routes.post('/get_photos', authenticateToken, (req, res) => {
                 if (user.account_type === "d") return standardRes(res, 401, "Non ti è possibile visualizzare le foto dell'evento.");
 
                 if (user.account_type === "o") {
-                    if (!user.events_list.includes(req.body.event_id)) return standardRes(res, 401, "Non ti è possibile visualizzare le foto per eventi non creati da te.");
-                    get_photos(req.body.event_id, false, res, user);
+                    if (!user.events_list.includes(req.query.event_id)) return standardRes(res, 401, "Non ti è possibile visualizzare le foto per eventi non creati da te.");
+                    get_photos(req.query.event_id, false, res, user);
                 }
 
                 if (user.account_type === "up") {
-                    Biglietto.find({ $and: [{ _id: user.biglietti_list }, { event: req.body.event_id }, { entrance_datetime: { $ne: null } }, { exit_datetime: { $ne: null } }] }, "", (err, biglietti) => {
+                    Biglietto.find({ $and: [{ _id: user.biglietti_list }, { event: req.query.event_id }, { entrance_datetime: { $ne: null } }, { exit_datetime: { $ne: null } }] }, "", (err, biglietti) => {
                         if (errHandler(res, err, "biglietto")) {
                             let only_owner_photos = (biglietti.length === 0);
-                            get_photos(req.body.event_id, only_owner_photos, res, user);
+                            get_photos(req.query.event_id, only_owner_photos, res, user);
                         }
                     });
                 }
