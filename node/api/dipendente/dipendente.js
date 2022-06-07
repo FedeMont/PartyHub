@@ -12,7 +12,7 @@ const Service = mongoose.model("Service", documents.serviceSchema);
 /**
  * @openapi
  * paths:
- *  /api/v2/dipendente/crea:
+ *  /dipendente/crea:
  *      post:
  *          summary: Creazione dipendente
  *          description: Dati i dati del dipendente, dei servizi e degli eventi inseriti dall'utente, il sistema inserisce il nuovo utente dipendente e manda una mail
@@ -175,7 +175,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/dipendente/activate_turno:
+ *  /dipendente/activate_turno:
  *      post:
  *          summary: Attivazione turno dipendente
  *          description: Dato l'id di un evento legato all'utente viene attivato il turno per quell'evento
@@ -265,7 +265,7 @@ routes.post('/activate_turno', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/dipendente/get_dipendenti:
+ *  /dipendente/get_dipendenti:
  *      get:
  *          summary: Ritorna i dipendenti
  *          description: Restituisce i dipendenti dell'utente loggato
@@ -391,7 +391,7 @@ routes.get('/get_dipendenti', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/dipendente/modifica:
+ *  /dipendente/modifica:
  *      put:
  *          summary: Modifica il dipendente
  *          description: Dato l'id, il nome, il cognome, la lista degli eventi e dei servizi del dipendente modifica le sue informazioni
@@ -519,7 +519,7 @@ routes.put('/modifica', authenticateToken, (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/dipendente/get_by_id:
+ *  /dipendente/get_by_id:
  *      get:
  *          summary: Informazioni del dipendente
  *          description: Dato l'id di un dipendente ritorna le informazioni di quel dipendente

@@ -64,7 +64,7 @@ function get_photos(event_id, only_owner_photos, res, user) {
 /**
  * @openapi
  * paths:
- *  /api/v2/event/photos/add:
+ *  /event/photos/add:
  *      post:
  *          summary: Aggiunta foto ad evento
  *          description: Dati i dati dell'utente, l'id dell'evento e le foto selezionate, il sistema inserisce le foto all'evento
@@ -169,8 +169,8 @@ routes.post('/add', authenticateToken, upload.array('photos'), (req, res) => {
 /**
  * @openapi
  * paths:
- *  /api/v2/event/photos/get_photos:
- *      get:
+ *  /event/photos/get_photos:
+ *      post:
  *          summary:  Ritorna le foto degli eventi in base ai permessi
  *          description: Restituisce la lista contenente le immagini caricate all'evento. Vengono restituite in base ai permessi e alla partecipazione all'evento da parte dell'utente
  *          security:
