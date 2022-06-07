@@ -175,9 +175,19 @@ if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
 }
 
+let generate_url_with_attr = (url, _attribute) => {
+    let final_url = url + "?";
+    for (const [key, value] of Object.entries(_attribute)) {
+        final_url = final_url.concat(`${key}=${value}&`);
+    }
+    // return full url without last & simble
+    return final_url.slice(0, -1);
+}
+
 exports.mongoose = mongoose;
 exports.documents = documents;
 exports.standardRes = standardRes;
 exports.bcrypt = bcrypt;
 exports.saltRounds = saltRounds;
 exports.upload = upload;
+exports.generate_url_with_attr = generate_url_with_attr;

@@ -68,8 +68,8 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                      example: 200
  *                                  message:
  *                                      type: string
- *                                      description: messaggio.
- *                                      example: Evento creato correttamente.
+ *                                      description: Id dell'evento creato correttamente.
+ *                                      example: 6288ec25fe5bb453c76a62fa
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -79,7 +79,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code409"
+ *                              $ref: "#/components/schemas/Code409"
  *              422:
  *                  $ref: "#/components/responses/MissingParameters"
  *              500:
@@ -87,7 +87,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
     if (
@@ -176,7 +176,7 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
 
                                         sendMail(message)
                                             .then((result) => {
-                                                return standardRes(res, 200, "Evento creato correttamente.");
+                                                return standardRes(res, 200, event._id);
                                             })
                                             .catch((error) => {
                                                 errHandler(res, err, "Errore nell'invio dell'email.", false);
@@ -253,7 +253,7 @@ routes.post('/crea', authenticateToken, upload.single('poster'), (req, res) => {
  *                                  message:
  *                                      type: string
  *                                      description: messaggio.
- *                                      example: Evento modificato correttamente.
+ *                                      example: Evento aggiornato correttamente.
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -390,7 +390,7 @@ routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res)
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code409"
+ *                              $ref: "#/components/schemas/Code409"
  *              422:
  *                  $ref: "#/components/responses/MissingParameters"
  *              500:
@@ -398,7 +398,7 @@ routes.patch('/modifica', authenticateToken, upload.single('poster'), (req, res)
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.delete('/elimina', authenticateToken, (req, res) => {
     if (
@@ -514,7 +514,7 @@ routes.delete('/elimina', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code409"
+ *                              $ref: "#/components/schemas/Code409"
  *              422:
  *                  $ref: "#/components/responses/MissingParameters"
  *              500:
@@ -522,7 +522,7 @@ routes.delete('/elimina', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/iscrizione', authenticateToken, (req, res) => {
     if (
@@ -550,7 +550,7 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
                         if (user.events_list.includes(event._id) || event.partecipants_list.includes(user._id))
                             return standardRes(res, 409, "L'utente è già iscritto a questo evento.");
 
-                        if (event.number_of_partecipants + 1 > event.maximum_partecipents)
+                        if (event.number_of_partecipants + 1 > event.maximum_partecipants)
                             return standardRes(res, 409, "Il numero limite di partecipanti è già stato raggiunto.");
 
                         const biglietto = new Biglietto({
@@ -635,7 +635,7 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code409"
+ *                              $ref: "#/components/schemas/Code409"
  *              422:
  *                  $ref: "#/components/responses/MissingParameters"
  *              500:
@@ -643,7 +643,7 @@ routes.post('/iscrizione', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/disiscrizione', authenticateToken, (req, res) => {
     if (
@@ -759,7 +759,7 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code409"
+ *                              $ref: "#/components/schemas/Code409"
  *              422:
  *                  $ref: "#/components/responses/MissingParameters"
  *              500:
@@ -767,7 +767,7 @@ routes.post('/disiscrizione', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.patch('/feedback', authenticateToken, (req, res) => {
     if (
@@ -806,7 +806,7 @@ routes.patch('/feedback', authenticateToken, (req, res) => {
 
                                     event.save((err) => {
                                         if (errHandler(res, err, "Errore nel salvataggio del feedback.", false)) {
-                                            return standardRes(res, 200, "Feedback salvato.");
+                                            return standardRes(res, 200, "Feedback salvato correttamente.");
                                         }
                                     });
                                 }

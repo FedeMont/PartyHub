@@ -50,9 +50,18 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                                      description: http status.
  *                                      example: 200
  *                                  message:
- *                                      type: string
- *                                      description: messaggio.
- *                                      example: Servizio creato correttamente.
+ *                                      type: object
+ *                                      properties:
+ *                                          service_id:
+ *                                              type: string
+ *                                              description: Id del servizio creato.
+ *                                              example: 629e090c21af11d285d001a5.
+ *                                          products_ids:
+ *                                              type: array
+ *                                              items:
+ *                                                  type: string
+ *                                                  description: Id dei prodotti creati.
+ *                                                  example: 629e090c21af11d285d001a5.
  *              401:
  *                  $ref: "#/components/responses/NoToken"
  *              403:
@@ -64,7 +73,7 @@ const Biglietto = mongoose.model("Biglietto", documents.bigliettoSchema);
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.post('/crea', authenticateToken, (req, res) => {
     if (
@@ -103,9 +112,13 @@ routes.post('/crea', authenticateToken, (req, res) => {
                         user.services_list.push(service._id);
                         user.number_of_services = user.number_of_services + 1;
 
+                        let to_return = {};
+                        to_return["service_id"] = service._id;
+                        to_return["products_ids"] = service.products_list.map(product => product._id);
+
                         user.save((err) => {
                             if (errHandler(res, err, "Errore nell'aggiornamento dell'utente.", false)) {
-                                return standardRes(res, 200, "Servizio creato correttamente.");
+                                return standardRes(res, 200, to_return);
                             }
                         });
                     }
@@ -179,7 +192,7 @@ routes.post('/crea', authenticateToken, (req, res) => {
  *                  content:
  *                      application/json:
  *                          schema:
- *                              $ref: "#/components/schema/Code500"
+ *                              $ref: "#/components/schemas/Code500"
  */
 routes.get('/get_servizi', authenticateToken, (req, res) => {
     User.find({ email: req.user.mail }, "", (err, users) => {
@@ -266,7 +279,7 @@ routes.get('/get_by_id', authenticateToken, (req, res) => {
                 let user = users[0];
                 console.log(user);
 
-                Service.find({ $and: [{ _id: req.query.service_id }, { _id: user.services_list }] }, "", (err, services) => {
+                Service.find({ _id: req.query.service_id }, "", (err, services) => {
                     if (errHandler(res, err, "servizio")) {
                         if (services.length === 0) return standardRes(res, 409, "Nessun servizio trovato.");
 
@@ -363,7 +376,7 @@ routes.put('/modifica', authenticateToken, (req, res) => {
                 let user = users[0];
                 console.log(user);
 
-                Service.find({ $and: [{ _id: req.body.id }, { _id: user.services_list }] }, "", (err, services) => {
+                Service.find({ _id: req.body.id }, "", (err, services) => {
                     if (errHandler(res, err, "servizio")) {
                         if (services.length === 0) return standardRes(res, 409, "Nessun servizio trovato.");
 
@@ -474,7 +487,7 @@ routes.post('/sell_products', authenticateToken, (req, res) => {
                         Service.find({ "products_list._id": req.body.products_list }, "", (err, services) => {
                             if (errHandler(res, err, "servizio")) {
 
-                                if (services.length === 0) return standardRes(res, 409, "Non prodotto trovato.");
+                                if (services.length === 0) return standardRes(res, 409, "Nessun prodotto trovato.");
 
                                 let service = services[0];
                                 console.log(service);

@@ -161,6 +161,7 @@ routes.post("/signin", upload.single('profile_picture'), (req, res) => {
                                 surname: req.body.surname,
                                 username: req.body.username,
                                 email: req.body.email,
+                                account_type: req.body.account_type,
                                 password: hash,
                                 birthday: Date.parse(req.body.birthday.replace(/(\d+[/])(\d+[/])/, '$2$1')),
                                 description: req.body.description,
