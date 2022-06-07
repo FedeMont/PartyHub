@@ -55,19 +55,8 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v2
-      # https://github.com/marketplace/actions/deploy-to-heroku#procfile-passing
       - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
-      - name: Add remote origin
-        run: |
-          git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}.git
-      - name: Deploy to Heroku
-        run: |
-          git push heroku main:main
-#        with:
-#          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-#          heroku_app_name: "partyhub" #Must be unique in Heroku
-#          heroku_email: "federico.montagna@studenti.unitn.it"
-#          branch: "main"
-
-# Pipeline to test and deploy on Heroku
-# https://medium.com/@katestudwell/using-github-actions-to-create-a-simple-test-and-release-pipeline-for-phoenix-app-d0d65feed4ed
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: "federico.montagna@studenti.unitn.it"
