@@ -1,5 +1,5 @@
 $.ajaxSetup({
-    beforeSend: (jqXHR, settings) => { settings.url = "https://partyhub.herokuapp.com/" + settings.url },
+    beforeSend: (jqXHR, settings) => { settings.url = "https://partyhub.herokuapp.com" + settings.url },
     contentType: "application/x-www-form-urlencoded",
     headers: {
         "Authorization": "Bearer " + readCookie("token")
