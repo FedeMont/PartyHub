@@ -6,9 +6,9 @@ test('app module should be defined', () => {
     expect(app).toBeDefined();
 });
 
-beforeAll(async () => {
-    jest.setTimeout(8000);
-})
+// beforeAll(async () => {
+//     jest.setTimeout(30000);
+// })
 
 afterAll(async () => {
     await mongoose.connection.close();
@@ -17,7 +17,7 @@ afterAll(async () => {
 
 // TEST DIPENDENTE CREA
 describe('GET /api/v2/dipendente/crea', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-1 10
     test('POST /api/v2/dipendente/crea con parametri necessari', () => {
         return request(app)
@@ -178,7 +178,7 @@ describe('GET /api/v2/dipendente/crea', () => {
 
 // TEST DIPENDENTE ACTIVATE_TURNO
 describe('GET /api/v2/dipendente/activate_turno', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-1 11
     test('POST /api/v2/dipendente/activate_turno con token e event_id presenti', () => {
         return request(app)
@@ -315,7 +315,7 @@ describe('GET /api/v2/dipendente/activate_turno', () => {
 
 // TEST DIPENDENTE GET_DIPENDENTI
 describe('GET /api/v2/dipendente/get_dipendenti', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-2 5
     test('GET /api/v2/dipendente/get_dipendenti con nessun dipendente creato dall\' organizzatore', () => {
         return request(app)
@@ -393,7 +393,7 @@ describe('GET /api/v2/dipendente/get_dipendenti', () => {
 
 // TEST DIPENDENTE MODIFICA
 describe('GET /api/v2/dipendente/modifica', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-2 6
     test('PUT /api/v2/dipendente/modifica con parametri corretti', () => {
         return request(app)
@@ -550,7 +550,7 @@ describe('GET /api/v2/dipendente/modifica', () => {
 
 // TEST DIPENDENTE GET_BY_ID
 describe('GET /api/v2/dipendente/get_by_id', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-2 7
     test('GET /api/v2/dipendente/get_by_id con token e dipendete_id corretti', () => {
         return request(app)

@@ -8,9 +8,9 @@ test('app module should be defined', () => {
     expect(app).toBeDefined();
 });
 
-beforeAll(async () => {
-    jest.setTimeout(8000);
-})
+// beforeAll(async () => {
+//     jest.setTimeout(30000);
+// })
 
 afterAll(async () => {
     await mongoose.connection.close();
@@ -19,7 +19,7 @@ afterAll(async () => {
 
 // TEST EVENT/PHOTOS ADD
 describe('GET /api/v2/event/photos/add', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-2 18
     test('POST /api/v2/event/photos/add con parametri corretti', () => {
         return request(app)
@@ -125,7 +125,7 @@ describe('GET /api/v2/event/photos/add', () => {
 
 // TEST EVENT/PHOTOS ADD
 describe('GET /api/v2/event/photos/get_photos', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-2 19
     test('GET /api/v2/event/photos/get_photos con con parametri corretti', () => {
         return request(app)

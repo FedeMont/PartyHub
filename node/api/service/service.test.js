@@ -8,7 +8,7 @@ test('app module should be defined', () => {
 });
 
 beforeAll(async () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
 });
 
 afterAll(async () => {
@@ -210,7 +210,7 @@ describe('POST /api/v2/service/crea', () => {
 
 // TEST VENDITA PRODOTTI
 describe('POST /api/v2/service/sell_products', () => {
-    jest.setTimeout(10000);
+    jest.setTimeout(30000);
     
     // TEST SPRINT-1 13
     test('POST /api/v2/service/sell_products con token e biglietto id, liste dei prodotti corretti', () => {

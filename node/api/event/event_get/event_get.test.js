@@ -7,9 +7,9 @@ test('app module should be defined', () => {
     expect(app).toBeDefined();
 });
 
-beforeAll(async () => {
-    jest.setTimeout(8000);
-});
+// beforeAll(async () => {
+//     jest.setTimeout(30000);
+// });
 
 afterAll(async () => {
     await mongoose.connection.close();

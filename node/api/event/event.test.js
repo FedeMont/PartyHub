@@ -6,9 +6,9 @@ test('app module should be defined', () => {
     expect(app).toBeDefined();
 });
 
-beforeAll(() => {
-    jest.setTimeout(10000);
-});
+// beforeAll(() => {
+//     jest.setTimeout(30000);
+// });
 
 afterAll(async () => {
     await mongoose.connection.close();
@@ -249,7 +249,7 @@ describe('POST /api/v2/event/crea', () => {
 
 // TEST ISCRIZIONE EVENTO
 describe('POST /api/v2/event/iscrizione', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-1 15
     test('POST /api/v2/event/iscrizione con parametri corretti', () => {
         return request(app)
@@ -461,7 +461,7 @@ describe('POST /api/v2/event/iscrizione', () => {
 
 // TEST DISISCRIZIONE EVENTO
 describe('POST /api/v2/event/disiscrizione', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-1 16
     test('POST /api/v2/event/disiscrizione con parametri corretti', () => {
         return request(app)
@@ -606,7 +606,7 @@ describe('POST /api/v2/event/disiscrizione', () => {
 
 // TEST MODIFICA EVENTO
 describe('PATCH /api/v2/event/modifica', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-2 11
     test('PATCH /api/v2/event/modifica con parametri corretti', () => {
         return request(app)
@@ -827,7 +827,7 @@ describe('PATCH /api/v2/event/modifica', () => {
 
 // TEST ELIMINA EVENTO
 describe('DELETE /api/v2/event/elimina', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-2 12
     test('DELETE /api/v2/event/elimina con parametri corretti', () => {
         return request(app)
@@ -972,7 +972,7 @@ describe('DELETE /api/v2/event/elimina', () => {
 
 // TEST FEEDBACK EVENTO
 describe('PATCH /api/v2/event/feedback', () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(30000);
     // TEST SPRINT-2 13
     test('PATCH /api/v2/event/feedback con parametri corretti', () => {
         return request(app)
